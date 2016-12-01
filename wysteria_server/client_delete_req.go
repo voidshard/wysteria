@@ -64,8 +64,10 @@ func (s *WysteriaServer) handleDelItem(data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.searchbase.DeleteItem(i.Id)
-
+	err = s.searchbase.DeleteItem(i.Id)
+	if err != nil {
+		return nil, err
+	}
 	return wyc.WYSTERIA_SERVER_ACK, nil
 }
 
@@ -117,11 +119,14 @@ func (s *WysteriaServer) handleDelFileResource(data []byte) ([]byte, error) {
 		return nil, errors.New(err_id_required)
 	}
 
-	err = s.database.DeleteCollection(i.Id)
+	err = s.database.DeleteFileResource(i.Id)
 	if err != nil {
 		return nil, err
 	}
-	s.searchbase.DeleteFileResource(i.Id)
+	err = s.searchbase.DeleteFileResource(i.Id)
+	if err != nil {
+		return nil, err
+	}
 
 	return wyc.WYSTERIA_SERVER_ACK, nil
 }

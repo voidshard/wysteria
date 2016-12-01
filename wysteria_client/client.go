@@ -1,21 +1,21 @@
 package wysteria_client
 
 import (
-	wcm "wysteria/wysteria_common/middleware"
-	wyc "wysteria/wysteria_common"
 	"encoding/json"
 	"errors"
 	"strings"
+	wyc "wysteria/wysteria_common"
+	wcm "wysteria/wysteria_common/middleware"
 )
 
 type wysteriaClient struct {
 	SettingsMiddleware wcm.MiddlewareSettings
-	middleware wcm.WysteriaMiddleware
+	middleware         wcm.WysteriaMiddleware
 }
 
 func (w *wysteriaClient) Search() *search {
 	return &search{
-		conn: w,
+		conn:      w,
 		nextQuery: wyc.QueryDesc{},
 	}
 }
@@ -30,9 +30,9 @@ func (w *wysteriaClient) requestData(route string, send, recv interface{}) error
 		return err
 	}
 
-	reply, err := w.middleware.Request(w.SettingsMiddleware.RouteServer + route, packed)
+	reply, err := w.middleware.Request(w.SettingsMiddleware.RouteServer+route, packed)
 	if err != nil {
-		return  err
+		return err
 	}
 
 	err = json.Unmarshal(reply, recv)

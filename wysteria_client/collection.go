@@ -1,9 +1,9 @@
 package wysteria_client
 
 import (
-	wyc "wysteria/wysteria_common"
-	"fmt"
 	"errors"
+	"fmt"
+	wyc "wysteria/wysteria_common"
 )
 
 type collection struct {
@@ -41,15 +41,14 @@ func (c *collection) GetItems() ([]*item, error) {
 	return items, nil
 }
 
-
 func (c *collection) CreateItem(itemtype, variant string) (*item, error) {
 	i := item{
 		conn: c.conn,
 		data: wyc.Item{
-			Parent: c.data.Id,
+			Parent:   c.data.Id,
 			ItemType: itemtype,
-			Variant: variant,
-			Facets: map[string]string {
+			Variant:  variant,
+			Facets: map[string]string{
 				"collection": c.data.Name,
 			},
 		},
@@ -94,4 +93,3 @@ func (w *wysteriaClient) GetCollection(identifier string) (*collection, error) {
 	}
 	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %s", len(cdata)))
 }
-

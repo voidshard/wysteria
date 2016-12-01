@@ -1,13 +1,13 @@
 package middleware
 
 import (
-	"gtank/cryptopasta"
-	"errors"
-	"github.com/nats-io/nats"
 	"crypto/tls"
+	"errors"
 	"fmt"
-	"strconv"
+	"github.com/nats-io/nats"
+	"gtank/cryptopasta"
 	"log"
+	"strconv"
 )
 
 const (
@@ -15,9 +15,9 @@ const (
 )
 
 type natsMiddleware struct {
-	Host string
-	key [32]byte
-	conn *nats.Conn
+	Host    string
+	key     [32]byte
+	conn    *nats.Conn
 	encrypt bool
 }
 
@@ -38,13 +38,13 @@ func natsConnect(settings MiddlewareSettings) (WysteriaMiddleware, error) {
 	options := []nats.Option{}
 	if settings.PemFile != "" {
 		options = append(options, nats.Secure(&tls.Config{
-        		InsecureSkipVerify: true,
-    		}))
+			InsecureSkipVerify: true,
+		}))
 	}
 
 	raw, err := nats.Connect(
 		natsUrl(settings),
-		options...
+		options...,
 	)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (m *natsMiddleware) Request(subject string, data []byte) ([]byte, error) {
 		clear, err := decrypt(msg.Data, m.key)
 		return clear, nil
 	}
-	msg, err :=  m.conn.Request(subject, data, Timeout)
+	msg, err := m.conn.Request(subject, data, Timeout)
 	return msg.Data, err
 }
 
@@ -121,11 +121,11 @@ func (m *natsMiddleware) Subscribe(subject, queue string) (WysteriaSubscription,
 	}
 
 	msgSub := natsSubscription{
-		parent: m,
-		sub: subRecv,
-		Out: recv,
+		parent:  m,
+		sub:     subRecv,
+		Out:     recv,
 		Subject: subject,
-		Queue: queue,
+		Queue:   queue,
 	}
 	return &msgSub, nil
 }
@@ -151,27 +151,25 @@ func (m *natsMiddleware) GroupSubscribe(subject string) (WysteriaSubscription, e
 	}
 
 	msgSub := natsSubscription{
-		parent: m,
-		sub: subRecv,
-		Out: recv,
+		parent:  m,
+		sub:     subRecv,
+		Out:     recv,
 		Subject: subject,
 	}
 	return &msgSub, nil
 }
 
-
 type natsSubscription struct {
-	parent *natsMiddleware
-	sub *nats.Subscription
+	parent  *natsMiddleware
+	sub     *nats.Subscription
 	Subject string
-	Queue string
-	Out <-chan Message
+	Queue   string
+	Out     <-chan Message
 }
 
 func (m *natsSubscription) Unsubscribe() error {
 	return m.sub.Unsubscribe()
 }
-
 
 func (m *natsSubscription) Receive() <-chan Message {
 	return m.Out
@@ -183,7 +181,7 @@ func formKey(s string) (key [32]byte, err error) {
 	}
 
 	sb := []byte(s)
-	for i:=0; i < 32; i++ {
+	for i := 0; i < 32; i++ {
 		key[i] = sb[i]
 	}
 	return

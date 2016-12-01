@@ -1,9 +1,9 @@
 package wysteria_client
 
 import (
-	wyc "wysteria/wysteria_common"
-	"fmt"
 	"errors"
+	"fmt"
+	wyc "wysteria/wysteria_common"
 )
 
 type version struct {
@@ -39,10 +39,10 @@ func (i *version) update() error {
 
 func (i *version) AddResource(name, rtype, location string) (string, error) {
 	res := wyc.FileResource{
-		Parent: i.data.Id,
-		Name: name,
+		Parent:       i.data.Id,
+		Name:         name,
 		ResourceType: rtype,
-		Location: location,
+		Location:     location,
 	}
 	err := i.conn.requestData(wyc.MSG_CREATE_FILERESOURCE, res, &res)
 	if err != nil {
@@ -165,8 +165,8 @@ func (i *version) LinkTo(name string, other *version) error {
 
 	lnk := wyc.Link{
 		Name: name,
-		Src: i.data.Id,
-		Dst: other.data.Id,
+		Src:  i.data.Id,
+		Dst:  other.data.Id,
 	}
 	err := i.conn.requestData(wyc.MSG_CREATE_LINK, lnk, &lnk)
 	if err != nil {

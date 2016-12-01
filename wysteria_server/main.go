@@ -11,7 +11,7 @@ func main() {
 
 		// Pass in all config settings
 		SettingsMiddleware: Config.MiddlewareSettings,
-		SettingsBackend: Config.DatabaseSettings,
+		SettingsBackend:    Config.DatabaseSettings,
 	}
 
 	// Connect to all required endpoints, die in the event of any failures

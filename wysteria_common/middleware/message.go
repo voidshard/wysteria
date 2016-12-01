@@ -1,7 +1,7 @@
 package middleware
 
 type Message struct {
-	Data []byte
+	Data    []byte
 	Subject string
-	Reply string
+	Reply   string
 }

@@ -1,15 +1,15 @@
 package wysteria_client
 
 import (
+	"errors"
 	gcfg "gopkg.in/gcfg.v1"
 	"os"
-	"errors"
 	wcm "wysteria/wysteria_common/middleware"
 )
 
 const (
-	default_config  = "wysteria-client.ini"
-	default_envvar  = "WYSTERIA_CLIENT_INI"
+	default_config = "wysteria-client.ini"
+	default_envvar = "WYSTERIA_CLIENT_INI"
 )
 
 var Config configuration
@@ -18,7 +18,7 @@ type configuration struct { // forms a universal config
 	MiddlewareSettings wcm.MiddlewareSettings
 }
 
-func init () {
+func init() {
 	err := readConfig()
 	if err != nil {
 		setDefaults()
@@ -40,7 +40,7 @@ func setDefaults() {
 }
 
 func readConfig() error {
-	paths := []string {
+	paths := []string{
 		default_config,
 		os.Getenv(default_envvar),
 	}

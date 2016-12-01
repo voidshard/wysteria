@@ -1,14 +1,14 @@
 package middleware
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"time"
 )
 
 var (
-	Timeout = time.Second * 30
-	connectors = map[string] func(MiddlewareSettings) (WysteriaMiddleware, error) {
+	Timeout    = time.Second * 30
+	connectors = map[string]func(MiddlewareSettings) (WysteriaMiddleware, error){
 		"nats": natsConnect,
 	}
 )

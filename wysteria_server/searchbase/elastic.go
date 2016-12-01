@@ -1,14 +1,14 @@
 package searchends
 
 import (
-	wyc "wysteria/wysteria_common"
-	"github.com/olivere/elastic"
+	"encoding/base64"
 	"errors"
 	"fmt"
-	"sync"
+	"github.com/olivere/elastic"
 	"strings"
+	"sync"
 	"time"
-	"encoding/base64"
+	wyc "wysteria/wysteria_common"
 )
 
 const (
@@ -20,12 +20,12 @@ func elastic_connect(settings SearchbaseSettings) (Searchbase, error) {
 		elastic.SetURL(fmt.Sprintf("http://%s:%d", settings.Host, settings.Port)),
 	)
 	if err != nil {
-    		return nil, err
+		return nil, err
 	}
 
 	e := &elasticSearch{
 		Settings: settings,
-		client: client,
+		client:   client,
 	}
 
 	err = e.createIndexIfNotExists(e.Settings.Database)
@@ -38,66 +38,66 @@ func elastic_connect(settings SearchbaseSettings) (Searchbase, error) {
 
 type elasticSearch struct {
 	Settings SearchbaseSettings
-	client *elastic.Client
+	client   *elastic.Client
 }
 
-func (e *elasticSearch) InsertItem (id string, doc wyc.Item) error {
+func (e *elasticSearch) InsertItem(id string, doc wyc.Item) error {
 	return e.insert(table_item, id, doc)
 }
 
-func (e *elasticSearch) InsertVersion (id string, doc wyc.Version) error {
+func (e *elasticSearch) InsertVersion(id string, doc wyc.Version) error {
 	return e.insert(table_version, id, doc)
 }
 
-func (e *elasticSearch) InsertFileResource (id string, doc wyc.FileResource) error {
+func (e *elasticSearch) InsertFileResource(id string, doc wyc.FileResource) error {
 	// Hash path to nullify tokenizing on '/' or '\' symbols
 	doc.Location = hashResourceLocation(doc.Location)
 	return e.insert(table_fileresource, id, doc)
 }
 
-func (e *elasticSearch) InsertLink (id string, doc wyc.Link) error {
+func (e *elasticSearch) InsertLink(id string, doc wyc.Link) error {
 	return e.insert(table_link, id, doc)
 }
 
-func (e *elasticSearch) UpdateItem (id string, doc wyc.Item) error {
+func (e *elasticSearch) UpdateItem(id string, doc wyc.Item) error {
 	// Explicit insert to ID deletes & replaces doc
 	return e.insert(table_item, id, doc)
 }
 
-func (e *elasticSearch) UpdateVersion (id string, doc wyc.Version) error {
+func (e *elasticSearch) UpdateVersion(id string, doc wyc.Version) error {
 	// Explicit insert to ID deletes & replaces doc
 	return e.insert(table_version, id, doc)
 }
 
-func (e *elasticSearch) DeleteItem (ids ...string) error {
+func (e *elasticSearch) DeleteItem(ids ...string) error {
 	return e.delete(table_item, ids...)
 }
 
-func (e *elasticSearch) DeleteVersion (ids ...string) error {
+func (e *elasticSearch) DeleteVersion(ids ...string) error {
 	return e.delete(table_version, ids...)
 }
 
-func (e *elasticSearch) DeleteFileResource (ids ...string) error {
+func (e *elasticSearch) DeleteFileResource(ids ...string) error {
 	return e.delete(table_fileresource, ids...)
 }
 
-func (e *elasticSearch) DeleteLink (ids ...string) error {
+func (e *elasticSearch) DeleteLink(ids ...string) error {
 	return e.delete(table_link, ids...)
 }
 
-func (e *elasticSearch) QueryItem (sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
+func (e *elasticSearch) QueryItem(sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
 	return e.fanSearch(table_item, elasticTermsItem, sortBy, asc, limit, qs...)
 }
 
-func (e *elasticSearch) QueryVersion (sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
+func (e *elasticSearch) QueryVersion(sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
 	return e.fanSearch(table_version, elasticTermsVersion, sortBy, asc, limit, qs...)
 }
 
-func (e *elasticSearch) QueryFileResource (sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
+func (e *elasticSearch) QueryFileResource(sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
 	return e.fanSearch(table_fileresource, elasticTermsFileResource, sortBy, asc, limit, qs...)
 }
 
-func (e *elasticSearch) QueryLink (sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
+func (e *elasticSearch) QueryLink(sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
 	return e.fanSearch(table_link, elasticTermsLink, sortBy, asc, limit, qs...)
 }
 
@@ -110,7 +110,7 @@ func (e *elasticSearch) Close() error {
 //  - If the delete for an ID fails possibly it wasn't found as Elastic is still indexing it
 //  - To overcome this we'll retry the delete once after a small sleep period
 //
-func (e *elasticSearch) delete (col string, ids ...string) error {
+func (e *elasticSearch) delete(col string, ids ...string) error {
 	wg := sync.WaitGroup{}
 	wg.Add(len(ids))
 
@@ -124,7 +124,7 @@ func (e *elasticSearch) delete (col string, ids ...string) error {
 		}
 	}()
 
-	for _, id := range(ids) {
+	for _, id := range ids {
 		my_id := id
 		go func() {
 			_, err := e.client.Delete().Index(e.Settings.Database).Type(col).Id(my_id).Do()
@@ -224,7 +224,7 @@ func elasticTermsItem(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
 	if qd.Variant != "" {
 		q = append(q, termQuery("Variant", qd.Variant))
 	}
-	for k, v := range(qd.Facets) {
+	for k, v := range qd.Facets {
 		q = append(q, termQuery(fmt.Sprintf("Facets.%s", k), v))
 	}
 	if qd.Parent != "" {
@@ -240,7 +240,7 @@ func elasticTermsVersion(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
 	if qd.VersionNumber > 0 {
 		q = append(q, elastic.NewTermQuery("Number", qd.VersionNumber))
 	}
-	for k, v := range(qd.Facets) {
+	for k, v := range qd.Facets {
 		q = append(q, termQuery(fmt.Sprintf("Facets.%s", k), v))
 	}
 	if qd.Parent != "" {
@@ -272,7 +272,7 @@ func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) [
 	wg := sync.WaitGroup{} // wait group to ensure we've completed all queries
 	wg.Add(len(queries))
 
-	errors := []error{} // list of errors returned
+	errors := []error{}   // list of errors returned
 	results := []string{} // list of results (Ids) returned
 
 	go func() {
@@ -284,13 +284,13 @@ func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) [
 
 	go func() {
 		// Listen for results, pull out the IDs and record those we don't have already
-		for result := range (result_chan) {
+		for result := range result_chan {
 			for _, hit := range result.Hits.Hits {
 				// ToDo: works, but could use some straightening up
 				result_id := hit.Fields["Id"].([]interface{})[0].(string)
 
 				add := true
-				for _, id := range(results) {
+				for _, id := range results {
 					if id == result_id {
 						add = false
 						break
@@ -304,7 +304,7 @@ func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) [
 		rwg.Done()
 	}()
 
-	for _, query := range(queries) {
+	for _, query := range queries {
 		// Here we go through our distinct queries to execute and run them all in their own routines.
 		// Loop through our queries
 		//  - build a list of QueryTerms w/ makeTerms func

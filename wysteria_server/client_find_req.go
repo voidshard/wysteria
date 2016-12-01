@@ -1,10 +1,10 @@
 package main
 
 import (
-	wyc "wysteria/wysteria_common"
 	"encoding/json"
 	"errors"
 	"fmt"
+	wyc "wysteria/wysteria_common"
 )
 
 func (s *WysteriaServer) findHighestVersion(parentId string) (wyc.Version, error) {
@@ -22,7 +22,7 @@ func (s *WysteriaServer) findHighestVersion(parentId string) (wyc.Version, error
 	// We expect that in almost all cases we'll grab the first (highest) version from the db, but in the
 	// event that the highest has been removed from the DB but not the searchbase yet, we'll go down our
 	// list highest to lowest and return the highest non deleted (in the db) version
-	for _, id := range(ids) {
+	for _, id := range ids {
 		last, err := s.database.RetrieveVersion(id)
 		if err != nil {
 			// in this case, the Version has been deleted in the DB but not yet in the searchbase.

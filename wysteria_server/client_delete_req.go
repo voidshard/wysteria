@@ -1,14 +1,14 @@
 package main
 
 import (
-	wyc "wysteria/wysteria_common"
 	"encoding/json"
 	"errors"
+	wyc "wysteria/wysteria_common"
 )
 
 const (
 	err_cannot_orphan = "Unable to delete obj while undeleted children exist"
-	err_id_required = "Unable to delete: Obj id not supplied"
+	err_id_required   = "Unable to delete: Obj id not supplied"
 )
 
 func (s *WysteriaServer) handleDelCollection(data []byte) ([]byte, error) {

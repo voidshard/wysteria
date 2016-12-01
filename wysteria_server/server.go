@@ -1,21 +1,21 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+	wyc "wysteria/wysteria_common"
 	wcm "wysteria/wysteria_common/middleware"
 	wdb "wysteria/wysteria_server/database"
 	wsb "wysteria/wysteria_server/searchbase"
-	wyc "wysteria/wysteria_common"
-	"time"
-	"os"
-	"log"
-	"os/signal"
-	"syscall"
-	"fmt"
-	"errors"
 )
 
 const (
-	server_queue = "WYSTERIA_SERVER_v01"
+	server_queue   = "WYSTERIA_SERVER_v01"
 	ERR_UNKOWN_MSG = "Message not understood"
 )
 
@@ -23,9 +23,9 @@ type WysteriaServer struct {
 	GracefulShutdownTime time.Duration
 
 	SettingsMiddleware wcm.MiddlewareSettings
-	SettingsBackend wdb.DatabaseSettings
+	SettingsBackend    wdb.DatabaseSettings
 
-	database wdb.Database
+	database   wdb.Database
 	searchbase wsb.Searchbase
 	middleware wcm.WysteriaMiddleware
 
@@ -37,10 +37,10 @@ func (s *WysteriaServer) Run() {
 	log.Println("Running")
 	for {
 		select {
-			case message := <- s.fromServers.Receive():
-				log.Println(message)
-			case message := <- s.fromClients.Receive():
-				go s.handleClientMessage(&message)
+		case message := <-s.fromServers.Receive():
+			log.Println(message)
+		case message := <-s.fromClients.Receive():
+			go s.handleClientMessage(&message)
 		}
 	}
 }
@@ -174,15 +174,15 @@ func (s *WysteriaServer) connect() error {
 	}
 	s.middleware = ware
 
-	log.Println(fmt.Sprintf("Subscribing to %s%s", s.SettingsMiddleware.RouteServer + ">", server_queue))
-	cSub, err := s.middleware.Subscribe(s.SettingsMiddleware.RouteServer + ">", server_queue)
+	log.Println(fmt.Sprintf("Subscribing to %s%s", s.SettingsMiddleware.RouteServer+">", server_queue))
+	cSub, err := s.middleware.Subscribe(s.SettingsMiddleware.RouteServer+">", server_queue)
 	if err != nil {
 		return err
 	}
 	s.fromClients = cSub
 
-	log.Println(fmt.Sprintf("Subscribing to %s%s", s.SettingsMiddleware.RouteInternalServer + ">", server_queue))
-	sSub, err := s.middleware.Subscribe(s.SettingsMiddleware.RouteInternalServer + ">", server_queue)
+	log.Println(fmt.Sprintf("Subscribing to %s%s", s.SettingsMiddleware.RouteInternalServer+">", server_queue))
+	sSub, err := s.middleware.Subscribe(s.SettingsMiddleware.RouteInternalServer+">", server_queue)
 	if err != nil {
 		return err
 	}

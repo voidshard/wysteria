@@ -1,9 +1,9 @@
 package wysteria_client
 
 import (
-	wyc "wysteria/wysteria_common"
-	"fmt"
 	"errors"
+	"fmt"
+	wyc "wysteria/wysteria_common"
 )
 
 type item struct {
@@ -31,8 +31,8 @@ func (i *item) LinkTo(name string, other *item) error {
 
 	lnk := wyc.Link{
 		Name: name,
-		Src: i.data.Id,
-		Dst: other.data.Id,
+		Src:  i.data.Id,
+		Dst:  other.data.Id,
 	}
 	err := i.conn.requestData(wyc.MSG_CREATE_LINK, lnk, &lnk)
 	if err != nil {

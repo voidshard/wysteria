@@ -1,14 +1,14 @@
 package wysteria_client
 
 import (
-	wyc "wysteria/wysteria_common"
 	"errors"
+	wyc "wysteria/wysteria_common"
 )
 
 type search struct {
-	conn *wysteriaClient
-	query []wyc.QueryDesc
-	nextQuery wyc.QueryDesc
+	conn       *wysteriaClient
+	query      []wyc.QueryDesc
+	nextQuery  wyc.QueryDesc
 	nextQValid bool
 }
 

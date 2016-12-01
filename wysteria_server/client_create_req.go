@@ -1,10 +1,10 @@
 package main
 
 import (
-	wyc "wysteria/wysteria_common"
 	"encoding/json"
-	"log"
 	"errors"
+	"log"
+	wyc "wysteria/wysteria_common"
 )
 
 func (s *WysteriaServer) handleCreateCollection(data []byte) ([]byte, error) {
@@ -59,7 +59,7 @@ func (s *WysteriaServer) handleCreateVersion(data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	if i.Parent == ""  {
+	if i.Parent == "" {
 		return nil, errors.New("Parent required for Version")
 	}
 

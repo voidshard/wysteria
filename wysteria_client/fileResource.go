@@ -1,9 +1,9 @@
 package wysteria_client
 
 import (
-	wyc "wysteria/wysteria_common"
 	"errors"
 	"fmt"
+	wyc "wysteria/wysteria_common"
 )
 
 type fileResource struct {
@@ -54,4 +54,3 @@ func (i *fileResource) GetParent() (*version, error) {
 		data: results[0],
 	}, nil
 }
-

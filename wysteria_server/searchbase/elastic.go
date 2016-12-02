@@ -141,6 +141,8 @@ func (e *elasticSearch) delete(col string, ids ...string) error {
 	}
 
 	wg.Wait()
+	close(err_chan)
+
 	if len(all_errors) > 0 {
 		return all_errors[0]
 	}
@@ -272,13 +274,13 @@ func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) [
 	wg := sync.WaitGroup{} // wait group to ensure we've completed all queries
 	wg.Add(len(queries))
 
-	errors := []error{}   // list of errors returned
+	all_errors := []error{}   // list of errors returned
 	results := []string{} // list of results (Ids) returned
 
 	go func() {
 		// Listen for errors, record them all
 		for err := range err_chan {
-			errors = append(errors, err)
+			all_errors = append(all_errors, err)
 		}
 	}()
 
@@ -347,8 +349,8 @@ func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) [
 
 	rwg.Wait() // wait for all results to be parsed
 
-	if len(errors) > 0 {
-		return results, errors[0]
+	if len(all_errors) > 0 {
+		return results, all_errors[0]
 	}
 	return results, nil
 }

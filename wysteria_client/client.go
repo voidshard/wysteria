@@ -45,7 +45,7 @@ func (w *wysteriaClient) requestData(route string, send, recv interface{}) error
 		if strings.HasPrefix(err_string, wyc.WYSTERIA_SERVER_ERR) {
 			// The server has replied with an error message
 			return errors.New(err_string)
-		} else if strings.HasPrefix(err_string, wyc.WYSTERIA_SERVER_ACK) {
+		} else if strings.HasPrefix(err_string, string(wyc.WYSTERIA_SERVER_ACK)) {
 			// The server has replied with our prearranged "acknowledged" message
 			return nil
 		}

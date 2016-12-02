@@ -64,7 +64,7 @@ They also have facets so that one can add custom searchable metadata to them for
 ```Go
 item1.SetFacet("colour", "white")
 ```
-Wysteria automatically attaches some facets to created items & versions to make your life easier, such as the name of the parent collection.
+Wysteria automatically attaches some facets to created items & versions to make your life easier, such as the name of the parent collection. In the case of versions you also get the item's item type and variant.
 
 Part of the usefulness of items is their ability to be linked together, you might say for example
 ```Go
@@ -122,7 +122,6 @@ all_resources, err := ver.GetAllResources()
 image_resouces, err = ver.GetResourcesByType("image")
 batmans_resources, err = ver.GetResourcesByName("batmanSettings")
 ```
-Note that wysteria makes no attempt to understand the given data, so you're free to use ids to another database, a url, a filename or some other thing.
 
 ##Searching
 At this point, you could start with a given collection, then walk up, down and/or sideways through the heirarchy to find what you're looking for. But more likely you're looking for an easier way. You can search on almost any field, facet, name, type, location or id, or any combonation of the above.
@@ -154,7 +153,8 @@ That is, this search will return all items from any collection(s) that have eith
 ##Notes
 
 - There will be a delay between when something is created in wysteria, and when it is returnable via a search. This delay should be measured in seconds at most, depending on the 'searchbase' being used. It's possible that different searchbase implementations will overcome this in the future
-- "Moving" and/or "renaming" are foreign concepts to wysteria, if you need to move something you should delete and recreate it. Part of this is because of the complications it introduces, and part of this is to be able to support deterministic ids (in a later version)
+- "Moving" and/or "renaming" are foreign concepts to wysteria, if you need to move something you should delete and recreate it. Part of this is because of the complications it introduces, and part of this is to be able to support deterministic ids (in a later version). That is, most objects and fields are immutable after creation.
+- Wysteria makes no attempt to understand the links you set or sanitize strings given
 
 
 ##Contributing
@@ -179,4 +179,4 @@ Also, if (when) you find bugs, let me know.
     - add alerts for certain events or server statuses
     - allow temporary routing of all client requests to another server(s) (that we can shutdown gracefully)
 - move encoding scheme to something more time/memory efficient
-
+- implement system for deterministic ids

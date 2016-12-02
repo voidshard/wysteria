@@ -115,12 +115,12 @@ func (e *elasticSearch) delete(col string, ids ...string) error {
 	wg.Add(len(ids))
 
 	err_chan := make(chan error)
-	errors := []error{}
+	all_errors := []error{}
 
 	go func() {
 		for err := range err_chan {
 			fmt.Println(err)
-			errors = append(errors, err)
+			all_errors = append(all_errors, err)
 		}
 	}()
 
@@ -141,8 +141,8 @@ func (e *elasticSearch) delete(col string, ids ...string) error {
 	}
 
 	wg.Wait()
-	if len(errors) > 0 {
-		return errors[0]
+	if len(all_errors) > 0 {
+		return all_errors[0]
 	}
 	return nil
 }

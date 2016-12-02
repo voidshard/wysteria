@@ -47,6 +47,10 @@ You can easily fetch a collection via either the name or id
 collection, _ := client.GetCollection("spriteSets")
 sameCollection, _ := client.GetCollection(collection.Id())
 ```
+And all child items of a collection via
+```Go
+items, _ := collection.GetItems()
+```
 
 ##Items
 A collection can have any number of items, with the constraint that there is at most one item of each 'item type' and 'variant'.

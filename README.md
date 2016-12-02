@@ -153,6 +153,13 @@ That is, this search will return all items from any collection(s) that have eith
 - "Moving" and/or "renaming" are foreign concepts to wysteria, if you need to move something you should delete and recreate it. Part of this is because of the complications it introduces, and part of this is to be able to support deterministic ids (in a later version)
 
 
+##Contributing
+
+All contributors are welcome. If you write a new implementation for any og the interfaces or make any improvements please do make a pull request. 
+
+Also, if (when) you find bugs, let me know.
+
+
 ##ToDo List
 
 - unittests for business logic
@@ -168,7 +175,3 @@ That is, this search will return all items from any collection(s) that have eith
   - the Nats middleware round-robins incoming client requests to each wysteria server, but possibly we could be smarter
 - move encoding scheme to something more time/memory efficient
 
-
-##Contributing
-
-All contributors are welcome. If you write a new implementation for any og the interfaces or make any improvements please do make a pull request. 

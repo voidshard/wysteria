@@ -1,6 +1,10 @@
 v0.9: consider working but alpha until addition of test suite
+#Wysteria
 
-## Before You Start
+An open source asset tracking & versioning system written in Go. 
+
+
+##Before You Start
 
 There are three extra components that a wysteria server depends on, these are
 - A database for long term storage
@@ -14,7 +18,7 @@ Each of these is behind an interface so it's easy to write implementations for y
 
 Thus you'll need to have set up each of these services for wysteria to use.
 
-## Connecting
+##Connecting
 Once you're set up, opening a connection to the server is reasonably simple
 ```Go
 import (       
@@ -141,3 +145,30 @@ a_or_b_items, _ := client.Search().ItemType("a").Id("abc123").Or().ItemType("b")
 That is, this search will return all items from any collection(s) that have either
 - id of "abc123" and item type of "a"
 - item type of "b"
+
+
+##Notes
+
+- There will be a delay between when something is created in wysteria, and when it is returnable via a search. This delay should be measured in seconds at most, depending on the 'searchbase' being used. It's possible that different searchbase implementations will overcome this in the future
+- "Moving" and/or "renaming" are foreign concepts to wysteria, if you need to move something you should delete and recreate it. Part of this is because of the complications it introduces, and part of this is to be able to support deterministic ids (in a later version)
+
+
+##ToDo List
+
+- unittests for business logic
+  - mock in-memory searchbase implementation
+  - mock in-memory database implementation
+- logging & live statistics gathering functionality
+  - Open to suggestions on implementation
+- admin console 
+  - extend the wysteria server chan (currently subscribed to but unused) to allow realtime management of live server(s)
+    - allow / disallow certain client requests
+    - turn on / of ability to 
+- consider using inter-server message chan to do auto loadbalancing  
+  - the Nats middleware round-robins incoming client requests to each wysteria server, but possibly we could be smarter
+- move encoding scheme to something more time/memory efficient
+
+
+##Contributing
+
+All contributors are welcome. If you write a new implementation for any og the interfaces or make any improvements please do make a pull request. 

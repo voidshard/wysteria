@@ -1,3 +1,5 @@
+v0.9: consider working but alpha until addition of test suite
+
 ## Before You Start
 
 There are three extra components that a wysteria server depends on, these are

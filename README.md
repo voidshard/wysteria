@@ -170,8 +170,9 @@ Also, if (when) you find bugs, let me know.
 - admin console 
   - extend the wysteria server chan (currently subscribed to but unused) to allow realtime management of live server(s)
     - allow / disallow certain client requests
-    - turn on / of ability to 
-- consider using inter-server message chan to do auto loadbalancing  
-  - the Nats middleware round-robins incoming client requests to each wysteria server, but possibly we could be smarter
+    - allow configurable of auto load-balancing 
+    - allow changing of configuration option(s) (like the database we're reading / writing to etc)
+    - allow configuration of alerts for certain events or server statuses
+    - allow temporary routing of all client requests to another server(s) (that we can shutdown gracefully)
 - move encoding scheme to something more time/memory efficient
 

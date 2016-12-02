@@ -105,6 +105,12 @@ func (i *search) Links() ([]*link, error) {
 	return ret, nil
 }
 
+func (i *search) Id(s string) *search {
+	i.nextQValid = true
+	i.nextQuery.Id = s
+	return i
+}
+
 func (i *search) ChildOf(s string) *search {
 	i.nextQValid = true
 	i.nextQuery.Parent = s

@@ -154,7 +154,7 @@ That is, this search will return all items from any collection(s) that have eith
 
 - There will be a delay between when something is created in wysteria, and when it is returnable via a search. This delay should be measured in seconds at most, depending on the 'searchbase' being used. It's possible that different searchbase implementations will overcome this in the future
 - "Moving" and/or "renaming" are foreign concepts to wysteria, if you need to move something you should delete and recreate it. Part of this is because of the complications it introduces, and part of this is to be able to support deterministic ids (in a later version). That is, most objects and fields are immutable after creation.
-- Wysteria makes no attempt to understand the links you set or sanitize strings given, the meaning behind the file resource 'location' is left entirely to the user -- it could be a filepath, a url, an id into another system or something else entirely.
+- Wysteria makes no attempt to understand the links you set or sanitize strings given. The meaning behind the file resource 'location' for example is left entirely to the user -- it could be a filepath, a url, an id into another system or something else entirely.
 - There is no maximum number of facets, links or resources that one can attach that is enforced by the system. Practical limits of the underlying systems will begin to apply at some point however.
 
 

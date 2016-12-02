@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	wyc "wysteria/wysteria_common"
+	"fmt"
 )
 
 func (s *WysteriaServer) handleCreateCollection(data []byte) ([]byte, error) {
@@ -36,6 +37,18 @@ func (s *WysteriaServer) handleCreateItem(data []byte) ([]byte, error) {
 
 	if i.Parent == "" || i.Variant == "" || i.ItemType == "" { // Check required fields
 		return nil, errors.New("Parent, ItemType, Variant required for Item")
+	}
+
+	results, err := s.searchbase.QueryItem("", true, 0, wyc.QueryDesc{
+		Parent: i.Parent,
+		ItemType: i.ItemType,
+		Variant: i.Variant,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(results) > 0 {
+		return nil, errors.New(fmt.Sprintf("A child item of %s already exists with %s %s", i.Parent, i.ItemType, i.Variant))
 	}
 
 	i.Id = NewId()

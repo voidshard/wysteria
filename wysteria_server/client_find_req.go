@@ -11,11 +11,11 @@ func (s *WysteriaServer) findHighestVersion(parentId string) (wyc.Version, error
 	// Grab the highest ten in case we are currently deleting 9 Versions (for some reason ..)
 	ids, err := s.searchbase.QueryVersion("Number", false, 10, wyc.QueryDesc{Parent: parentId})
 	if err != nil {
-		return wyc.Version{}, err
+		return nil, err
 	}
 
 	if len(ids) == 0 {
-		return wyc.Version{}, errors.New("No versions found")
+		return nil, errors.New("No versions found")
 	}
 
 	// Edge case; A version could be removed in the DB but still be in the SB. We need to handle that.
@@ -41,7 +41,7 @@ func (s *WysteriaServer) findHighestVersion(parentId string) (wyc.Version, error
 	// We can arrive here if the searchbase and the database are currently too far out of sync.
 	// Because deletes for the searchbase have been queued at this point, this should come right - so
 	// long as our searchbase isn't currently dead in the water.
-	return wyc.Version{}, errors.New("Unable to establish highest version")
+	return nil, errors.New("Unable to establish highest version")
 }
 
 func (s *WysteriaServer) handleFindHighestVersion(data []byte) ([]byte, error) {
@@ -55,7 +55,7 @@ func (s *WysteriaServer) handleFindHighestVersion(data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if fver.Parent == "" {
+	if fver == nil {
 		return nil, errors.New(fmt.Sprintf("Unable to find version with parent %s", ver.Parent))
 	}
 

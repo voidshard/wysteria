@@ -8,7 +8,7 @@ There are three extra components that a wysteria server depends on, these are
 - A middleware for transporting data back and forth between client(s) and server(s)
 
 Each of these is behind an interface so it's easy to write implementations for your favourite solutions. At the moment there are implementations for 
-- MongoDB (databae)
+- MongoDB (database)
 - ElasticSearch (searchbase)
 - Nats.io (middleware)
 

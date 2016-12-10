@@ -158,10 +158,9 @@ That is, this search will return all items from any collection(s) that have eith
 - Wysteria makes no attempt to understand the links you set or sanitize strings given. The meaning behind the file resource 'location' for example is left entirely to the user -- it could be a filepath, a url, an id into another system or something else entirely.
 - There is no maximum number of facets, links or resources that one can attach that is enforced by the system. Practical limits of the underlying systems will begin to apply at some point however.
 
-
 ##Contributing
 
-All contributors are welcome. If you write a new implementation for any og the interfaces or make any improvements please do make a pull request. 
+All contributors are welcome. If you write a new implementation for any of the interfaces or make any improvements please do make a pull request. 
 
 Also, if (when) you find bugs, let me know.
 
@@ -180,5 +179,5 @@ Also, if (when) you find bugs, let me know.
     - allow changing of configuration option(s) (like the database we're reading / writing to etc)
     - add alerts for certain events or server statuses
     - allow temporary routing of all client requests to another server(s) (that we can shutdown gracefully)
-- move encoding scheme to something more time/memory efficient
+- move encoding scheme to something more time/memory efficient 
 - implement system for deterministic ids

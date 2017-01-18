@@ -3,7 +3,7 @@ package searchends
 import (
 	"errors"
 	"fmt"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 var (
@@ -26,7 +26,7 @@ type Searchbase interface {
 
 	InsertItem(string, wyc.Item) error
 	InsertVersion(string, wyc.Version) error
-	InsertFileResource(string, wyc.FileResource) error
+	InsertResource(string, wyc.Resource) error
 	InsertLink(string, wyc.Link) error
 
 	UpdateItem(string, wyc.Item) error
@@ -35,7 +35,7 @@ type Searchbase interface {
 	// delete data in table/collection with ids
 	DeleteItem(...string) error
 	DeleteVersion(...string) error
-	DeleteFileResource(...string) error
+	DeleteResource(...string) error
 	DeleteLink(...string) error
 
 	// we only ever get IDs back from our search - the DB holds the canonical data
@@ -47,6 +47,6 @@ type Searchbase interface {
 	//     results will be returned for any doc matching any QueryDesc
 	QueryItem(string, bool, int, ...wyc.QueryDesc) ([]string, error)
 	QueryVersion(string, bool, int, ...wyc.QueryDesc) ([]string, error)
-	QueryFileResource(string, bool, int, ...wyc.QueryDesc) ([]string, error)
+	QueryResource(string, bool, int, ...wyc.QueryDesc) ([]string, error)
 	QueryLink(string, bool, int, ...wyc.QueryDesc) ([]string, error)
 }

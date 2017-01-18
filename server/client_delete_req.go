@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 const (
@@ -81,7 +81,7 @@ func (s *WysteriaServer) handleDelVersion(data []byte) ([]byte, error) {
 		return nil, errors.New(err_id_required)
 	}
 
-	res, err := s.searchbase.QueryFileResource("", true, 0, wyc.QueryDesc{Parent: i.Id})
+	res, err := s.searchbase.QueryResource("", true, 0, wyc.QueryDesc{Parent: i.Id})
 	if err != nil {
 		return nil, err
 	}
@@ -109,8 +109,8 @@ func (s *WysteriaServer) handleDelVersion(data []byte) ([]byte, error) {
 	return wyc.WYSTERIA_SERVER_ACK, nil
 }
 
-func (s *WysteriaServer) handleDelFileResource(data []byte) ([]byte, error) {
-	i := wyc.FileResource{}
+func (s *WysteriaServer) handleDelResource(data []byte) ([]byte, error) {
+	i := wyc.Resource{}
 	err := json.Unmarshal(data, &i)
 	if err != nil {
 		return nil, err
@@ -119,11 +119,11 @@ func (s *WysteriaServer) handleDelFileResource(data []byte) ([]byte, error) {
 		return nil, errors.New(err_id_required)
 	}
 
-	err = s.database.DeleteFileResource(i.Id)
+	err = s.database.DeleteResource(i.Id)
 	if err != nil {
 		return nil, err
 	}
-	err = s.searchbase.DeleteFileResource(i.Id)
+	err = s.searchbase.DeleteResource(i.Id)
 	if err != nil {
 		return nil, err
 	}

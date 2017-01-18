@@ -3,7 +3,7 @@ package database
 import (
 	"errors"
 	"fmt"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 var (
@@ -25,14 +25,14 @@ type Database interface {
 	InsertCollection(string, wyc.Collection) error      // Ensure only one collection with given Name
 	InsertItem(string, wyc.Item) error                  // Ensure only one item with the same Collection, Type and Variant
 	InsertNextVersion(string, wyc.Version) (int, error) // Ensure only one version of an Item with a given Number
-	InsertFileResource(string, wyc.FileResource) error
+	InsertResource(string, wyc.Resource) error
 	InsertLink(string, wyc.Link) error
 
 	RetrieveCollection(...string) ([]wyc.Collection, error)
 	RetrieveCollectionByName(...string) ([]wyc.Collection, error)
 	RetrieveItem(...string) ([]wyc.Item, error)
 	RetrieveVersion(...string) ([]wyc.Version, error)
-	RetrieveFileResource(...string) ([]wyc.FileResource, error)
+	RetrieveResource(...string) ([]wyc.Resource, error)
 	RetrieveLink(...string) ([]wyc.Link, error)
 
 	// We only update the facets on Items and Versions
@@ -43,7 +43,7 @@ type Database interface {
 	DeleteCollection(...string) error
 	DeleteItem(...string) error
 	DeleteVersion(...string) error
-	DeleteFileResource(...string) error
+	DeleteResource(...string) error
 	DeleteLink(...string) error
 
 	Close() error // kill connection to db

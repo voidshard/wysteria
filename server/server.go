@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	wyc "wysteria/wysteria_common"
-	wcm "wysteria/wysteria_common/middleware"
-	wdb "wysteria/wysteria_server/database"
-	wsb "wysteria/wysteria_server/searchbase"
+	wyc "github.com/voidshard/wysteria/common"
+	wcm "github.com/voidshard/wysteria/common/middleware"
+	wdb "github.com/voidshard/wysteria/server/database"
+	wsb "github.com/voidshard/wysteria/server/searchbase"
 )
 
 const (
@@ -58,8 +58,8 @@ func (s *WysteriaServer) handleClientMessage(message *wcm.Message) {
 		handler = s.handleFindItem
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_VERSION:
 		handler = s.handleFindVersion
-	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_FILERESOURCE:
-		handler = s.handleFindFileResource
+	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_RESOURCE:
+		handler = s.handleFindResource
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_LINK:
 		handler = s.handleFindLink
 
@@ -73,8 +73,8 @@ func (s *WysteriaServer) handleClientMessage(message *wcm.Message) {
 		handler = s.handleCreateItem
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_CREATE_VERSION:
 		handler = s.handleCreateVersion
-	case s.SettingsMiddleware.RouteServer + wyc.MSG_CREATE_FILERESOURCE:
-		handler = s.handleCreateFileResource
+	case s.SettingsMiddleware.RouteServer + wyc.MSG_CREATE_RESOURCE:
+		handler = s.handleCreateResource
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_CREATE_LINK:
 		handler = s.handleCreateLink
 
@@ -91,8 +91,8 @@ func (s *WysteriaServer) handleClientMessage(message *wcm.Message) {
 		handler = s.handleDelItem
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_DELETE_VERSION:
 		handler = s.handleDelVersion
-	case s.SettingsMiddleware.RouteServer + wyc.MSG_DELETE_FILERESOURCE:
-		handler = s.handleDelFileResource
+	case s.SettingsMiddleware.RouteServer + wyc.MSG_DELETE_RESOURCE:
+		handler = s.handleDelResource
 
 	// ?
 	default:

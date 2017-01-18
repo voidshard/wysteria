@@ -4,11 +4,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/olivere/elastic"
+	"gopkg.in/olivere/elastic.v2"
 	"strings"
 	"sync"
 	"time"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 const (
@@ -49,7 +49,7 @@ func (e *elasticSearch) InsertVersion(id string, doc wyc.Version) error {
 	return e.insert(table_version, id, doc)
 }
 
-func (e *elasticSearch) InsertFileResource(id string, doc wyc.FileResource) error {
+func (e *elasticSearch) InsertResource(id string, doc wyc.Resource) error {
 	// Hash path to nullify tokenizing on '/' or '\' symbols
 	doc.Location = hashResourceLocation(doc.Location)
 	return e.insert(table_fileresource, id, doc)
@@ -77,7 +77,7 @@ func (e *elasticSearch) DeleteVersion(ids ...string) error {
 	return e.delete(table_version, ids...)
 }
 
-func (e *elasticSearch) DeleteFileResource(ids ...string) error {
+func (e *elasticSearch) DeleteResource(ids ...string) error {
 	return e.delete(table_fileresource, ids...)
 }
 
@@ -93,8 +93,8 @@ func (e *elasticSearch) QueryVersion(sortBy string, asc bool, limit int, qs ...w
 	return e.fanSearch(table_version, elasticTermsVersion, sortBy, asc, limit, qs...)
 }
 
-func (e *elasticSearch) QueryFileResource(sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_fileresource, elasticTermsFileResource, sortBy, asc, limit, qs...)
+func (e *elasticSearch) QueryResource(sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
+	return e.fanSearch(table_fileresource, elasticTermsResource, sortBy, asc, limit, qs...)
 }
 
 func (e *elasticSearch) QueryLink(sortBy string, asc bool, limit int, qs ...wyc.QueryDesc) ([]string, error) {
@@ -179,7 +179,7 @@ func (e *elasticSearch) createIndexIfNotExists(index string) error {
 	return errors.New(fmt.Sprintf("Creation of index %s not acknowledged", index))
 }
 
-func elasticTermsFileResource(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
+func elasticTermsResource(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 	if qd.Id != "" {
 		q = append(q, elastic.NewTermQuery("Id", qd.Id))
 	}
@@ -200,7 +200,7 @@ func elasticTermsFileResource(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
 	return q
 }
 
-func elasticTermsLink(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
+func elasticTermsLink(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 	if qd.Id != "" {
 		q = append(q, elastic.NewTermQuery("Id", qd.Id))
 	}
@@ -216,7 +216,7 @@ func elasticTermsLink(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
 	return q
 }
 
-func elasticTermsItem(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
+func elasticTermsItem(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 	if qd.Id != "" {
 		q = append(q, elastic.NewTermQuery("Id", qd.Id))
 	}
@@ -235,7 +235,7 @@ func elasticTermsItem(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
 	return q
 }
 
-func elasticTermsVersion(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
+func elasticTermsVersion(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 	if qd.Id != "" {
 		q = append(q, elastic.NewTermQuery("Id", qd.Id))
 	}
@@ -251,7 +251,7 @@ func elasticTermsVersion(qd *wyc.QueryDesc) (q []*elastic.TermQuery) {
 	return q
 }
 
-func termQuery(k, v string) *elastic.TermQuery {
+func termQuery(k, v string) elastic.TermQuery {
 	// Elastic will have tokenized the string(s) so we'll lowercase our string to search for
 	return elastic.NewTermQuery(k, strings.ToLower(v))
 }
@@ -265,7 +265,7 @@ func termQuery(k, v string) *elastic.TermQuery {
 //  - Because we concatenate all results, multiple wyc.QueryDesc form an "OR"
 //  - ToDo: Possibly Elastic could return the answer set faster with a more elaborate query
 //
-func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) []*elastic.TermQuery, sortBy string, ascending bool, limit int, queries ...wyc.QueryDesc) ([]string, error) {
+func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) []elastic.TermQuery, sortBy string, ascending bool, limit int, queries ...wyc.QueryDesc) ([]string, error) {
 	result_chan := make(chan *elastic.SearchResult, len(queries))
 	err_chan := make(chan error)
 	rwg := sync.WaitGroup{} // wait group to ensure we've finished compiling results

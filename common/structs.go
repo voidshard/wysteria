@@ -20,10 +20,10 @@ type Version struct {
 	Number    int               `json:"Number"`
 	Facets    map[string]string `json:"Facets"`
 	Links     []string          `json:"Links"`     // Ids for Link Objects
-	Resources []string          `json:"Resources"` // Ids for FileResource Objects
+	Resources []string          `json:"Resources"` // Ids for Resource Objects
 }
 
-type FileResource struct {
+type Resource struct {
 	Parent       string `json:"Parent"`
 	Name         string `json:"Name"`
 	ResourceType string `json:"ResourceType"`

@@ -3,39 +3,39 @@ package wysteria_client
 import (
 	"errors"
 	"fmt"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
-type fileResource struct {
+type resource struct {
 	conn *wysteriaClient
-	data wyc.FileResource
+	data wyc.Resource
 }
 
-func (i *fileResource) Name() string {
+func (i *resource) Name() string {
 	return i.data.Name
 }
 
-func (i *fileResource) Type() string {
+func (i *resource) Type() string {
 	return i.data.ResourceType
 }
 
-func (c *fileResource) Delete() error {
-	return c.conn.requestData(wyc.MSG_DELETE_FILERESOURCE, &c.data, nil)
+func (c *resource) Delete() error {
+	return c.conn.requestData(wyc.MSG_DELETE_RESOURCE, &c.data, nil)
 }
 
-func (i *fileResource) Id() string {
+func (i *resource) Id() string {
 	return i.data.Id
 }
 
-func (i *fileResource) Location() string {
+func (i *resource) Location() string {
 	return i.data.Location
 }
 
-func (i *fileResource) Parent() string {
+func (i *resource) Parent() string {
 	return i.data.Parent
 }
 
-func (i *fileResource) GetParent() (*version, error) {
+func (i *resource) GetParent() (*version, error) {
 	qry := []*wyc.QueryDesc{
 		{Id: i.data.Parent},
 	}

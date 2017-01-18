@@ -2,7 +2,7 @@ package wysteria_client
 
 import (
 	"errors"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 type search struct {
@@ -71,16 +71,16 @@ func (i *search) Versions() ([]*version, error) {
 	return ret, nil
 }
 
-func (i *search) FileResources() ([]*fileResource, error) {
-	var results []wyc.FileResource
-	err := i.do(wyc.MSG_FIND_FILERESOURCE, &results)
+func (i *search) Resources() ([]*resource, error) {
+	var results []wyc.Resource
+	err := i.do(wyc.MSG_FIND_RESOURCE, &results)
 	if err != nil {
 		return nil, err
 	}
 
-	ret := []*fileResource{}
+	ret := []*resource{}
 	for _, r := range results {
-		ret = append(ret, &fileResource{
+		ret = append(ret, &resource{
 			conn: i.conn,
 			data: r,
 		})

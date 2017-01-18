@@ -1,0 +1,37 @@
+<component name="libraryTable">
+  <library name="GOPATH &lt;wysteria&gt;">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../../../golang.org" />
+      <root url="file://$PROJECT_DIR$/../../../dtunnel" />
+      <root url="file://$PROJECT_DIR$/../../../tile_engine" />
+      <root url="file://$PROJECT_DIR$/../../../gopkg.in" />
+      <root url="file://$PROJECT_DIR$/../../../exercises" />
+      <root url="file://$PROJECT_DIR$/../../../perlin" />
+      <root url="file://$PROJECT_DIR$/../../../playground" />
+      <root url="file://$PROJECT_DIR$/../../../map_builder" />
+      <root url="file://$PROJECT_DIR$/../../../code.google.com" />
+      <root url="file://$PROJECT_DIR$/../../../slides" />
+      <root url="file://$PROJECT_DIR$/../../../go_websock" />
+      <root url="file://$PROJECT_DIR$/../../../workshop" />
+      <root url="file://$PROJECT_DIR$/../.." />
+    </CLASSES>
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../../../golang.org" />
+      <root url="file://$PROJECT_DIR$/../../../dtunnel" />
+      <root url="file://$PROJECT_DIR$/../../../tile_engine" />
+      <root url="file://$PROJECT_DIR$/../../../gopkg.in" />
+      <root url="file://$PROJECT_DIR$/../../../exercises" />
+      <root url="file://$PROJECT_DIR$/../../../perlin" />
+      <root url="file://$PROJECT_DIR$/../../../playground" />
+      <root url="file://$PROJECT_DIR$/../../../map_builder" />
+      <root url="file://$PROJECT_DIR$/../../../code.google.com" />
+      <root url="file://$PROJECT_DIR$/../../../slides" />
+      <root url="file://$PROJECT_DIR$/../../../go_websock" />
+      <root url="file://$PROJECT_DIR$/../../../workshop" />
+      <root url="file://$PROJECT_DIR$/../.." />
+    </SOURCES>
+    <excluded>
+      <root url="file://$PROJECT_DIR$" />
+    </excluded>
+  </library>
+</component>

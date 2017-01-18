@@ -3,7 +3,7 @@ package wysteria_client
 import (
 	"errors"
 	"fmt"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 type collection struct {

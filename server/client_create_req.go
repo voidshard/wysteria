@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 	"fmt"
 )
 
@@ -91,24 +91,24 @@ func (s *WysteriaServer) handleCreateVersion(data []byte) ([]byte, error) {
 	return json.Marshal(i)
 }
 
-func (s *WysteriaServer) handleCreateFileResource(data []byte) ([]byte, error) {
-	i := wyc.FileResource{}
+func (s *WysteriaServer) handleCreateResource(data []byte) ([]byte, error) {
+	i := wyc.Resource{}
 	err := json.Unmarshal(data, &i)
 	if err != nil {
 		return nil, err
 	}
 
 	if i.Name == "" || i.ResourceType == "" || i.Location == "" {
-		return nil, errors.New("Name, ResourceType and Location required for FileResource")
+		return nil, errors.New("Name, ResourceType and Location required for Resource")
 	}
 
 	i.Id = NewId()
-	err = s.database.InsertFileResource(i.Id, i)
+	err = s.database.InsertResource(i.Id, i)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.searchbase.InsertFileResource(i.Id, i)
+	err = s.searchbase.InsertResource(i.Id, i)
 	if err != nil {
 		log.Println(err)
 	}

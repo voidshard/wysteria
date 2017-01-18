@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
-	wyc "wysteria/wysteria_common"
-	wcm "wysteria/wysteria_common/middleware"
+	wyc "github.com/voidshard/wysteria/common"
+	wcm "github.com/voidshard/wysteria/common/middleware"
 )
 
 type wysteriaClient struct {

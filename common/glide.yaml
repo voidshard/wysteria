@@ -1,0 +1,5 @@
+package: github.com/voidshard/wysteria/common
+import:
+- package: github.com/gtank/cryptopasta
+- package: github.com/nats-io/nats
+  version: ^1.2.2

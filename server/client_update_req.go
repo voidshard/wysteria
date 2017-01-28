@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 func (s *WysteriaServer) handleUpdateItem(data []byte) ([]byte, error) {

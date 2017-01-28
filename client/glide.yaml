@@ -1,0 +1,8 @@
+package: github.com/voidshard/wysteria/client
+import:
+- package: github.com/voidshard/wysteria
+  subpackages:
+  - common
+  - common/middleware
+- package: gopkg.in/gcfg.v1
+  version: ^1.2.0

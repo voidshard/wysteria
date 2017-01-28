@@ -3,7 +3,7 @@ package wysteria_client
 import (
 	"errors"
 	"fmt"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 type version struct {
@@ -38,13 +38,13 @@ func (i *version) update() error {
 }
 
 func (i *version) AddResource(name, rtype, location string) (string, error) {
-	res := wyc.FileResource{
+	res := wyc.Resource{
 		Parent:       i.data.Id,
 		Name:         name,
 		ResourceType: rtype,
 		Location:     location,
 	}
-	err := i.conn.requestData(wyc.MSG_CREATE_FILERESOURCE, res, &res)
+	err := i.conn.requestData(wyc.MSG_CREATE_RESOURCE, res, &res)
 	if err != nil {
 		return "", err
 	}
@@ -52,35 +52,35 @@ func (i *version) AddResource(name, rtype, location string) (string, error) {
 	return res.Id, i.update()
 }
 
-func (i *version) GetAllResources() ([]*fileResource, error) {
+func (i *version) GetAllResources() ([]*resource, error) {
 	return i.getResources("", "")
 }
 
-func (i *version) GetResources(name, resource_type string) ([]*fileResource, error) {
+func (i *version) GetResources(name, resource_type string) ([]*resource, error) {
 	return i.getResources(name, resource_type)
 }
 
-func (i *version) GetResourcesByType(resource_type string) ([]*fileResource, error) {
+func (i *version) GetResourcesByType(resource_type string) ([]*resource, error) {
 	return i.getResources("", resource_type)
 }
 
-func (i *version) GetResourcesByName(name string) ([]*fileResource, error) {
+func (i *version) GetResourcesByName(name string) ([]*resource, error) {
 	return i.getResources(name, "")
 }
 
-func (i *version) getResources(name, resource_type string) ([]*fileResource, error) {
+func (i *version) getResources(name, resource_type string) ([]*resource, error) {
 	q := wyc.QueryDesc{Parent: i.data.Id, Name: name, ResourceType: resource_type}
 	query := []wyc.QueryDesc{q}
 
-	res := []wyc.FileResource{}
-	err := i.conn.requestData(wyc.MSG_FIND_FILERESOURCE, &query, &res)
+	res := []wyc.Resource{}
+	err := i.conn.requestData(wyc.MSG_FIND_RESOURCE, &query, &res)
 	if err != nil {
 		return nil, err
 	}
 
-	items := []*fileResource{}
+	items := []*resource{}
 	for _, data := range res {
-		items = append(items, &fileResource{
+		items = append(items, &resource{
 			conn: i.conn,
 			data: data,
 		})

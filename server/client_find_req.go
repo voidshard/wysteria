@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
-func (s *WysteriaServer) findHighestVersion(parentId string) (wyc.Version, error) {
+func (s *WysteriaServer) findHighestVersion(parentId string) (*wyc.Version, error) {
 	// Grab the highest ten in case we are currently deleting 9 Versions (for some reason ..)
 	ids, err := s.searchbase.QueryVersion("Number", false, 10, wyc.QueryDesc{Parent: parentId})
 	if err != nil {
@@ -33,7 +33,7 @@ func (s *WysteriaServer) findHighestVersion(parentId string) (wyc.Version, error
 			}()
 		} else {
 			if len(last) > 0 {
-				return last[0], nil
+				return &last[0], nil
 			}
 		}
 	}
@@ -137,19 +137,19 @@ func (s *WysteriaServer) handleFindVersion(data []byte) ([]byte, error) {
 	return json.Marshal(items)
 }
 
-func (s *WysteriaServer) handleFindFileResource(data []byte) ([]byte, error) {
+func (s *WysteriaServer) handleFindResource(data []byte) ([]byte, error) {
 	qs := []wyc.QueryDesc{}
 	err := json.Unmarshal(data, &qs)
 	if err != nil {
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryFileResource("", true, 0, qs...)
+	ids, err := s.searchbase.QueryResource("", true, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
 
-	items, err := s.database.RetrieveFileResource(ids...)
+	items, err := s.database.RetrieveResource(ids...)
 	if err != nil {
 		return nil, err
 	}

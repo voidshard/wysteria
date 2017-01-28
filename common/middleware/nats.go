@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nats-io/nats"
-	"gtank/cryptopasta"
+	"github.com/gtank/cryptopasta"
 	"log"
 	"strconv"
 )
@@ -16,7 +16,7 @@ const (
 
 type natsMiddleware struct {
 	Host    string
-	key     [32]byte
+	key     *[32]byte
 	conn    *nats.Conn
 	encrypt bool
 }
@@ -94,7 +94,7 @@ func (m *natsMiddleware) SetKey(key string) error {
 		return err
 	}
 	m.encrypt = true
-	m.key = bkey
+	m.key = &bkey
 	return nil
 }
 
@@ -187,10 +187,10 @@ func formKey(s string) (key [32]byte, err error) {
 	return
 }
 
-func decrypt(cypher []byte, key [32]byte) ([]byte, error) {
+func decrypt(cypher []byte, key *[32]byte) ([]byte, error) {
 	return cryptopasta.Decrypt(cypher, key)
 }
 
-func encrypt(data []byte, key [32]byte) ([]byte, error) {
+func encrypt(data []byte, key *[32]byte) ([]byte, error) {
 	return cryptopasta.Encrypt(data, key)
 }

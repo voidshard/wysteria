@@ -1,7 +1,7 @@
 package wysteria_client
 
 import (
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 type link struct {

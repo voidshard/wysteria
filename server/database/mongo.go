@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 	"net"
 	"strconv"
-	wyc "wysteria/wysteria_common"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 const (
@@ -145,7 +145,7 @@ func (e *mongoEndpoint) InsertNextVersion(id string, d wyc.Version) (int, error)
 	d.Number = doc["Count"].(int)
 	return d.Number, e.insert(table_version, id, d)
 }
-func (e *mongoEndpoint) InsertFileResource(id string, d wyc.FileResource) error {
+func (e *mongoEndpoint) InsertResource(id string, d wyc.Resource) error {
 	return e.insert(table_fileresource, id, d)
 }
 
@@ -177,7 +177,7 @@ func (e *mongoEndpoint) RetrieveVersion(ids ...string) (res []wyc.Version, err e
 	err = e.retrieve(table_version, &res, ids...)
 	return
 }
-func (e *mongoEndpoint) RetrieveFileResource(ids ...string) (res []wyc.FileResource, err error) {
+func (e *mongoEndpoint) RetrieveResource(ids ...string) (res []wyc.Resource, err error) {
 	err = e.retrieve(table_fileresource, &res, ids...)
 	return
 }
@@ -206,7 +206,7 @@ func (e *mongoEndpoint) DeleteVersion(ids ...string) error {
 	return e.delete(table_version, ids...)
 }
 
-func (e *mongoEndpoint) DeleteFileResource(ids ...string) error {
+func (e *mongoEndpoint) DeleteResource(ids ...string) error {
 	return e.delete(table_fileresource, ids...)
 }
 

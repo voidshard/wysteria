@@ -21,10 +21,11 @@ const (
 type mongoEndpoint struct {
 	session *mgo.Session
 	db      *mgo.Database
+	settings *DatabaseSettings
 }
 
 // Connection funcs
-func mongo_ssl_connect(settings DatabaseSettings) (*mgo.Session, error) {
+func mongo_ssl_connect(settings *DatabaseSettings) (*mgo.Session, error) {
 	url := formMongoUrl(settings)
 
 	roots := x509.NewCertPool()
@@ -49,7 +50,7 @@ func mongo_ssl_connect(settings DatabaseSettings) (*mgo.Session, error) {
 	return mgo.DialWithInfo(dialInfo)
 }
 
-func mongo_connect(settings DatabaseSettings) (Database, error) {
+func mongo_connect(settings *DatabaseSettings) (Database, error) {
 	sess := &mgo.Session{}
 	var err error
 
@@ -64,8 +65,10 @@ func mongo_connect(settings DatabaseSettings) (Database, error) {
 	}
 	sess.SetMode(mgo.Monotonic, true)
 
-	ep := mongoEndpoint{}
-	ep.session = sess
+	ep := mongoEndpoint{
+		settings: settings,
+		session: sess,
+	}
 	ep.db = ep.session.DB(settings.Database)
 
 	return &ep, nil
@@ -277,7 +280,7 @@ func toBsonIds(sids ...string) ([]bson.ObjectId, error) {
 	return ids, nil
 }
 
-func formMongoUrl(settings DatabaseSettings) string {
+func formMongoUrl(settings *DatabaseSettings) string {
 	url := fmt.Sprintf("%s://", url_prefix)
 	if settings.User != "" {
 		url += settings.User

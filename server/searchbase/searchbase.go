@@ -7,12 +7,12 @@ import (
 )
 
 var (
-	connectors = map[string]func(SearchbaseSettings) (Searchbase, error){
+	connectors = map[string]func(*SearchbaseSettings) (Searchbase, error){
 		"elastic": elastic_connect,
 	}
 )
 
-func Connect(settings SearchbaseSettings) (Searchbase, error) {
+func Connect(settings *SearchbaseSettings) (Searchbase, error) {
 	connector, ok := connectors[settings.Driver]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("Connector not found for %s", settings.Driver))

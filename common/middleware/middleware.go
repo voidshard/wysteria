@@ -8,12 +8,12 @@ import (
 
 var (
 	Timeout    = time.Second * 30
-	connectors = map[string]func(MiddlewareSettings) (WysteriaMiddleware, error){
+	connectors = map[string]func(*MiddlewareSettings) (WysteriaMiddleware, error){
 		"nats": natsConnect,
 	}
 )
 
-func Connect(settings MiddlewareSettings) (WysteriaMiddleware, error) {
+func Connect(settings *MiddlewareSettings) (WysteriaMiddleware, error) {
 	connector, ok := connectors[settings.Driver]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("Connector not found for %s", settings.Driver))

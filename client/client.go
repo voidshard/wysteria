@@ -9,7 +9,7 @@ import (
 )
 
 type wysteriaClient struct {
-	SettingsMiddleware wcm.MiddlewareSettings
+	SettingsMiddleware *wcm.MiddlewareSettings
 	middleware         wcm.WysteriaMiddleware
 }
 
@@ -58,7 +58,7 @@ func (w *wysteriaClient) requestData(route string, send, recv interface{}) error
 // setup funcs
 func New() *wysteriaClient {
 	return &wysteriaClient{
-		SettingsMiddleware: Config.MiddlewareSettings,
+		SettingsMiddleware: &Config.MiddlewareSettings,
 	}
 }
 
@@ -66,7 +66,7 @@ func (w *wysteriaClient) Close() {
 	w.middleware.Close()
 }
 
-func (w *wysteriaClient) Set(settings wcm.MiddlewareSettings) *wysteriaClient {
+func (w *wysteriaClient) Set(settings *wcm.MiddlewareSettings) *wysteriaClient {
 	w.SettingsMiddleware = settings
 	return w
 }

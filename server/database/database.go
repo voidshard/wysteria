@@ -7,12 +7,12 @@ import (
 )
 
 var (
-	connectors = map[string]func(DatabaseSettings) (Database, error){
+	connectors = map[string]func(*DatabaseSettings) (Database, error){
 		"mongo": mongo_connect,
 	}
 )
 
-func Connect(settings DatabaseSettings) (Database, error) {
+func Connect(settings *DatabaseSettings) (Database, error) {
 	connector, ok := connectors[settings.Driver]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("Connector not found for %s", settings.Driver))

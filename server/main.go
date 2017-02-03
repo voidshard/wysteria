@@ -10,8 +10,9 @@ func main() {
 		GracefulShutdownTime: time.Second * 3,
 
 		// Pass in all config settings
-		SettingsMiddleware: Config.MiddlewareSettings,
-		SettingsBackend:    Config.DatabaseSettings,
+		SettingsMiddleware: &Config.MiddlewareSettings,
+		SettingsDatabase:    &Config.DatabaseSettings,
+		SettingsSearchbase: &Config.SearchbaseSettings,
 	}
 
 	// Connect to all required endpoints, die in the event of any failures

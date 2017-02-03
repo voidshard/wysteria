@@ -2,10 +2,8 @@ package middleware
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"github.com/nats-io/nats"
-	"github.com/gtank/cryptopasta"
 	"log"
 	"strconv"
 )
@@ -21,7 +19,7 @@ type natsMiddleware struct {
 	encrypt bool
 }
 
-func natsUrl(settings MiddlewareSettings) string {
+func natsUrl(settings *MiddlewareSettings) string {
 	// eg nats://derek:pass@localhost:4222 (from nats docs)
 	url := fmt.Sprintf("%s://", url_prefix)
 	if settings.User != "" {
@@ -34,7 +32,7 @@ func natsUrl(settings MiddlewareSettings) string {
 	return url + settings.Host + ":" + strconv.Itoa(settings.Port)
 }
 
-func natsConnect(settings MiddlewareSettings) (WysteriaMiddleware, error) {
+func natsConnect(settings *MiddlewareSettings) (WysteriaMiddleware, error) {
 	options := []nats.Option{}
 	if settings.PemFile != "" {
 		options = append(options, nats.Secure(&tls.Config{
@@ -173,24 +171,4 @@ func (m *natsSubscription) Unsubscribe() error {
 
 func (m *natsSubscription) Receive() <-chan Message {
 	return m.Out
-}
-
-func formKey(s string) (key [32]byte, err error) {
-	if len(s) < 32 {
-		return key, errors.New("String must be at least len 32")
-	}
-
-	sb := []byte(s)
-	for i := 0; i < 32; i++ {
-		key[i] = sb[i]
-	}
-	return
-}
-
-func decrypt(cypher []byte, key *[32]byte) ([]byte, error) {
-	return cryptopasta.Decrypt(cypher, key)
-}
-
-func encrypt(data []byte, key *[32]byte) ([]byte, error) {
-	return cryptopasta.Encrypt(data, key)
 }

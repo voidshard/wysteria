@@ -15,7 +15,7 @@ const (
 	err_delete_backoff = time.Second * 5
 )
 
-func elastic_connect(settings SearchbaseSettings) (Searchbase, error) {
+func elastic_connect(settings *SearchbaseSettings) (Searchbase, error) {
 	client, err := elastic.NewClient(
 		elastic.SetURL(fmt.Sprintf("http://%s:%d", settings.Host, settings.Port)),
 	)
@@ -37,7 +37,7 @@ func elastic_connect(settings SearchbaseSettings) (Searchbase, error) {
 }
 
 type elasticSearch struct {
-	Settings SearchbaseSettings
+	Settings *SearchbaseSettings
 	client   *elastic.Client
 }
 

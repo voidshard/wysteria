@@ -22,8 +22,9 @@ const (
 type WysteriaServer struct {
 	GracefulShutdownTime time.Duration
 
-	SettingsMiddleware wcm.MiddlewareSettings
-	SettingsBackend    wdb.DatabaseSettings
+	SettingsMiddleware *wcm.MiddlewareSettings
+	SettingsDatabase   *wdb.DatabaseSettings
+	SettingsSearchbase *wsb.SearchbaseSettings
 
 	database   wdb.Database
 	searchbase wsb.Searchbase
@@ -33,6 +34,9 @@ type WysteriaServer struct {
 	fromServers wcm.WysteriaSubscription
 }
 
+// Main server loop
+//  Endlessly listen for inbound messages and pass work to routines
+//
 func (s *WysteriaServer) Run() {
 	log.Println("Running")
 	for {
@@ -45,60 +49,61 @@ func (s *WysteriaServer) Run() {
 	}
 }
 
-func (s *WysteriaServer) handleClientMessage(message *wcm.Message) {
-	var handler func([]byte) ([]byte, error)
-	log.Println(message.Subject)
-
-	switch message.Subject {
+func (s *WysteriaServer) pickClientHandler(subject string) func([]byte) ([]byte, error) {
+	switch subject {
 
 	// Search
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_COLLECTION:
-		handler = s.handleFindCollection
+		return s.handleFindCollection
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_ITEM:
-		handler = s.handleFindItem
+		return s.handleFindItem
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_VERSION:
-		handler = s.handleFindVersion
+		return s.handleFindVersion
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_RESOURCE:
-		handler = s.handleFindResource
+		return s.handleFindResource
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_LINK:
-		handler = s.handleFindLink
+		return s.handleFindLink
 
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_FIND_HIGHEST_VERSION:
-		handler = s.handleFindHighestVersion
+		return s.handleFindHighestVersion
 
 	// Create
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_CREATE_COLLECTION:
-		handler = s.handleCreateCollection
+		return s.handleCreateCollection
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_CREATE_ITEM:
-		handler = s.handleCreateItem
+		return s.handleCreateItem
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_CREATE_VERSION:
-		handler = s.handleCreateVersion
+		return s.handleCreateVersion
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_CREATE_RESOURCE:
-		handler = s.handleCreateResource
+		return s.handleCreateResource
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_CREATE_LINK:
-		handler = s.handleCreateLink
+		return s.handleCreateLink
 
 	// Update
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_UPDATE_ITEM:
-		handler = s.handleUpdateItem
+		return s.handleUpdateItem
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_UPDATE_VERSION:
-		handler = s.handleUpdateVersion
+		return s.handleUpdateVersion
 
 	// Delete
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_DELETE_COLLECTION:
-		handler = s.handleDelCollection
+		return s.handleDelCollection
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_DELETE_ITEM:
-		handler = s.handleDelItem
+		return s.handleDelItem
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_DELETE_VERSION:
-		handler = s.handleDelVersion
+		return s.handleDelVersion
 	case s.SettingsMiddleware.RouteServer + wyc.MSG_DELETE_RESOURCE:
-		handler = s.handleDelResource
+		return s.handleDelResource
 
 	// ?
 	default:
 		break
 	}
+	return nil
+}
 
+func (s *WysteriaServer) handleClientMessage(message *wcm.Message) {
+	handler := s.pickClientHandler(message.Subject)
 	if handler == nil {
 		s.sendError(message.Subject, message.Reply, errors.New(fmt.Sprintf("%s '%s'", ERR_UNKOWN_MSG, message.Subject)))
 		return
@@ -153,22 +158,22 @@ func (s *WysteriaServer) Connect() error {
 func (s *WysteriaServer) connect() error {
 	msg := "Attempting connection to %s %s %s:%d"
 
-	log.Println(fmt.Sprintf(msg, "database", Config.DatabaseSettings.Driver, Config.DatabaseSettings.Host, Config.DatabaseSettings.Port))
-	database, err := wdb.Connect(Config.DatabaseSettings)
+	log.Println(fmt.Sprintf(msg, "database", s.SettingsDatabase.Driver, s.SettingsDatabase.Host, s.SettingsDatabase.Port))
+	database, err := wdb.Connect(s.SettingsDatabase)
 	if err != nil {
 		return err
 	}
 	s.database = database
 
-	log.Println(fmt.Sprintf(msg, "searchbase", Config.SearchbaseSettings.Driver, Config.SearchbaseSettings.Host, Config.SearchbaseSettings.Port))
-	searchbase, err := wsb.Connect(Config.SearchbaseSettings)
+	log.Println(fmt.Sprintf(msg, "searchbase", s.SettingsSearchbase.Driver, s.SettingsSearchbase.Host, s.SettingsSearchbase.Port))
+	searchbase, err := wsb.Connect(s.SettingsSearchbase)
 	if err != nil {
 		return err
 	}
 	s.searchbase = searchbase
 
-	log.Println(fmt.Sprintf(msg, "middleware", Config.MiddlewareSettings.Driver, Config.MiddlewareSettings.Host, Config.MiddlewareSettings.Port))
-	ware, err := wcm.Connect(Config.MiddlewareSettings)
+	log.Println(fmt.Sprintf(msg, "middleware", s.SettingsMiddleware.Driver, s.SettingsMiddleware.Host, s.SettingsMiddleware.Port))
+	ware, err := wcm.Connect(s.SettingsMiddleware)
 	if err != nil {
 		return err
 	}

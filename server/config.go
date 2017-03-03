@@ -1,20 +1,14 @@
 package main
 
 import (
-	"errors"
-	gcfg "gopkg.in/gcfg.v1"
-	"os"
 	wcm "github.com/voidshard/wysteria/common/middleware"
+	common "github.com/voidshard/wysteria/common"
 	wdb "github.com/voidshard/wysteria/server/database"
 	wsb "github.com/voidshard/wysteria/server/searchbase"
+	"log"
 )
 
-const (
-	default_config = "wysteria-server.ini"
-	default_envvar = "WYSTERIA_SERVER_INI"
-)
-
-var Config configuration
+var Config *configuration
 
 type configuration struct { // forms a universal config
 	MiddlewareSettings wcm.MiddlewareSettings
@@ -22,58 +16,65 @@ type configuration struct { // forms a universal config
 	SearchbaseSettings wsb.SearchbaseSettings
 }
 
+// Key tasks of config init();
+//  (1) Load some form of config
+//   Load order:
+//    - local .ini file(s) if they are in the cwd
+//    - .ini filepath given by wysteria os.Env variable
+//    - default values
+//
 func init() {
-	err := readConfig()
+	Config = getDefaults()
+
+	config_filepath, err := common.ChooseServerConfig()
 	if err != nil {
-		setDefaults()
-	}
-}
-
-func setDefaults() {
-	Config.MiddlewareSettings.Driver = "nats"
-	Config.MiddlewareSettings.Host = "127.0.0.1"
-	Config.MiddlewareSettings.EncryptionKey = ""
-	Config.MiddlewareSettings.User = ""
-	Config.MiddlewareSettings.Pass = ""
-	Config.MiddlewareSettings.Port = 4222
-	Config.MiddlewareSettings.RoutePublic = "WYSTERIA.PUBLIC."
-	Config.MiddlewareSettings.RouteServer = "WYSTERIA.SERVER."
-	Config.MiddlewareSettings.RouteClient = "WYSTERIA.CLIENT."
-	Config.MiddlewareSettings.RouteInternalServer = "WYSTERIA.INTERNAL."
-	Config.MiddlewareSettings.PemFile = "/path/to/some/nats.pem"
-
-	Config.DatabaseSettings.Driver = "mongo"
-	Config.DatabaseSettings.Host = "127.0.0.1"
-	Config.DatabaseSettings.Port = 27017
-	Config.DatabaseSettings.User = ""
-	Config.DatabaseSettings.Pass = ""
-	Config.DatabaseSettings.Database = "wysteria_db"
-	Config.DatabaseSettings.PemFile = "/path/to/some/mongodb.pem"
-
-	Config.SearchbaseSettings.Driver = "elastic"
-	Config.SearchbaseSettings.Host = "127.0.0.1"
-	Config.SearchbaseSettings.Port = 9200
-	Config.SearchbaseSettings.User = ""
-	Config.SearchbaseSettings.Pass = ""
-	Config.SearchbaseSettings.Database = "wysteria_idx"
-	Config.SearchbaseSettings.PemFile = "/path/to/some/mongodb.pem"
-}
-
-func readConfig() error {
-	paths := []string{
-		default_config,
-		os.Getenv(default_envvar),
-	}
-
-	for _, path := range paths {
-		if path == "" {
-			continue
-		}
-
-		err := gcfg.ReadFileInto(&Config, path)
+		cnf := &configuration{}
+		err := common.ReadConfig(config_filepath, cnf)
 		if err == nil {
-			return nil
+			log.Println("Unable to read config", config_filepath, err)
+		} else {
+			Config = cnf
 		}
 	}
-	return errors.New("No config file found to read.")
+}
+
+// Get the default settings.
+// This naively assumes that all our required services are running on the localhost.
+//
+func getDefaults() *configuration {
+	return &configuration{
+		wcm.MiddlewareSettings{
+			Driver: "nats",
+			Host: "127.0.0.1",
+			EncryptionKey: "",
+			User: "",
+			Pass: "",
+			Port: 4222,
+			RoutePublic: "WYSTERIA.PUBLIC.",
+			RouteServer: "WYSTERIA.SERVER.",
+			RouteClient: "WYSTERIA.CLIENT.",
+			RouteInternalServer: "WYSTERIA.INTERNAL.",
+			PemFile: "",
+		},
+
+		wdb.DatabaseSettings{
+			Driver: "mongo",
+			Host: "127.0.0.1",
+			Port: 27017,
+			User: "",
+			Pass: "",
+			Database: "wysteria_db",
+			PemFile: "",
+		},
+
+		wsb.SearchbaseSettings{
+			Driver: "elastic",
+			Host: "127.0.0.1",
+			Port: 9200,
+			User: "",
+			Pass: "",
+			Database: "wysteria_idx",
+			PemFile: "",
+		},
+	}
 }

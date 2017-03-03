@@ -1,59 +1,57 @@
 package wysteria_client
 
 import (
-	"errors"
-	gcfg "gopkg.in/gcfg.v1"
-	"os"
 	wcm "github.com/voidshard/wysteria/common/middleware"
+	common "github.com/voidshard/wysteria/common"
+	"log"
 )
 
-const (
-	default_config = "wysteria-client.ini"
-	default_envvar = "WYSTERIA_CLIENT_INI"
-)
-
-var Config configuration
+var Config *configuration
 
 type configuration struct { // forms a universal config
 	MiddlewareSettings wcm.MiddlewareSettings
 }
 
+// Key tasks of config init();
+//  (1) Load some form of config
+//   Load order:
+//    - local .ini file(s) if they are in the cwd
+//    - .ini filepath given by wysteria os.Env variable
+//    - default values
+//
 func init() {
-	err := readConfig()
+	Config = getDefaults()
+
+	config_filepath, err := common.ChooseClientConfig()
 	if err != nil {
-		setDefaults()
-	}
-}
-
-func setDefaults() {
-	Config.MiddlewareSettings.Driver = "nats"
-	Config.MiddlewareSettings.Host = "127.0.0.1"
-	Config.MiddlewareSettings.EncryptionKey = ""
-	Config.MiddlewareSettings.User = ""
-	Config.MiddlewareSettings.Pass = ""
-	Config.MiddlewareSettings.Port = 4222
-	Config.MiddlewareSettings.RoutePublic = "WYSTERIA.PUBLIC."
-	Config.MiddlewareSettings.RouteServer = "WYSTERIA.SERVER."
-	Config.MiddlewareSettings.RouteClient = "WYSTERIA.CLIENT."
-	Config.MiddlewareSettings.RouteInternalServer = ""
-	Config.MiddlewareSettings.PemFile = "/path/to/some/nats.pem"
-}
-
-func readConfig() error {
-	paths := []string{
-		default_config,
-		os.Getenv(default_envvar),
-	}
-
-	for _, path := range paths {
-		if path == "" {
-			continue
-		}
-
-		err := gcfg.ReadFileInto(&Config, path)
+		cnf := &configuration{}
+		err := common.ReadConfig(config_filepath, cnf)
 		if err == nil {
-			return nil
+			log.Println("Unable to read config", config_filepath, err)
+		} else {
+			Config = cnf
 		}
 	}
-	return errors.New("No config file found to read.")
 }
+
+// Get the default settings.
+// This naively assumes that all our required services are running on the localhost.
+//
+func getDefaults() *configuration {
+	return &configuration{
+		wcm.MiddlewareSettings{
+			Driver:              "nats",
+			Host:                "127.0.0.1",
+			EncryptionKey:       "",
+			User:                "",
+			Pass:                "",
+			Port:                4222,
+			RoutePublic:         "WYSTERIA.PUBLIC.",
+			RouteServer:         "WYSTERIA.SERVER.",
+			RouteClient:         "WYSTERIA.CLIENT.",
+			RouteInternalServer: "",
+			PemFile:             "",
+		},
+	}
+}
+

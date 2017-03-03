@@ -166,7 +166,7 @@ Also, if (when) you find bugs, let me know.
 
 
 ##ToDo List
-
+- refactor configuration loading to make it more generic
 - unittests for business logic
   - mock in-memory searchbase implementation
   - mock in-memory database implementation
@@ -179,5 +179,5 @@ Also, if (when) you find bugs, let me know.
     - allow changing of configuration option(s) (like the database we're reading / writing to etc)
     - add alerts for certain events or server statuses
     - allow temporary routing of all client requests to another server(s) (that we can shutdown gracefully)
-- move encoding scheme to something more time/memory efficient 
+- move encoding scheme to something more time/memory efficient
 - implement system for deterministic ids

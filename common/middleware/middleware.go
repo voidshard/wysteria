@@ -4,53 +4,90 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	wyc "github.com/voidshard/wysteria/common"
+)
+
+const (
+	driver_grpc = "grpc"
 )
 
 var (
 	Timeout    = time.Second * 30
-	connectors = map[string]func(*MiddlewareSettings) (WysteriaMiddleware, error){
-		"nats": natsConnect,
+	client_endpoints = map[string]func() EndpointClient{
+		driver_grpc: newGrpcClient,
 	}
+	server_endpoints = map[string]func() EndpointServer {
+		driver_grpc: newGrpcServer,
+	}
+
 )
 
-func Connect(settings *MiddlewareSettings) (WysteriaMiddleware, error) {
-	connector, ok := connectors[settings.Driver]
+func NewClient(driver string) (EndpointClient, error) {
+	spawner, ok := client_endpoints[driver]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("Connector not found for %s", settings.Driver))
+		return nil, errors.New(fmt.Sprintf("Connector not found for %s", driver))
 	}
-
-	mid, err := connector(settings)
-	if settings.EncryptionKey != "" {
-		err = mid.SetKey(settings.EncryptionKey)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return mid, err
+	return spawner(), nil
 }
 
-type WysteriaMiddleware interface {
-	// Kill the connection to the middleware
+func NewServer(driver string) (EndpointServer, error) {
+	spawner, ok := server_endpoints[driver]
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("Connector not found for %s", driver))
+	}
+	return spawner(), nil
+}
+
+// The client side needs to implement connecting to the server, and calling the
+// appropriate middleware functions to send data across
+type EndpointClient interface {
+	Connect(string) error
 	Close() error
-
-	// Set encryption key for messages (if not set, encryption not used)
-	SetKey(string) error
-
-	// Send message, dont wait for reply
-	Publish(subject string, data []byte) error
-
-	// Subscribe to chan, each message received by only one listener
-	Subscribe(subject, queue string) (WysteriaSubscription, error)
-
-	// Subscribe to chan, each message received by all listeners
-	GroupSubscribe(subject string) (WysteriaSubscription, error)
-
-	// Send a message, subscribe to chan and for reply
-	Request(subject string, data []byte) ([]byte, error)
+	CreateCollection(string) (string, error)
+	CreateItem(*wyc.Item) (string, error)
+	CreateVersion(*wyc.Version) (string, error)
+	CreateResource(*wyc.Resource) (string, error)
+	CreateLink(*wyc.Link) (string, error)
+	DeleteCollection(string) error
+	DeleteItem(string) error
+	DeleteVersion(string) error
+	DeleteResource(string) error
+	FindCollections([]*wyc.QueryDesc) ([]*wyc.Collection, error)
+	FindItems([]*wyc.QueryDesc) ([]*wyc.Item, error)
+	FindVersions([]*wyc.QueryDesc) ([]*wyc.Version, error)
+	FindResources([]*wyc.QueryDesc) ([]*wyc.Resource, error)
+	FindLinks([]*wyc.QueryDesc) ([]*wyc.Link, error)
+	GetPublishedVersion(string) (*wyc.Version, error)
+	PublishVersion(string) error	
 }
 
-type WysteriaSubscription interface {
-	Unsubscribe() error
-	Receive() <-chan Message
+// The server side middleware needs to handle starting up, listening, shutting down
+// and calling the appropriate handlers from the given server handler when listening
+type EndpointServer interface {
+	Initialize(string) error
+	ListenAndServe(ServerHandler) error
+	Shutdown() error
+}
+
+// Implemented by the Wysteria Server
+type ServerHandler interface {
+	CreateCollection(string) (string, error)
+	CreateItem(*wyc.Item) (string, error)
+	CreateVersion(*wyc.Version) (string, error)
+	CreateResource(*wyc.Resource) (string, error)
+	CreateLink(*wyc.Link) (string, error)
+
+	DeleteCollection(string) error
+	DeleteItem(string) error
+	DeleteVersion(string) error
+	DeleteResource(string) error
+
+	FindCollections([]*wyc.QueryDesc) ([]*wyc.Collection, error)
+	FindItems([]*wyc.QueryDesc) ([]*wyc.Item, error)
+	FindVersions([]*wyc.QueryDesc) ([]*wyc.Version, error)
+	FindResources([]*wyc.QueryDesc) ([]*wyc.Resource, error)
+	FindLinks([]*wyc.QueryDesc) ([]*wyc.Link, error)
+
+	GetPublishedVersion(string) (*wyc.Version, error)
+	PublishVersion(string) error
 }

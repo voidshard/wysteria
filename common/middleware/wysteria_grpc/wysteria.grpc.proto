@@ -1,0 +1,139 @@
+// This is the grpc protocol definition for Wysteria
+//
+// Rebuild wysteria.grpc.pb.go with:
+//  protoc -I wysteria_grpc/ wysteria_grpc/wysteria.grpc.proto --go_out=plugins=grpc:wysteria_grpc
+// This is create you a new wysteria.grpc.pb.go file with the client / server bindings.
+//
+//
+// Protocol buffer docs:
+//  https://developers.google.com/protocol-buffers/docs/proto3
+//
+// Grpc:
+//  http://www.grpc.io/docs/tutorials/basic/go.html
+//
+
+syntax = "proto3";
+
+package wysteria_grpc;
+
+service WysteriaGrpc {
+    rpc CreateCollection(Text) returns (Id) {}
+    rpc CreateItem(Item) returns (Id) {}
+    rpc CreateVersion(Version) returns (Id) {}
+    rpc CreateResource(Resource) returns (Id) {}
+    rpc CreateLink(Link) returns (Id) {}
+
+    rpc DeleteCollection(Id) returns (Text) {}
+    rpc DeleteItem(Id) returns (Text) {}
+    rpc DeleteVersion(Id) returns (Text) {}
+    rpc DeleteResource(Id) returns (Text) {}
+
+    rpc FindCollections(QueryDescs) returns (Collections) {}
+    rpc FindItems(QueryDescs) returns (Items) {}
+    rpc FindVersions(QueryDescs) returns (Versions) {}
+    rpc FindResources(QueryDescs) returns (Resources) {}
+    rpc FindLinks(QueryDescs) returns (Links) {}
+    
+    rpc GetPublishedVersion(Id) returns (Version) {}
+    rpc PublishVersion(Id) returns (Text) {}
+}
+
+message Id {
+    string Id = 1;
+    Text error = 81;
+}
+
+message Text {
+    string Text = 80;
+}
+
+message Collection {
+    string Id = 6;
+    string Name = 7;
+    Text error = 82;
+}
+
+message Item {
+    string Parent = 12;
+    string Id = 13;
+    string ItemType = 14;
+    string Variant = 15;
+    map<string, string> Facets = 16;
+    repeated string Links = 17;
+    Text error = 83;
+}
+
+message Version {
+    string Parent = 25;
+    string Id = 26;
+    int32 Number = 27;
+    map<string, string> Facets = 29;
+    repeated string Links = 30;
+    repeated string Resources = 31;
+    Text error = 84;
+}
+
+message Resource {
+    string Parent = 36;
+    string Name = 37;
+    string ResourceType = 38;
+    string Id = 39;
+    string Location = 40;
+    Text error = 85;
+}
+
+message Link {
+    string Name = 43;
+    string Id = 44;
+    string Src = 45;
+    string Dst = 46;
+    Text error = 85;
+}
+
+message QueryDesc {
+    string Parent = 60;
+    string Id = 61;
+    int32 VersionNumber = 62;
+    string ItemType = 63;
+    string Variant = 64;
+    map<string, string> Facets = 65;
+    string Name = 66;
+    string ResourceType = 67;
+    string Location = 68;
+    string LinkSrc = 69;
+    string LinkDst = 70;
+}
+
+message QueryDescs {
+    repeated QueryDesc all = 75;
+}
+
+message Ids {
+    repeated Id all = 50;
+    Text error = 88;
+}
+
+message Collections {
+    repeated Collection all = 51;
+    Text error = 89;
+}
+
+message Items {
+    repeated Item all = 52;
+    Text error = 90;
+}
+
+message Versions {
+    repeated Version all = 53;
+    Text error = 91;
+}
+
+message Resources {
+    repeated Resource all = 54;
+    Text error = 92;
+}
+
+message Links {
+    repeated Link all = 55;
+    Text error = 93;
+}

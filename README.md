@@ -1,4 +1,4 @@
-v0.9: consider working but alpha until addition of test suite
+v0.95: consider working but alpha until addition of test suite
 #Wysteria
 
 An open source asset tracking & versioning system written in Go. 
@@ -164,12 +164,14 @@ All contributors are welcome. If you write a new implementation for any of the i
 
 Also, if (when) you find bugs, let me know.
 
+##Required Before 1.0 release
+- fix Nats.io middleware implementation in 'split_middleware' branch
+- add embedded nats server ability
+- add embedded searchbase (?)
+- add embedded database implementation (bolt db or tiedot)
 
 ##ToDo List
-- refactor configuration loading to make it more generic
 - unittests for business logic
-  - mock in-memory searchbase implementation
-  - mock in-memory database implementation
 - logging & live statistics gathering functionality
   - Open to suggestions on implementation
 - admin console 

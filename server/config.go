@@ -32,15 +32,17 @@ type configuration struct {
 func init() {
 	Config = getDefaults()
 	config_filepath, err := common.ChooseServerConfig()
-	if err != nil {
+	if err == nil {
 		cnf := &configuration{}
 		err := common.ReadConfig(config_filepath, cnf)
+		log.Println("Attempting to read", config_filepath, cnf, err)
 		if err != nil {
 			log.Println(fmt.Sprintf("Unable to read config '%s' %s", config_filepath, err))
 		} else {
 			Config = cnf
 		}
 	}
+	log.Println("Config loaded", Config)
 }
 
 // Get the default settings.

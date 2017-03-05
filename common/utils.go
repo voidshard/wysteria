@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gopkg.in/gcfg.v1"
 	"errors"
+	"log"
 )
 
 const (
@@ -38,6 +39,7 @@ func chooseConfig(paths ...string) (string, error) {
 		}
 
 		_, err := os.Stat(path)
+		log.Println(fmt.Sprintf("Searching for config: %s %v", path, err))
 		if err == nil {
 			return path, nil
 		}
@@ -48,9 +50,5 @@ func chooseConfig(paths ...string) (string, error) {
 // Read configuration information from a file
 //
 func ReadConfig(path string, conf interface{}) error {
-	err := gcfg.ReadFileInto(&conf, path)
-	if err == nil {
-		return nil
-	}
-	return errors.New(fmt.Sprintf("Unable to read config file %v", err))
+	return gcfg.ReadFileInto(conf, path)
 }

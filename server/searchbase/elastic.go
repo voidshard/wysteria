@@ -18,6 +18,7 @@ const (
 func elastic_connect(settings *SearchbaseSettings) (Searchbase, error) {
 	client, err := elastic.NewClient(
 		elastic.SetURL(fmt.Sprintf("http://%s:%d", settings.Host, settings.Port)),
+		elastic.SetSniff(false),
 	)
 	if err != nil {
 		return nil, err

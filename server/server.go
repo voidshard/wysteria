@@ -428,14 +428,6 @@ func (s *WysteriaServer) close_connections() {
 }
 
 func (s *WysteriaServer) Run() error {
-	err := s.startup()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *WysteriaServer) startup() error {
 	msg := "Attempting connection to %s %s %s:%d"
 
 	// [1] Connect / spin up the database

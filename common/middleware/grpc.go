@@ -8,7 +8,6 @@ import (
 	"errors"
 	"net"
 	"google.golang.org/grpc/reflection"
-	"log"
 )
 
 const (
@@ -454,11 +453,7 @@ func (s *grpcServer) ListenAndServe(config string, handler ServerHandler) error 
 	// Register reflection service on gRPC server.
 	reflection.Register(rpc_server)
 
-	go func() {
-		log.Fatal(rpc_server.Serve(s.conn))
-	}()
-
-	return nil
+	return rpc_server.Serve(s.conn)
 }
 
 func (s *grpcServer) BeginShutdown() {

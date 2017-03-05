@@ -8,15 +8,20 @@ import (
 
 type version struct {
 	conn *wysteriaClient
-	data wyc.Version
+	data *wyc.Version
+	fromLink *link
 }
 
-func (i *version) Version() int {
+func (i *version) Version() int32 {
 	return i.data.Number
 }
 
-func (c *version) Delete() error {
-	return c.conn.requestData(wyc.MSG_DELETE_VERSION, &c.data, nil)
+func (i *version) Link() *link {
+	return i.fromLink
+}
+
+func (i *version) Delete() error {
+	return i.conn.middleware.DeleteVersion(i.data.Id)
 }
 
 func (i *version) Facet(key string) (string, bool) {
@@ -28,28 +33,86 @@ func (i *version) Id() string {
 	return i.data.Id
 }
 
-func (i *version) SetFacet(key, value string) error {
-	i.data.Facets[key] = value
-	return i.update()
+func (i *version) SetFacets(in map[string]string) error {
+	return i.conn.middleware.UpdateVersionFacets(i.data.Id, in)
 }
 
-func (i *version) update() error {
-	return i.conn.requestData(wyc.MSG_UPDATE_VERSION, i.data, &i.data)
+func (i *version) getLinkedVersions(name string) ([]*version, error) {
+	links, err := i.conn.middleware.FindLinks(
+		[]*wyc.QueryDesc{
+			{LinkSrc: i.data.Id, Name: name},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	version_id_to_link := map[string]*wyc.Link{}
+	ids := []*wyc.QueryDesc{}
+	for _, link := range links {
+		id := link.Src
+
+		if link.Src == i.data.Id {
+			id = link.Dst
+		}
+
+		version_id_to_link[id] = link
+		ids = append(ids, &wyc.QueryDesc{Id: id})
+	}
+
+	items, err := i.conn.middleware.FindVersions(ids)
+	if err != nil {
+		return nil, err
+	}
+
+	result := []*version{}
+	for _, ver := range items {
+		wrapped_item := &version{
+			conn: i.conn,
+			data: ver,
+		}
+
+		lnk, ok := version_id_to_link[ver.Id]
+		if ok {
+			wrapped_item.fromLink = &link{conn: i.conn, data: lnk}
+		}
+		result = append(result, wrapped_item)
+	}
+	return result, nil
+}
+
+
+func (i *version) GetLinkedVersionsByName(name string) ([]*version, error) {
+	return i.getLinkedVersions(name)
+}
+
+func (i *version) GetLinkedVersions() ([]*version, error) {
+	return i.getLinkedVersions("")
+}
+
+func (i *version) LinkTo(name string, other *version) error {
+	if i.Id() == other.Id() { // Prevent linking to oneself
+		return nil
+	}
+
+	lnk := &wyc.Link{
+		Name: name,
+		Src:  i.data.Id,
+		Dst:  other.data.Id,
+	}
+	_, err := i.conn.middleware.CreateLink(lnk)
+	return err
 }
 
 func (i *version) AddResource(name, rtype, location string) (string, error) {
-	res := wyc.Resource{
+	res := &wyc.Resource{
 		Parent:       i.data.Id,
 		Name:         name,
 		ResourceType: rtype,
 		Location:     location,
 	}
-	err := i.conn.requestData(wyc.MSG_CREATE_RESOURCE, res, &res)
-	if err != nil {
-		return "", err
-	}
-	i.data.Resources = append(i.data.Resources, res.Id)
-	return res.Id, i.update()
+
+	return i.conn.middleware.CreateResource(res)
 }
 
 func (i *version) GetAllResources() ([]*resource, error) {
@@ -69,17 +132,15 @@ func (i *version) GetResourcesByName(name string) ([]*resource, error) {
 }
 
 func (i *version) getResources(name, resource_type string) ([]*resource, error) {
-	q := wyc.QueryDesc{Parent: i.data.Id, Name: name, ResourceType: resource_type}
-	query := []wyc.QueryDesc{q}
-
-	res := []wyc.Resource{}
-	err := i.conn.requestData(wyc.MSG_FIND_RESOURCE, &query, &res)
+	results, err := i.conn.middleware.FindResources(
+		[]*wyc.QueryDesc{{Parent: i.data.Id, Name: name, ResourceType: resource_type}},
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	items := []*resource{}
-	for _, data := range res {
+	for _, data := range results {
 		items = append(items, &resource{
 			conn: i.conn,
 			data: data,
@@ -88,111 +149,22 @@ func (i *version) getResources(name, resource_type string) ([]*resource, error) 
 	return items, nil
 }
 
-func (i *version) getLinkedVersions(name string) ([]*version, map[string]string, error) {
-	query := []wyc.QueryDesc{}
-	for _, link_id := range i.data.Links {
-		q := wyc.QueryDesc{LinkSrc: i.data.Id, Id: link_id, Name: name}
-		query = append(query, q)
-	}
-
-	lnks := []wyc.Link{}
-	err := i.conn.requestData(wyc.MSG_FIND_LINK, &query, &lnks)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	lnk_name_map := map[string]string{}
-	iquery := []wyc.QueryDesc{}
-	for _, lnk := range lnks {
-		lnk_name_map[lnk.Dst] = lnk.Name
-		iquery = append(iquery, wyc.QueryDesc{Id: lnk.Dst})
-	}
-
-	data := []wyc.Version{}
-	err = i.conn.requestData(wyc.MSG_FIND_VERSION, &iquery, &data)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	items := []*version{}
-	for _, item := range data {
-		items = append(items, &version{
-			conn: i.conn,
-			data: item,
-		})
-	}
-	return items, lnk_name_map, nil
-}
-
-func (i *version) GetLinkedVersionsByName(name string) ([]*version, error) {
-	versions, _, err := i.getLinkedVersions(name)
-	return versions, err
-}
-
-func (i *version) GetLinkedVersions() (map[string][]*version, error) {
-	versions, name_map, err := i.getLinkedVersions("")
-	if err != nil {
-		return nil, err
-	}
-
-	results := map[string][]*version{}
-	for _, v := range versions {
-		name, ok := name_map[v.Id()]
-		if !ok {
-			continue
-		}
-
-		ls, ok := results[name]
-		if !ok {
-			ls = []*version{v}
-		} else {
-			ls = append(ls, v)
-		}
-		results[name] = ls
-	}
-	return results, nil
-}
-
-func (i *version) LinkTo(name string, other *version) error {
-	if i.Id() == other.Id() { // Prevent linking to self
-		return nil
-	}
-	for _, lid := range i.data.Links { // Prevent duplicate links
-		if lid == other.Id() {
-			return nil
-		}
-	}
-
-	lnk := wyc.Link{
-		Name: name,
-		Src:  i.data.Id,
-		Dst:  other.data.Id,
-	}
-	err := i.conn.requestData(wyc.MSG_CREATE_LINK, lnk, &lnk)
-	if err != nil {
-		return err
-	}
-	i.data.Links = append(i.data.Links, lnk.Id)
-	return i.update()
-}
-
 func (i *version) Parent() string {
 	return i.data.Parent
 }
 
 func (i *version) GetParent() (*item, error) {
-	qry := []*wyc.QueryDesc{
-		{Id: i.data.Parent},
-	}
-
-	results := []wyc.Item{}
-	err := i.conn.requestData(wyc.MSG_FIND_ITEM, &qry, &results)
+	items, err := i.conn.middleware.FindItems(
+		[]*wyc.QueryDesc{{Id: i.data.Parent}},
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	if len(results) < 1 {
-		return nil, errors.New(fmt.Sprintf("Item with Id %s not found", i.data.Parent))
+	if len(items) < 1 {
+		return nil, errors.New(fmt.Sprintf("Expected 1 result, got %s", len(items)))
 	}
-	return &item{conn: i.conn, data: results[0]}, nil
+	return &item{
+		conn: i.conn,
+		data: items[0],
+	}, nil
 }

@@ -8,7 +8,7 @@ import (
 
 type collection struct {
 	conn *wysteriaClient
-	data wyc.Collection
+	data *wyc.Collection
 }
 
 func (c *collection) Name() string {
@@ -20,76 +20,74 @@ func (c *collection) Id() string {
 }
 
 func (c *collection) Delete() error {
-	return c.conn.requestData(wyc.MSG_DELETE_COLLECTION, &c.data, nil)
+	return c.conn.middleware.DeleteCollection(c.data.Id)
 }
 
 func (c *collection) GetItems() ([]*item, error) {
-	cdata := []wyc.Item{}
-	query := []wyc.QueryDesc{{Parent: c.data.Id}}
-	err := c.conn.requestData(wyc.MSG_FIND_ITEM, &query, &cdata)
+	items, err := c.conn.middleware.FindItems(
+		[]*wyc.QueryDesc{{Parent: c.data.Id}},
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	items := []*item{}
-	for _, idata := range cdata {
-		items = append(items, &item{
+	results := []*item{}
+	for _, i := range items {
+		results = append(results, &item{
 			conn: c.conn,
-			data: idata,
+			data: i,
 		})
 	}
-	return items, nil
+	return results, nil
 }
 
 func (c *collection) CreateItem(itemtype, variant string) (*item, error) {
-	i := item{
-		conn: c.conn,
-		data: wyc.Item{
-			Parent:   c.data.Id,
-			ItemType: itemtype,
-			Variant:  variant,
-			Facets: map[string]string{
-				"collection": c.data.Name,
-			},
+	cmn_item := &wyc.Item{
+		Parent:   c.data.Id,
+		ItemType: itemtype,
+		Variant:  variant,
+		Facets: map[string]string{
+			"collection": c.data.Name,
 		},
 	}
 
-	err := c.conn.requestData(wyc.MSG_CREATE_ITEM, &i.data, &i.data)
+	item_id, err := c.conn.middleware.CreateItem(cmn_item)
 	if err != nil {
 		return nil, err
 	}
+	cmn_item.Id = item_id
 
-	return &i, nil
+	return &item{
+		conn: c.conn,
+		data: cmn_item,
+	}, nil
 }
 
 func (w *wysteriaClient) CreateCollection(name string) (*collection, error) {
-	c := collection{
-		conn: w,
-		data: wyc.Collection{Name: name},
-	}
-
-	err := w.requestData(wyc.MSG_CREATE_COLLECTION, &c.data, &c.data)
+	collection_id,  err := w.middleware.CreateCollection(name)
 	if err != nil {
 		return nil, err
 	}
 
-	return &c, nil
+	return &collection{
+		conn: w,
+		data: &wyc.Collection{
+			Id: collection_id,
+			Name: name,
+		},
+	}, nil
 }
 
 func (w *wysteriaClient) GetCollection(identifier string) (*collection, error) {
-	cdata := []wyc.Collection{}
-	query := []wyc.QueryDesc{
-		{Id: identifier},
-		{Name: identifier},
-	}
-
-	err := w.requestData(wyc.MSG_FIND_COLLECTION, &query, &cdata)
+	results, err := w.middleware.FindCollections(
+		[]*wyc.QueryDesc{{Id: identifier}, {Name: identifier}},
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(cdata) == 1 {
-		return &collection{conn: w, data: cdata[0]}, nil
+	if len(results) == 1 {
+		return &collection{ conn: w, data: results[0]}, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %s", len(cdata)))
+	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %s", len(results)))
 }

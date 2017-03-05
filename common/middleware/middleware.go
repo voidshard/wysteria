@@ -46,7 +46,7 @@ type EndpointClient interface {
 
 	CreateCollection(string) (string, error)
 	CreateItem(*wyc.Item) (string, error)
-	CreateVersion(*wyc.Version) (string, error)
+	CreateVersion(*wyc.Version) (string, int32, error)
 	CreateResource(*wyc.Resource) (string, error)
 	CreateLink(*wyc.Link) (string, error)
 
@@ -85,7 +85,7 @@ type EndpointServer interface {
 type ServerHandler interface {
 	CreateCollection(string) (string, error)
 	CreateItem(*wyc.Item) (string, error)
-	CreateVersion(*wyc.Version) (string, error)
+	CreateVersion(*wyc.Version) (string, int32, error)
 	CreateResource(*wyc.Resource) (string, error)
 	CreateLink(*wyc.Link) (string, error)
 
@@ -105,4 +105,9 @@ type ServerHandler interface {
 
 	UpdateVersionFacets(string, map[string]string) error
 	UpdateItemFacets(string, map[string]string) error
+}
+
+type MiddlewareSettings struct {
+	Driver string
+	Config string
 }

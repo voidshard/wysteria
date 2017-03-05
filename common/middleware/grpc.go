@@ -19,6 +19,7 @@ var (
 	err_sd_wrpc_text = &wrpc.Text{Text: err_sd_msg}
 
 	null_wrpc_id = &wrpc.Id{Id: ""}
+	null_wrpc_id_and_num = &wrpc.IdAndNum{Id: "", Version: 0}
 	null_wrpc_text = &wrpc.Text{Text: ""}
 )
 
@@ -67,7 +68,6 @@ func convWItem (in *wyc.Item) *wrpc.Item {
 		Parent: in.Parent,
 		ItemType: in.ItemType,
 		Variant: in.Variant,
-		Links: in.Links,
 		Facets: in.Facets,
 	}
 }
@@ -92,25 +92,23 @@ func convWVersion (in *wyc.Version) *wrpc.Version {
 		Id: in.Id,
 		Parent: in.Parent,
 		Number: in.Number,
-		Links: in.Links,
 		Facets: in.Facets,
-		Resources: in.Resources,
 	}
 }
 
-func (c *grpcClient) CreateVersion(in *wyc.Version) (string, error) {
+func (c *grpcClient) CreateVersion(in *wyc.Version) (string, int32, error) {
 	result, err := c.client.CreateVersion(
 		context.Background(),
 		convWVersion(in),
 	)
 
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
-	if result.Error.Text != "" {
-		return "", errors.New(result.Error.Text)
+	if result.Text != "" {
+		return "", 0, errors.New(result.Text)
 	}
-	return result.Id, nil
+	return result.Id, result.Version, nil
 }
 
 func convWResource (in *wyc.Resource) *wrpc.Resource {
@@ -244,7 +242,6 @@ func convRItems(in ...*wrpc.Item) []*wyc.Item {
 			Parent: i.Parent,
 			ItemType: i.ItemType,
 			Variant: i.Variant,
-			Links: i.Links,
 			Facets: i.Facets,
 		})
 	}
@@ -269,10 +266,8 @@ func convRVersions(in ...*wrpc.Version) []*wyc.Version {
 		result = append(result, &wyc.Version{
 			Id: i.Id,
 			Parent: i.Parent,
-			Links: i.Links,
 			Facets: i.Facets,
 			Number: i.Number,
-			Resources: i.Resources,
 		})
 	}
 	return result
@@ -345,10 +340,8 @@ func convRVersion(in *wrpc.Version) *wyc.Version {
 	return &wyc.Version{
 		Id: in.Id,
 		Parent: in.Parent,
-		Links: in.Links,
 		Facets: in.Facets,
 		Number: in.Number,
-		Resources: in.Resources,
 	}
 }
 
@@ -515,16 +508,16 @@ func (s *grpcServer) CreateItem(_ context.Context, in *wrpc.Item) (*wrpc.Id, err
 	return &wrpc.Id{Id: created_id}, err
 }
 
-func (s *grpcServer) CreateVersion(_ context.Context, in *wrpc.Version) (*wrpc.Id, error) {
+func (s *grpcServer) CreateVersion(_ context.Context, in *wrpc.Version) (*wrpc.IdAndNum, error) {
 	if s.refuse_work {
-		return null_wrpc_id, err_sd_err
+		return null_wrpc_id_and_num, err_sd_err
 	}
 
-	created_id, err := s.handler.CreateVersion(convRVersion(in))
+	created_id, number, err := s.handler.CreateVersion(convRVersion(in))
 	if err != nil {
-		return null_wrpc_id, err
+		return null_wrpc_id_and_num, err
 	}
-	return &wrpc.Id{Id: created_id}, err
+	return &wrpc.IdAndNum{Id: created_id, Version: number}, err
 }
 
 func (s *grpcServer) CreateResource(_ context.Context, in *wrpc.Resource) (*wrpc.Id, error) {

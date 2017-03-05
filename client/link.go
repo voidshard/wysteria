@@ -6,7 +6,7 @@ import (
 
 type link struct {
 	conn *wysteriaClient
-	data wyc.Link
+	data *wyc.Link
 }
 
 func (i *link) Name() string {

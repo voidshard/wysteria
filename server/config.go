@@ -11,15 +11,12 @@ import (
 
 var Config *configuration
 
-type basicMiddlewareConf struct {
-	Driver string
-	Config string
-}
+
 
 type configuration struct {
 	Database   wdb.DatabaseSettings
 	Searchbase wsb.SearchbaseSettings
-	Middleware basicMiddlewareConf
+	Middleware wcm.MiddlewareSettings
 }
 
 // Key tasks of config init();
@@ -68,7 +65,7 @@ func getDefaults() *configuration {
 			Database: "wysteria_idx",
 			PemFile: "",
 		},
-		basicMiddlewareConf {
+		wcm.MiddlewareSettings {
 			wcm.DRIVER_GRPC,
 			"10801",
 		},

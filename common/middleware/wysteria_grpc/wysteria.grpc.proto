@@ -19,7 +19,7 @@ package wysteria_grpc;
 service WysteriaGrpc {
     rpc CreateCollection(Text) returns (Id) {}
     rpc CreateItem(Item) returns (Id) {}
-    rpc CreateVersion(Version) returns (Id) {}
+    rpc CreateVersion(Version) returns (IdAndNum) {}
     rpc CreateResource(Resource) returns (Id) {}
     rpc CreateLink(Link) returns (Id) {}
 
@@ -39,6 +39,12 @@ service WysteriaGrpc {
 
     rpc UpdateVersionFacets(IdAndDict) returns (Text) {}
     rpc UpdateItemFacets(IdAndDict) returns (Text) {}
+}
+
+message IdAndNum {
+    string Id = 96;
+    int32 Version = 100;
+    string Text = 101;
 }
 
 message IdAndDict {
@@ -67,7 +73,6 @@ message Item {
     string ItemType = 14;
     string Variant = 15;
     map<string, string> Facets = 16;
-    repeated string Links = 17;
     Text error = 83;
 }
 
@@ -76,8 +81,6 @@ message Version {
     string Id = 26;
     int32 Number = 27;
     map<string, string> Facets = 29;
-    repeated string Links = 30;
-    repeated string Resources = 31;
     Text error = 84;
 }
 

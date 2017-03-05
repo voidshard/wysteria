@@ -140,27 +140,27 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	return in.Id, s.searchbase.InsertItem(in.Id, in)
 }
 
-func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, error) {
+func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 	if in.Parent == "" {
-		return "", errors.New("Require Parent to be set")
+		return "", 0, errors.New("Require Parent to be set")
 	}
 
 	exists, err := exists(in.Parent, s.searchbase.QueryItem)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 	if !exists {
-		return "", errors.New(fmt.Sprintf("Parent with id %s not found", in.Parent))
+		return "", 0, errors.New(fmt.Sprintf("Parent with id %s not found", in.Parent))
 	}
 
 	in.Id = NewId()
 	version_number, err := s.database.InsertNextVersion(in.Id, in)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	in.Number = version_number
-	return in.Id, s.searchbase.InsertVersion(in.Id, in)
+	return in.Id, in.Number, s.searchbase.InsertVersion(in.Id, in)
 }
 
 func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {

@@ -11,7 +11,6 @@ type Item struct {
 	ItemType string            `json:"ItemType"`
 	Variant  string            `json:"Variant"`
 	Facets   map[string]string `json:"Facets"`
-	Links    []string          `json:"Links"` // Ids for Link Objects
 }
 
 type Version struct {
@@ -19,8 +18,6 @@ type Version struct {
 	Id        string            `json:"Id"`
 	Number    int32               `json:"Number"`
 	Facets    map[string]string `json:"Facets"`
-	Links     []string          `json:"Links"`     // Ids for Link Objects
-	Resources []string          `json:"Resources"` // Ids for Resource Objects
 }
 
 type Resource struct {

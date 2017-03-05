@@ -1,7 +1,7 @@
 // This is the grpc protocol definition for Wysteria
 //
 // Rebuild wysteria.grpc.pb.go with:
-//   protoc -I wysteria_grpc/ wysteria_grpc/wysteria.grpc.proto --go_out=plugins=grpc:wysteria_grpc
+//   protoc -I grpc_proto/ grpc_proto/wysteria.grpc.proto --go_out=plugins=grpc:grpc_proto
 // This is create you a new wysteria.grpc.pb.go file with the client / server bindings.
 //
 // Nb, despite it being machine generated I find I have to change the line

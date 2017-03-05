@@ -2,7 +2,7 @@ package middleware
 
 import (
 	wyc "github.com/voidshard/wysteria/common"
-	wrpc "github.com/voidshard/wysteria/common/middleware/wysteria_grpc"
+	wrpc "github.com/voidshard/wysteria/common/middleware/grpc_proto"
 	"google.golang.org/grpc"
 	"golang.org/x/net/context"
 	"errors"
@@ -415,7 +415,7 @@ func newGrpcServer() EndpointServer {
 //    to actually reach the server layer and do the given work
 //
 //   grpcServer (wysteria/common/middleware/grpc.go)
-//    implements the wysteria/common/middleware/wysteria_grpc/wysteria.grpc.pb.go grpc service
+//    implements the wysteria/common/middleware/grpc_proto/wysteria.grpc.pb.go grpc service
 //    defined in the .proto file. This is what receives requests from the google grpc package "Server"
 //    and changes data from the grpc message format(s) to our own objects (where required).
 //    This obj back and forth is kinda inefficient but allows us to implement nice interfaces everywhere.

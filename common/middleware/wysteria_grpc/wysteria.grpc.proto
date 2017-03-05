@@ -4,11 +4,11 @@
 //   protoc -I wysteria_grpc/ wysteria_grpc/wysteria.grpc.proto --go_out=plugins=grpc:wysteria_grpc
 // This is create you a new wysteria.grpc.pb.go file with the client / server bindings.
 //
-// Don't change the wysteria.grpc.pb.go file by hand as it gets overwritten
-// .. having said that, I find I have to change the line
+// Nb, despite it being machine generated I find I have to change the line
 //   const _ = grpc.SupportPackageIsVersion2
 // to
 //   const _ = grpc.SupportPackageIsVersion3
+// to have it compile nicely (??)
 //
 // Protocol buffer docs:
 //   https://developers.google.com/protocol-buffers/docs/proto3

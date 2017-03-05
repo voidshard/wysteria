@@ -1,19 +1,25 @@
 package main
 
 import (
-	wcm "github.com/voidshard/wysteria/common/middleware"
 	common "github.com/voidshard/wysteria/common"
+	wcm "github.com/voidshard/wysteria/common/middleware"
 	wdb "github.com/voidshard/wysteria/server/database"
 	wsb "github.com/voidshard/wysteria/server/searchbase"
 	"log"
+	"fmt"
 )
 
 var Config *configuration
 
-type configuration struct { // forms a universal config
-	MiddlewareSettings wcm.MiddlewareSettings
-	DatabaseSettings   wdb.DatabaseSettings
-	SearchbaseSettings wsb.SearchbaseSettings
+type basicMiddlewareConf struct {
+	Driver string
+	Config string
+}
+
+type configuration struct {
+	Database   wdb.DatabaseSettings
+	Searchbase wsb.SearchbaseSettings
+	Middleware basicMiddlewareConf
 }
 
 // Key tasks of config init();
@@ -25,13 +31,12 @@ type configuration struct { // forms a universal config
 //
 func init() {
 	Config = getDefaults()
-
 	config_filepath, err := common.ChooseServerConfig()
 	if err != nil {
 		cnf := &configuration{}
 		err := common.ReadConfig(config_filepath, cnf)
-		if err == nil {
-			log.Println("Unable to read config", config_filepath, err)
+		if err != nil {
+			log.Println(fmt.Sprintf("Unable to read config '%s' %s", config_filepath, err))
 		} else {
 			Config = cnf
 		}
@@ -39,26 +44,11 @@ func init() {
 }
 
 // Get the default settings.
-// This naively assumes that all our required services are running on the localhost.
 //
 func getDefaults() *configuration {
 	return &configuration{
-		wcm.MiddlewareSettings{
-			Driver: "nats",
-			Host: "127.0.0.1",
-			EncryptionKey: "",
-			User: "",
-			Pass: "",
-			Port: 4222,
-			RoutePublic: "WYSTERIA.PUBLIC.",
-			RouteServer: "WYSTERIA.SERVER.",
-			RouteClient: "WYSTERIA.CLIENT.",
-			RouteInternalServer: "WYSTERIA.INTERNAL.",
-			PemFile: "",
-		},
-
-		wdb.DatabaseSettings{
-			Driver: "mongo",
+		wdb.DatabaseSettings {
+			Driver: wdb.DRIVER_MONGO,
 			Host: "127.0.0.1",
 			Port: 27017,
 			User: "",
@@ -67,14 +57,18 @@ func getDefaults() *configuration {
 			PemFile: "",
 		},
 
-		wsb.SearchbaseSettings{
-			Driver: "elastic",
+		wsb.SearchbaseSettings {
+			Driver: wsb.DRIVER_ELASTIC,
 			Host: "127.0.0.1",
 			Port: 9200,
 			User: "",
 			Pass: "",
 			Database: "wysteria_idx",
 			PemFile: "",
+		},
+		basicMiddlewareConf {
+			wcm.DRIVER_GRPC,
+			"10801",
 		},
 	}
 }

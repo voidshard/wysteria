@@ -13,24 +13,18 @@ func TestGetDefaults(t *testing.T) {
 		Required string
 	} {
 		// Required minimum value(s) in order to connect and operate
-		{"Middleware Driver", settings.MiddlewareSettings.Driver, },
-		{"Middleware Host", settings.MiddlewareSettings.Host, },
-		{"Middleware Port", strconv.Itoa(settings.MiddlewareSettings.Port), },
+		{"Middleware Driver", settings.Middleware.Driver, },
+		{"Middleware Host", settings.Middleware.Config, },
 
-		{"Middleware RoutePublic", settings.MiddlewareSettings.RoutePublic, },
-		{"Middleware RouteServer", settings.MiddlewareSettings.RouteServer, },
-		{"Middleware RouteClient", settings.MiddlewareSettings.RouteClient, },
-		{"Middleware RouteInternalServer", settings.MiddlewareSettings.RouteInternalServer, },
+		{"Database Driver", settings.Database.Driver, },
+		{"Database Host", settings.Database.Host, },
+		{"Database Port", strconv.Itoa(settings.Database.Port), },
+		{"Database Database", settings.Database.Database, },
 
-		{"Database Driver", settings.DatabaseSettings.Driver, },
-		{"Database Host", settings.DatabaseSettings.Host, },
-		{"Database Port", strconv.Itoa(settings.DatabaseSettings.Port), },
-		{"Database Database", settings.DatabaseSettings.Database, },
-
-		{"Searchbase Driver", settings.SearchbaseSettings.Driver, },
-		{"Searchbase Host", settings.SearchbaseSettings.Host, },
-		{"Searchbase Port", strconv.Itoa(settings.SearchbaseSettings.Port), },
-		{"Searchbase Database", settings.SearchbaseSettings.Database, },
+		{"Searchbase Driver", settings.Searchbase.Driver, },
+		{"Searchbase Host", settings.Searchbase.Host, },
+		{"Searchbase Port", strconv.Itoa(settings.Searchbase.Port), },
+		{"Searchbase Database", settings.Searchbase.Database, },
 	}
 
 	// assert

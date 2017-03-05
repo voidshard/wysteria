@@ -36,6 +36,14 @@ service WysteriaGrpc {
     
     rpc GetPublishedVersion(Id) returns (Version) {}
     rpc PublishVersion(Id) returns (Text) {}
+
+    rpc UpdateVersionFacets(IdAndDict) returns (Text) {}
+    rpc UpdateItemFacets(IdAndDict) returns (Text) {}
+}
+
+message IdAndDict {
+    string Id = 96;
+    map<string, string> Facets = 97;
 }
 
 message Id {

@@ -29,13 +29,14 @@ func ChooseClientConfig() (string, error) {
 }
 
 // Choose some config file to load
-//  We check if we can os.Stat
-//   - a wysteria-server.ini config file in the cwd
-//   - a ini file given via the env var WYSTERIA_CLIENT_INI
-//  The first file we can Stat we accept as the (probably) intended config
+//  The first file we can os.Stat we accept as the (probably) intended config
 //
 func chooseConfig(paths ...string) (string, error) {
 	for _, path := range paths {
+		if path == "" {
+			continue
+		}
+
 		_, err := os.Stat(path)
 		if err == nil {
 			return path, nil

@@ -6,9 +6,13 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 )
 
+const (
+	DRIVER_ELASTIC = "elastic"
+)
+
 var (
 	connectors = map[string]func(*SearchbaseSettings) (Searchbase, error){
-		"elastic": elastic_connect,
+		DRIVER_ELASTIC: elastic_connect,
 	}
 )
 
@@ -24,15 +28,17 @@ func Connect(settings *SearchbaseSettings) (Searchbase, error) {
 type Searchbase interface {
 	Close() error
 
-	InsertItem(string, wyc.Item) error
-	InsertVersion(string, wyc.Version) error
-	InsertResource(string, wyc.Resource) error
-	InsertLink(string, wyc.Link) error
+	InsertCollection(string, *wyc.Collection) error
+	InsertItem(string, *wyc.Item) error
+	InsertVersion(string, *wyc.Version) error
+	InsertResource(string, *wyc.Resource) error
+	InsertLink(string, *wyc.Link) error
 
-	UpdateItem(string, wyc.Item) error
-	UpdateVersion(string, wyc.Version) error
+	UpdateItem(string, *wyc.Item) error
+	UpdateVersion(string, *wyc.Version) error
 
 	// delete data in table/collection with ids
+	DeleteCollection(...string) error
 	DeleteItem(...string) error
 	DeleteVersion(...string) error
 	DeleteResource(...string) error
@@ -45,8 +51,9 @@ type Searchbase interface {
 	//  (optional) int - limit results to at most int
 	//  ...QueryDesc - description(s) of thing(s) to search for.
 	//     results will be returned for any doc matching any QueryDesc
-	QueryItem(string, bool, int, ...wyc.QueryDesc) ([]string, error)
-	QueryVersion(string, bool, int, ...wyc.QueryDesc) ([]string, error)
-	QueryResource(string, bool, int, ...wyc.QueryDesc) ([]string, error)
-	QueryLink(string, bool, int, ...wyc.QueryDesc) ([]string, error)
+	QueryCollection(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
+	QueryItem(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
+	QueryVersion(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
+	QueryResource(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
+	QueryLink(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
 }

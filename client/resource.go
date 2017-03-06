@@ -8,7 +8,7 @@ import (
 
 type resource struct {
 	conn *wysteriaClient
-	data wyc.Resource
+	data *wyc.Resource
 }
 
 func (i *resource) Name() string {
@@ -19,8 +19,8 @@ func (i *resource) Type() string {
 	return i.data.ResourceType
 }
 
-func (c *resource) Delete() error {
-	return c.conn.requestData(wyc.MSG_DELETE_RESOURCE, &c.data, nil)
+func (i *resource) Delete() error {
+	return i.conn.middleware.DeleteResource(i.data.Id)
 }
 
 func (i *resource) Id() string {
@@ -36,21 +36,18 @@ func (i *resource) Parent() string {
 }
 
 func (i *resource) GetParent() (*version, error) {
-	qry := []*wyc.QueryDesc{
+	versions, err := i.conn.middleware.FindVersions([]*wyc.QueryDesc{
 		{Id: i.data.Parent},
-	}
-
-	results := []wyc.Version{}
-	err := i.conn.requestData(wyc.MSG_FIND_VERSION, &qry, &results)
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	if len(results) < 1 {
+	if len(versions) < 1 {
 		return nil, errors.New(fmt.Sprintf("Version with Id %s not found", i.data.Parent))
 	}
+
 	return &version{
 		conn: i.conn,
-		data: results[0],
+		data: versions[0],
 	}, nil
 }

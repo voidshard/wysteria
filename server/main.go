@@ -10,18 +10,13 @@ func main() {
 		GracefulShutdownTime: time.Second * 3,
 
 		// Pass in all config settings
-		SettingsMiddleware: &Config.MiddlewareSettings,
-		SettingsDatabase:    &Config.DatabaseSettings,
-		SettingsSearchbase: &Config.SearchbaseSettings,
+		settings: Config,
 	}
 
 	// Connect to all required endpoints, die in the event of any failures
-	err := server.Connect()
+	err := server.Run()
 	if err != nil {
 		panic(err)
 	}
 	defer server.Shutdown()
-
-	// Start processing requests
-	server.Run()
 }

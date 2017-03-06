@@ -7,39 +7,38 @@ import (
 
 type search struct {
 	conn       *wysteriaClient
-	query      []wyc.QueryDesc
-	nextQuery  wyc.QueryDesc
+	query      []*wyc.QueryDesc
+	nextQuery  *wyc.QueryDesc
 	nextQValid bool
 }
 
 func (i *search) Clear() *search {
-	i.query = []wyc.QueryDesc{}
-	i.nextQuery = wyc.QueryDesc{}
+	i.query = []*wyc.QueryDesc{}
+	i.nextQuery = &wyc.QueryDesc{}
 	i.nextQValid = false
 	return i
 }
 
-func (i *search) do(route string, results interface{}) error {
+func (i *search) ready() error {
 	if i.nextQValid {
 		i.query = append(i.query, i.nextQuery)
 		i.nextQValid = false
-		i.nextQuery = wyc.QueryDesc{}
+		i.nextQuery = &wyc.QueryDesc{}
 	}
 
 	if len(i.query) < 1 {
 		return errors.New("You must specify at least one query term.")
 	}
-
-	err := i.conn.requestData(route, i.query, &results)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
 func (i *search) Items() ([]*item, error) {
-	results := []wyc.Item{}
-	err := i.do(wyc.MSG_FIND_ITEM, &results)
+	err := i.ready()
+	if err != nil {
+		return nil, err
+	}
+
+	results, err := i.conn.middleware.FindItems(i.query)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +54,12 @@ func (i *search) Items() ([]*item, error) {
 }
 
 func (i *search) Versions() ([]*version, error) {
-	var results []wyc.Version
-	err := i.do(wyc.MSG_FIND_VERSION, &results)
+	err := i.ready()
+	if err != nil {
+		return nil, err
+	}
+
+	results, err := i.conn.middleware.FindVersions(i.query)
 	if err != nil {
 		return nil, err
 	}
@@ -72,8 +75,12 @@ func (i *search) Versions() ([]*version, error) {
 }
 
 func (i *search) Resources() ([]*resource, error) {
-	var results []wyc.Resource
-	err := i.do(wyc.MSG_FIND_RESOURCE, &results)
+	err := i.ready()
+	if err != nil {
+		return nil, err
+	}
+
+	results, err := i.conn.middleware.FindResources(i.query)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +96,12 @@ func (i *search) Resources() ([]*resource, error) {
 }
 
 func (i *search) Links() ([]*link, error) {
-	var results []wyc.Link
-	err := i.do(wyc.MSG_FIND_LINK, &results)
+	err := i.ready()
+	if err != nil {
+		return nil, err
+	}
+
+	results, err := i.conn.middleware.FindLinks(i.query)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +152,7 @@ func (i *search) ItemVariant(s string) *search {
 	return i
 }
 
-func (i *search) Version(n int) *search {
+func (i *search) Version(n int32) *search {
 	i.nextQValid = true
 	i.nextQuery.VersionNumber = n
 	return i
@@ -169,7 +180,7 @@ func (i *search) Or() *search {
 	if i.nextQValid {
 		i.nextQValid = false
 		i.query = append(i.query, i.nextQuery)
-		i.nextQuery = wyc.QueryDesc{}
+		i.nextQuery = &wyc.QueryDesc{}
 	}
 	return i
 }

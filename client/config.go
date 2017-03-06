@@ -9,7 +9,7 @@ import (
 var Config *configuration
 
 type configuration struct { // forms a universal config
-	MiddlewareSettings wcm.MiddlewareSettings
+	Middleware wcm.MiddlewareSettings
 }
 
 // Key tasks of config init();
@@ -39,18 +39,9 @@ func init() {
 //
 func getDefaults() *configuration {
 	return &configuration{
-		wcm.MiddlewareSettings{
-			Driver:              "nats",
-			Host:                "127.0.0.1",
-			EncryptionKey:       "",
-			User:                "",
-			Pass:                "",
-			Port:                4222,
-			RoutePublic:         "WYSTERIA.PUBLIC.",
-			RouteServer:         "WYSTERIA.SERVER.",
-			RouteClient:         "WYSTERIA.CLIENT.",
-			RouteInternalServer: "",
-			PemFile:             "",
+		wcm.MiddlewareSettings {
+			wcm.DRIVER_GRPC,
+			"10801",
 		},
 	}
 }

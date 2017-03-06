@@ -15,7 +15,12 @@ import (
 
 const (
 	url_prefix          = "mongodb"
+
+	// Keeps track of highest version
 	counters_collection = "counters"
+
+	// Keeps track of ItemId -> PublishedVersionId
+	published_collection = "publish"
 )
 
 type mongoEndpoint struct {
@@ -87,7 +92,62 @@ type counter struct {
 	Count      int    `json:"Count"`
 }
 
-func (e *mongoEndpoint) InsertCollection(id string, d wyc.Collection) error {
+func (e *mongoEndpoint) SetPublished(version_id string) error {
+	// First, look up the version obj, because we need the parent Item ID
+	vers, err := e.RetrieveVersion(version_id)
+	if err != nil {
+		return err
+	}
+
+	// Check we got the expected number of versions
+	if len(vers) != 1 {
+		return errors.New(fmt.Sprintf("Expected one matching version, got %d", len(vers)))
+	}
+
+	// We use a document with two values, the Item Id we're talking about and the ID of the current
+	// version marked as Published (where the Version is a child of the given Item)
+	version_obj := vers[0]
+	change := mgo.Change{
+		Update:    bson.M{"$set": bson.M{"Item": version_obj.Parent, "Published": version_id}},
+		ReturnNew: true,
+		Upsert:    true,
+	}
+
+	var doc bson.M
+	col := e.getCollection(published_collection)
+
+	// Atomic findAndModify call
+	_, err = col.Find(bson.M{"Item": version_obj.Parent}).Apply(change, &doc)
+	return err
+}
+
+func (e *mongoEndpoint) GetPublished(item_id string) (*wyc.Version, error) {
+	// Look up the published version id for the given item
+	var doc bson.M
+	col := e.getCollection(published_collection)
+	err := col.Find(bson.M{"Item": item_id}).One(&doc)
+	if err != nil {
+		return nil, err
+	}
+
+	// Assuming we got one, pull out the Published version id
+	version_id := doc["Published"].(string)
+
+	// Retrieve said version
+	vers, err := e.RetrieveVersion(version_id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check we got the expected number of versions
+	if len(vers) != 1 {
+		return nil, errors.New(fmt.Sprintf("Expected one matching version, got %d", len(vers)))
+	}
+
+	return vers[0], nil
+}
+
+func (e *mongoEndpoint) InsertCollection(id string, d *wyc.Collection) error {
 	collection := e.getCollection(table_collection)
 
 	var res []interface{}
@@ -102,7 +162,7 @@ func (e *mongoEndpoint) InsertCollection(id string, d wyc.Collection) error {
 	return e.insert(table_collection, id, d)
 }
 
-func (e *mongoEndpoint) InsertItem(id string, d wyc.Item) error {
+func (e *mongoEndpoint) InsertItem(id string, d *wyc.Item) error {
 	key := fmt.Sprintf("%s:%s:%s:%s", table_item, d.Parent, d.ItemType, d.Variant)
 
 	change := mgo.Change{
@@ -125,11 +185,9 @@ func (e *mongoEndpoint) InsertItem(id string, d wyc.Item) error {
 	return e.insert(table_item, id, d)
 }
 
-func (e *mongoEndpoint) InsertNextVersion(id string, d wyc.Version) (int, error) {
-	key := fmt.Sprintf("%s:%s", table_version, d.Parent)
-
+func (e *mongoEndpoint) InsertNextVersion(id string, d *wyc.Version) (int32, error) {
 	change := mgo.Change{
-		Update:    bson.M{"$inc": bson.M{"Count": 1}, "$set": bson.M{"CounterFor": key}},
+		Update:    bson.M{"$inc": bson.M{"Count": 1}, "$set": bson.M{"CounterFor": d.Parent}},
 		ReturnNew: true,
 		Upsert:    true,
 	}
@@ -140,81 +198,71 @@ func (e *mongoEndpoint) InsertNextVersion(id string, d wyc.Version) (int, error)
 	col := e.getCollection(counters_collection)
 
 	// Atomic findAndModify call
-	_, err := col.Find(bson.M{"CounterFor": key}).Apply(change, &doc)
+	_, err := col.Find(bson.M{"CounterFor": d.Parent}).Apply(change, &doc)
 	if err != nil {
 		return -1, err
 	}
 
-	d.Number = doc["Count"].(int)
+	d.Number = doc["Count"].(int32)
 	return d.Number, e.insert(table_version, id, d)
 }
-func (e *mongoEndpoint) InsertResource(id string, d wyc.Resource) error {
+func (e *mongoEndpoint) InsertResource(id string, d *wyc.Resource) error {
 	return e.insert(table_fileresource, id, d)
 }
 
-func (e *mongoEndpoint) InsertLink(id string, d wyc.Link) error {
+func (e *mongoEndpoint) InsertLink(id string, d *wyc.Link) error {
 	return e.insert(table_link, id, d)
 }
 
 // Retrieve impl
-func (e *mongoEndpoint) RetrieveCollection(ids ...string) (res []wyc.Collection, err error) {
+func (e *mongoEndpoint) RetrieveCollection(ids ...string) (res []*wyc.Collection, err error) {
 	err = e.retrieve(table_collection, &res, ids...)
 	return
 }
 
-func (e *mongoEndpoint) RetrieveCollectionByName(names ...string) (res []wyc.Collection, err error) {
-	collection := e.getCollection(table_collection)
-	err = collection.Find(bson.M{
-		"name": bson.M{
-			"$in": names,
-		},
-	}).All(&res)
-	return
-}
-
-func (e *mongoEndpoint) RetrieveItem(ids ...string) (res []wyc.Item, err error) {
+func (e *mongoEndpoint) RetrieveItem(ids ...string) (res []*wyc.Item, err error) {
 	err = e.retrieve(table_item, &res, ids...)
 	return
 }
-func (e *mongoEndpoint) RetrieveVersion(ids ...string) (res []wyc.Version, err error) {
+func (e *mongoEndpoint) RetrieveVersion(ids ...string) (res []*wyc.Version, err error) {
 	err = e.retrieve(table_version, &res, ids...)
 	return
 }
-func (e *mongoEndpoint) RetrieveResource(ids ...string) (res []wyc.Resource, err error) {
+func (e *mongoEndpoint) RetrieveResource(ids ...string) (res []*wyc.Resource, err error) {
 	err = e.retrieve(table_fileresource, &res, ids...)
 	return
 }
-func (e *mongoEndpoint) RetrieveLink(ids ...string) (res []wyc.Link, err error) {
+func (e *mongoEndpoint) RetrieveLink(ids ...string) (res []*wyc.Link, err error) {
 	err = e.retrieve(table_link, &res, ids...)
 	return
 }
 
 // Update impl
-func (e *mongoEndpoint) UpdateItem(id string, d wyc.Item) error {
+func (e *mongoEndpoint) UpdateItem(id string, d *wyc.Item) error {
 	return e.update(table_item, id, d)
 }
-func (e *mongoEndpoint) UpdateVersion(id string, d wyc.Version) error {
+func (e *mongoEndpoint) UpdateVersion(id string, d *wyc.Version) error {
 	return e.update(table_version, id, d)
 }
 
 func (e *mongoEndpoint) DeleteCollection(ids ...string) error {
-	return e.delete(table_collection, ids...)
+	return e.delete_by_id(table_collection, ids...)
 }
 
 func (e *mongoEndpoint) DeleteItem(ids ...string) error {
-	return e.delete(table_item, ids...)
+	return e.delete_by_id(table_item, ids...)
 }
 
 func (e *mongoEndpoint) DeleteVersion(ids ...string) error {
-	return e.delete(table_version, ids...)
+	return e.delete_by_id(table_version, ids...)
 }
 
 func (e *mongoEndpoint) DeleteResource(ids ...string) error {
-	return e.delete(table_fileresource, ids...)
+	return e.delete_by_id(table_fileresource, ids...)
 }
 
 func (e *mongoEndpoint) DeleteLink(ids ...string) error {
-	return e.delete(table_link, ids...)
+	return e.delete_by_id(table_link, ids...)
 }
 
 // Util funcs
@@ -244,7 +292,7 @@ func (e *mongoEndpoint) retrieve(col string, out interface{}, sids ...string) (e
 	return
 }
 
-func (e *mongoEndpoint) delete(col string, sids ...string) (err error) {
+func (e *mongoEndpoint) delete_by_id(col string, sids ...string) (err error) {
 	ids, err := toBsonIds(sids...)
 	if err != nil {
 		return err

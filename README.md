@@ -172,21 +172,18 @@ All contributors are welcome. If you write a new implementation for any of the i
 Also, if (when) you find bugs, let me know.
 
 ##Required Before 1.0 release
-- fix Nats.io middleware implementation in 'split_middleware' branch
 - add embedded nats server ability
-- add embedded searchbase (?)
-- add embedded database implementation (bolt db or tiedot)
+- add embedded searchbase 
+- add embedded database implementation (boltdb)
 
 ##ToDo List
 - unittests for business logic
 - logging & live statistics gathering functionality
-  - Open to suggestions on implementation
 - admin console 
   - extend the wysteria server chan (currently subscribed to but unused) to allow realtime management of live server(s)
     - allow / disallow certain client requests
     - introduce some kind of configurable auto load-balancing 
-    - allow changing of configuration option(s) (like the database we're reading / writing to etc)
+    - allow changing of configuration option(s) 
     - add alerts for certain events or server statuses
-    - allow temporary routing of all client requests to another server(s) (that we can shutdown gracefully)
-- move encoding scheme to something more time/memory efficient
+    - allow temporary rerouting of client requests
 - implement system for deterministic ids

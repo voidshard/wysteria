@@ -1,7 +1,7 @@
-v0.95: consider working but alpha until addition of test suite
+v0.96: consider beta, embedded database options & intergration test suite coming 
 #Wysteria
 
-An open source asset tracking & versioning system written in Go. 
+An open source asset tracking, versioning & publishing system written in Go. 
 
 
 ##Before You Start
@@ -12,11 +12,13 @@ There are three extra components that a wysteria server depends on, these are
 - A middleware for transporting data back and forth between client(s) and server(s)
 
 Each of these is behind an interface so it's easy to write implementations for your favourite solutions. At the moment there are implementations for 
-- MongoDB (database)
-- ElasticSearch (searchbase)
-- Nats.io (middleware)
-
-Thus you'll need to have set up each of these services for wysteria to use.
+(Database)
+ - MongoDb
+(Searchbase)
+ - ElasticSearch
+(Middleware) 
+ - Nats.io
+ - Gorpc (embedded)
 
 ##Connecting
 Once you're set up, opening a connection to the server is reasonably simple
@@ -26,7 +28,7 @@ import (
 )
 
 func main() {
-  client, err := wyc.New().Connect()
+  client, err := wyc.New()
   if err != nil {       
     panic(err)
   }

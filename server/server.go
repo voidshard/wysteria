@@ -448,5 +448,7 @@ func (s *WysteriaServer) Run() error {
 		return err
 	}
 	s.middleware_server = mware_server
+
+	log.Println("Spinning up middleware, listening for connections")
 	return mware_server.ListenAndServe(s.settings.Middleware.Config, s)
 }

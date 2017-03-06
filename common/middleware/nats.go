@@ -470,7 +470,7 @@ func (s *natsServer) ListenAndServe(config string, handler ServerHandler) error 
 
 func subjectSuffix(subject string) string {
 	parts := strings.Split(subject, ".")
-	return parts[-1]
+	return parts[len(parts) -1]
 }
 
 func errorString(err error) string {

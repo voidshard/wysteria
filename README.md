@@ -11,12 +11,17 @@ There are three extra components that a wysteria server depends on, these are
 - A 'searchbase' for indexing and running queries against
 - A middleware for transporting data back and forth between client(s) and server(s)
 
-Each of these is behind an interface so it's easy to write implementations for your favourite solutions. At the moment there are implementations for 
-(Database)
+Each of these is behind an interface so it's easy to write implementations for your favourite solutions. Currently there are implementations for 
+
+Databases
  - MongoDb
-(Searchbase)
+
+
+Search
  - ElasticSearch
-(Middleware) 
+
+
+Middleware
  - Nats.io
  - Gorpc (embedded)
 

@@ -46,14 +46,13 @@ type Searchbase interface {
 
 	// we only ever get IDs back from our search - the DB holds the canonical data
 	// Where each takes:
-	//  (optional) string - field to sort results by
-	//  (optional) bool - sort results ascending order
 	//  (optional) int - limit results to at most int
+	//  (optional) int - from (results page)
 	//  ...QueryDesc - description(s) of thing(s) to search for.
 	//     results will be returned for any doc matching any QueryDesc
-	QueryCollection(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
-	QueryItem(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
-	QueryVersion(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
-	QueryResource(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
-	QueryLink(string, bool, int, ...*wyc.QueryDesc) ([]string, error)
+	QueryCollection(int, int, ...*wyc.QueryDesc) ([]string, error)
+	QueryItem(int, int, ...*wyc.QueryDesc) ([]string, error)
+	QueryVersion(int, int, ...*wyc.QueryDesc) ([]string, error)
+	QueryResource(int, int, ...*wyc.QueryDesc) ([]string, error)
+	QueryLink(int, int, ...*wyc.QueryDesc) ([]string, error)
 }

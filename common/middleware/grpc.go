@@ -10,14 +10,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-const (
-	err_sd_msg = "Unable to process work, server is shutting down"
-)
-
 var (
-	err_sd_err = errors.New(err_sd_msg)
-	err_sd_wrpc_text = &wrpc.Text{Text: err_sd_msg}
-
 	null_wrpc_id = &wrpc.Id{Id: ""}
 	null_wrpc_id_and_num = &wrpc.IdAndNum{Id: "", Version: 0}
 	null_wrpc_text = &wrpc.Text{Text: ""}
@@ -397,7 +390,6 @@ type grpcServer struct {
 	config string
 	server wrpc.WysteriaGrpcServer
 	handler ServerHandler
-	refuse_work bool
 }
 
 func newGrpcServer() EndpointServer {
@@ -449,10 +441,6 @@ func (s *grpcServer) ListenAndServe(config string, handler ServerHandler) error 
 	return rpc_server.Serve(s.conn)
 }
 
-func (s *grpcServer) BeginShutdown() {
-	s.refuse_work = true
-}
-
 func (s *grpcServer) Shutdown() error {
 	if s.server == nil {
 		return nil
@@ -461,10 +449,6 @@ func (s *grpcServer) Shutdown() error {
 }
 
 func (s *grpcServer) UpdateVersionFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
-	if s.refuse_work {
-		return err_sd_wrpc_text, err_sd_err
-	}
-
 	err := s.handler.UpdateVersionFacets(in.Id, in.Facets)
 	if err != nil {
 		return &wrpc.Text{Text: err.Error()}, err
@@ -473,10 +457,6 @@ func (s *grpcServer) UpdateVersionFacets(_ context.Context, in *wrpc.IdAndDict) 
 }
 
 func (s *grpcServer) UpdateItemFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
-	if s.refuse_work {
-		return err_sd_wrpc_text, err_sd_err
-	}
-
 	err := s.handler.UpdateItemFacets(in.Id, in.Facets)
 	if err != nil {
 		return &wrpc.Text{Text: err.Error()}, err
@@ -485,10 +465,6 @@ func (s *grpcServer) UpdateItemFacets(_ context.Context, in *wrpc.IdAndDict) (*w
 }
 
 func (s *grpcServer) CreateCollection(_ context.Context, in *wrpc.Text) (*wrpc.Id, error) {
-	if s.refuse_work {
-		return null_wrpc_id, err_sd_err
-	}
-
 	created_id, err := s.handler.CreateCollection(in.Text)
 	if err != nil {
 		return null_wrpc_id, err
@@ -497,10 +473,6 @@ func (s *grpcServer) CreateCollection(_ context.Context, in *wrpc.Text) (*wrpc.I
 }
 
 func (s *grpcServer) CreateItem(_ context.Context, in *wrpc.Item) (*wrpc.Id, error) {
-	if s.refuse_work {
-		return null_wrpc_id, err_sd_err
-	}
-
 	created_id, err := s.handler.CreateItem(convRItems(in)[0])
 	if err != nil {
 		return null_wrpc_id, err
@@ -509,10 +481,6 @@ func (s *grpcServer) CreateItem(_ context.Context, in *wrpc.Item) (*wrpc.Id, err
 }
 
 func (s *grpcServer) CreateVersion(_ context.Context, in *wrpc.Version) (*wrpc.IdAndNum, error) {
-	if s.refuse_work {
-		return null_wrpc_id_and_num, err_sd_err
-	}
-
 	created_id, number, err := s.handler.CreateVersion(convRVersion(in))
 	if err != nil {
 		return null_wrpc_id_and_num, err
@@ -521,10 +489,6 @@ func (s *grpcServer) CreateVersion(_ context.Context, in *wrpc.Version) (*wrpc.I
 }
 
 func (s *grpcServer) CreateResource(_ context.Context, in *wrpc.Resource) (*wrpc.Id, error) {
-	if s.refuse_work {
-		return null_wrpc_id, err_sd_err
-	}
-
 	created_id, err := s.handler.CreateResource(convRResources(in)[0])
 	if err != nil {
 		return null_wrpc_id, err
@@ -533,10 +497,6 @@ func (s *grpcServer) CreateResource(_ context.Context, in *wrpc.Resource) (*wrpc
 }
 
 func (s *grpcServer) CreateLink(_ context.Context, in *wrpc.Link) (*wrpc.Id, error) {
-	if s.refuse_work {
-		return null_wrpc_id, err_sd_err
-	}
-
 	created_id, err := s.handler.CreateLink(convRLinks(in)[0])
 	if err != nil {
 		return null_wrpc_id, err
@@ -553,29 +513,17 @@ func server_call_delete(in string, call func(string) error) (*wrpc.Text, error) 
 }
 
 func (s *grpcServer) DeleteCollection(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	if s.refuse_work {
-		return err_sd_wrpc_text, err_sd_err
-	}
 	return server_call_delete(in.Id, s.handler.DeleteCollection)
 }
 
 func (s *grpcServer) DeleteItem(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	if s.refuse_work {
-		return err_sd_wrpc_text, err_sd_err
-	}
 	return server_call_delete(in.Id, s.handler.DeleteItem)
 }
 func (s *grpcServer) DeleteVersion(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	if s.refuse_work {
-		return err_sd_wrpc_text, err_sd_err
-	}
 	return server_call_delete(in.Id, s.handler.DeleteVersion)
 }
 
 func (s *grpcServer) DeleteResource(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	if s.refuse_work {
-		return err_sd_wrpc_text, err_sd_err
-	}
 	return server_call_delete(in.Id, s.handler.DeleteResource)
 }
 
@@ -619,10 +567,6 @@ func convWCollections (in ...*wyc.Collection) *wrpc.Collections {
 }
 
 func (s *grpcServer) FindCollections(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Collections, error) {
-	if s.refuse_work {
-		return nil, err_sd_err
-	}
-
 	results, err := s.handler.FindCollections(convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
@@ -631,10 +575,6 @@ func (s *grpcServer) FindCollections(_ context.Context, in *wrpc.QueryDescs) (*w
 }
 
 func (s *grpcServer) FindItems(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Items, error) {
-	if s.refuse_work {
-		return nil, err_sd_err
-	}
-
 	results, err := s.handler.FindItems(convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
@@ -647,10 +587,6 @@ func (s *grpcServer) FindItems(_ context.Context, in *wrpc.QueryDescs) (*wrpc.It
 	return res, nil
 }
 func (s *grpcServer) FindVersions(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Versions, error) {
-	if s.refuse_work {
-		return nil, err_sd_err
-	}
-
 	results, err := s.handler.FindVersions(convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
@@ -664,10 +600,6 @@ func (s *grpcServer) FindVersions(_ context.Context, in *wrpc.QueryDescs) (*wrpc
 }
 
 func (s *grpcServer) FindResources(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Resources, error) {
-	if s.refuse_work {
-		return nil, err_sd_err
-	}
-
 	results, err := s.handler.FindResources(convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
@@ -681,10 +613,6 @@ func (s *grpcServer) FindResources(_ context.Context, in *wrpc.QueryDescs) (*wrp
 }
 
 func (s *grpcServer) FindLinks(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Links, error) {
-	if s.refuse_work {
-		return nil, err_sd_err
-	}
-
 	results, err := s.handler.FindLinks(convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
@@ -698,10 +626,6 @@ func (s *grpcServer) FindLinks(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Li
 }
 
 func (s *grpcServer) GetPublishedVersion(_ context.Context, in *wrpc.Id) (*wrpc.Version, error) {
-	if s.refuse_work {
-		return nil, err_sd_err
-	}
-
 	version, err := s.handler.GetPublishedVersion(in.Id)
 	if err != nil {
 		return nil, err
@@ -710,10 +634,6 @@ func (s *grpcServer) GetPublishedVersion(_ context.Context, in *wrpc.Id) (*wrpc.
 }
 
 func (s *grpcServer) PublishVersion(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	if s.refuse_work {
-		return err_sd_wrpc_text, err_sd_err
-	}
-
 	err := s.handler.PublishVersion(in.Id)
 	if err != nil {
 		return &wrpc.Text{Text: err.Error()}, err

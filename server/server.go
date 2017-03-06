@@ -99,8 +99,8 @@ func (s *WysteriaServer) CreateCollection(name string) (string, error) {
 	return id, s.searchbase.InsertCollection(id, obj)
 }
 
-func exists(parent_id string, search func(string, bool, int, ...*wyc.QueryDesc) ([]string, error)) (bool, error) {
-	results, err := search("", false, 0, &wyc.QueryDesc{Id: parent_id})
+func exists(parent_id string, search func(int, int, ...*wyc.QueryDesc) ([]string, error)) (bool, error) {
+	results, err := search(0, 0, &wyc.QueryDesc{Id: parent_id})
 	if err != nil {
 		return false, err
 	}
@@ -121,7 +121,7 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	}
 
 	// If there exists an item in your collection with the same Type and Variant .. err
-	items, err := s.searchbase.QueryItem("", false, 0,
+	items, err := s.searchbase.QueryItem(0, 0,
 		&wyc.QueryDesc{Parent: in.Parent, ItemType: in.ItemType, Variant: in.Variant},
 	)
 	if err != nil {
@@ -199,7 +199,7 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 	queries := []*wyc.QueryDesc{{Id: in.Src}, {Id: in.Dst},}
 
 	// We'll search the Items first, there's probably less of them and it's cheaper
-	items, err := s.searchbase.QueryItem("", false, 0, queries...)
+	items, err := s.searchbase.QueryItem(0, 0, queries...)
 	if err != nil {
 		return "", err
 	}
@@ -207,7 +207,7 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 
 	// If we didn't find 2, then we have to search versions
 	if !acceptable {
-		vers, err := s.searchbase.QueryVersion("", false, 0, queries...)
+		vers, err := s.searchbase.QueryVersion(0, 0, queries...)
 		if err != nil {
 			return "", err
 		}
@@ -249,7 +249,7 @@ func (s *WysteriaServer) DeleteCollection(id string) error {
 
 	go func() {
 		// Kick off a routine to slay the children
-		children, err := s.searchbase.QueryItem("", true, 0, childrenOf(id)...)
+		children, err := s.searchbase.QueryItem(0, 0, childrenOf(id)...)
 		if err == nil {
 			for _, child := range children {
 				s.DeleteItem(child)
@@ -284,7 +284,7 @@ func (s *WysteriaServer) DeleteItem(id string) error {
 
 	go func() {
 		// kick off a routine to kill links that mention this
-		linked, err := s.searchbase.QueryLink("", true, 0, linkedTo(id)...)
+		linked, err := s.searchbase.QueryLink(0, 0, linkedTo(id)...)
 		if err == nil {
 			s.searchbase.DeleteLink(linked...)
 			s.database.DeleteLink(linked...)
@@ -294,7 +294,7 @@ func (s *WysteriaServer) DeleteItem(id string) error {
 
 	go func() {
 		// Kick off a routine to slay children
-		children, err := s.searchbase.QueryVersion("", true, 0, childrenOf(id)...)
+		children, err := s.searchbase.QueryVersion(0, 0, childrenOf(id)...)
 		if err == nil {
 			for _, child := range children {
 				s.DeleteVersion(child)
@@ -317,7 +317,7 @@ func (s *WysteriaServer) DeleteVersion(id string) error {
 
 	go func() {
 		// kick off a routine to kill links that mention this
-		linked, err := s.searchbase.QueryLink("", true, 0, linkedTo(id)...)
+		linked, err := s.searchbase.QueryLink(0, 0, linkedTo(id)...)
 		if err == nil {
 			s.searchbase.DeleteLink(linked...)
 			s.database.DeleteLink(linked...)
@@ -327,7 +327,7 @@ func (s *WysteriaServer) DeleteVersion(id string) error {
 
 	go func() {
 		// Kick off a routine to slay children
-		children, err := s.searchbase.QueryResource("", true, 0, childrenOf(id)...)
+		children, err := s.searchbase.QueryResource(0, 0, childrenOf(id)...)
 		if err == nil {
 			for _, child := range children {
 				s.DeleteResource(child)
@@ -347,7 +347,7 @@ func (s *WysteriaServer) DeleteResource(id string) error {
 }
 
 func (s *WysteriaServer) FindCollections(qs []*wyc.QueryDesc) ([]*wyc.Collection, error) {
-	ids, err := s.searchbase.QueryCollection("", true, 0, qs...)
+	ids, err := s.searchbase.QueryCollection(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +355,7 @@ func (s *WysteriaServer) FindCollections(qs []*wyc.QueryDesc) ([]*wyc.Collection
 }
 
 func (s *WysteriaServer) FindItems(qs []*wyc.QueryDesc) ([]*wyc.Item, error) {
-	ids, err := s.searchbase.QueryItem("", true, 0, qs...)
+	ids, err := s.searchbase.QueryItem(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +363,7 @@ func (s *WysteriaServer) FindItems(qs []*wyc.QueryDesc) ([]*wyc.Item, error) {
 }
 
 func (s *WysteriaServer) FindVersions(qs []*wyc.QueryDesc) ([]*wyc.Version, error) {
-	ids, err := s.searchbase.QueryVersion("", true, 0, qs...)
+	ids, err := s.searchbase.QueryVersion(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +371,7 @@ func (s *WysteriaServer) FindVersions(qs []*wyc.QueryDesc) ([]*wyc.Version, erro
 }
 
 func (s *WysteriaServer) FindResources(qs []*wyc.QueryDesc) ([]*wyc.Resource, error) {
-	ids, err := s.searchbase.QueryResource("", true, 0, qs...)
+	ids, err := s.searchbase.QueryResource(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +379,7 @@ func (s *WysteriaServer) FindResources(qs []*wyc.QueryDesc) ([]*wyc.Resource, er
 }
 
 func (s *WysteriaServer) FindLinks(qs []*wyc.QueryDesc) ([]*wyc.Link, error) {
-	ids, err := s.searchbase.QueryLink("", true, 0, qs...)
+	ids, err := s.searchbase.QueryLink(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
@@ -412,17 +412,12 @@ func (s *WysteriaServer) Shutdown() {
 }
 
 func (s *WysteriaServer) close_connections() {
-	// Tell middleware server to stop honoring client requests, but we'll leave some time for currently running
-	// client requests to finish up before killing everything
-	//
-	go s.middleware_server.BeginShutdown()
+	go s.middleware_server.Shutdown()
 
 	select {
 	case <-time.After(s.GracefulShutdownTime):
 		break
 	}
-
-	s.middleware_server.Shutdown()
 	s.database.Close()
 	s.searchbase.Close()
 }

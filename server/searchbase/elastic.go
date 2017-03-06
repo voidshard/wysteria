@@ -94,24 +94,24 @@ func (e *elasticSearch) DeleteLink(ids ...string) error {
 	return e.delete(table_link, ids...)
 }
 
-func (e *elasticSearch) QueryCollection(sortBy string, asc bool, limit int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_collection, elasticTermsCollection, sortBy, asc, limit, qs...)
+func (e *elasticSearch) QueryCollection(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	return e.fanSearch(table_collection, elasticTermsCollection, limit, from, qs...)
 }
 
-func (e *elasticSearch) QueryItem(sortBy string, asc bool, limit int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_item, elasticTermsItem, sortBy, asc, limit, qs...)
+func (e *elasticSearch) QueryItem(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	return e.fanSearch(table_item, elasticTermsItem, limit, from, qs...)
 }
 
-func (e *elasticSearch) QueryVersion(sortBy string, asc bool, limit int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_version, elasticTermsVersion, sortBy, asc, limit, qs...)
+func (e *elasticSearch) QueryVersion(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	return e.fanSearch(table_version, elasticTermsVersion, limit, from, qs...)
 }
 
-func (e *elasticSearch) QueryResource(sortBy string, asc bool, limit int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_fileresource, elasticTermsResource, sortBy, asc, limit, qs...)
+func (e *elasticSearch) QueryResource(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	return e.fanSearch(table_fileresource, elasticTermsResource, limit, from, qs...)
 }
 
-func (e *elasticSearch) QueryLink(sortBy string, asc bool, limit int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_link, elasticTermsLink, sortBy, asc, limit, qs...)
+func (e *elasticSearch) QueryLink(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	return e.fanSearch(table_link, elasticTermsLink, limit, from, qs...)
 }
 
 func (e *elasticSearch) Close() error {
@@ -288,7 +288,7 @@ func termQuery(k, v string) elastic.TermQuery {
 //  - Because we concatenate all results, multiple wyc.QueryDesc form an "OR"
 //  - ToDo: Possibly Elastic could return the answer set faster with a more elaborate query
 //
-func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) []elastic.TermQuery, sortBy string, ascending bool, limit int, queries ...*wyc.QueryDesc) ([]string, error) {
+func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) []elastic.TermQuery, limit int, from int, queries ...*wyc.QueryDesc) ([]string, error) {
 	result_chan := make(chan *elastic.SearchResult, len(queries))
 	err_chan := make(chan error)
 	rwg := sync.WaitGroup{} // wait group to ensure we've finished compiling results
@@ -340,14 +340,12 @@ func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) [
 		s_query := query
 		go func() {
 			s := e.client.Search().Index(e.Settings.Database).Type(table).Fields("Id")
-
-			if sortBy != "" {
-				s = s.Sort(sortBy, ascending)
-			}
+			
 			if limit > 0 {
 				s = s.Size(limit)
 			}
-
+			s = s.From(from)
+			
 			bquery := elastic.NewBoolQuery()
 			for _, q := range makeTerms(s_query) {
 				bquery.Must(q)

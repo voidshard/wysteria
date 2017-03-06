@@ -74,9 +74,6 @@ type EndpointServer interface {
 	// Start up and serve client requests
 	ListenAndServe(string, ServerHandler) error
 
-	// We're going to shutdown so refuse any more client connections
-	BeginShutdown()
-
 	// You're time is up, kill everything
 	Shutdown() error
 }

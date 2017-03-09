@@ -3,20 +3,26 @@ package middleware
 import (
 	wyc "github.com/voidshard/wysteria/common"
 	"github.com/nats-io/nats"
+	natsd "github.com/nats-io/gnatsd/server"
 	"time"
 	"log"
-	"strings"
 	codec "github.com/voidshard/wysteria/common/middleware/ffjson_structs"
 	"errors"
+	"fmt"
 )
 
 const (
+	nats_default_host = "localhost"
+	nats_default_port = 4222
 	nats_queue_server = "server_queue"
 
-	nats_route_server = "wserver."
-	nats_route_client = "wclient."
-	nats_route_internal = "winternal."
+	// These routes indicate who is sending the message
+	nats_route_server = "w.server."  // From a wysteria server
+	nats_route_client = "w.client."   // From a client
+	nats_route_internal = "w.internal."  // From the admin(s)
 
+	// messages suffixes
+	call_suffix_length = 2
 	call_create_collection = "cc"
 	call_create_item = "ci"
 	call_create_version = "cv"
@@ -59,6 +65,10 @@ func newNatsClient() EndpointClient {
 //  As in,
 //    nats://user:password@host:port
 func (c *natsClient) Connect(config string) error {
+	if config == "" {
+		config = fmt.Sprintf("nats://%s:%d", nats_default_host, nats_default_port)
+	}
+
 	raw, err := nats.Connect(config)
 	if err != nil {
 		return err
@@ -68,7 +78,7 @@ func (c *natsClient) Connect(config string) error {
 }
 
 func (c *natsClient) server_request(subject string, data []byte) (*nats.Msg, error) {
-	return c.conn.Request(nats_route_server + subject, data, timeout)
+	return c.conn.Request(nats_route_client + subject, data, timeout)
 }
 
 func (c *natsClient) Close() error {
@@ -226,11 +236,14 @@ func (c *natsClient) DeleteResource(id string) error {
 	return c.genericDelete(id, call_delete_resource)
 }
 
-func toFindReq(query []*wyc.QueryDesc) (req *codec.FindReq) {
+func toFindReq(query []*wyc.QueryDesc) (*codec.FindReq) {
+	req := &codec.FindReq{
+		Query: []wyc.QueryDesc{},
+	}
 	for _, q := range query {
 		req.Query = append(req.Query, *q)
 	}
-	return
+	return req
 }
 
 func (c *natsClient) FindCollections(query []*wyc.QueryDesc) (result []*wyc.Collection, err error) {
@@ -251,7 +264,8 @@ func (c *natsClient) FindCollections(query []*wyc.QueryDesc) (result []*wyc.Coll
 	}
 
 	for _, r := range rep.All {
-		result = append(result, &r)
+		tmp := r
+		result = append(result, &tmp)
 	}
 	return result, stringError(rep.Error)
 }
@@ -274,7 +288,8 @@ func (c *natsClient) FindItems(query []*wyc.QueryDesc) (result []*wyc.Item, err 
 	}
 
 	for _, r := range rep.All {
-		result = append(result, &r)
+		tmp := r
+		result = append(result, &tmp)
 	}
 	return result, stringError(rep.Error)
 }
@@ -296,7 +311,8 @@ func (c *natsClient) FindVersions(query []*wyc.QueryDesc) (result []*wyc.Version
 	}
 
 	for _, r := range rep.All {
-		result = append(result, &r)
+		tmp := r
+		result = append(result, &tmp)
 	}
 	return result, stringError(rep.Error)
 }
@@ -318,7 +334,8 @@ func (c *natsClient) FindResources(query []*wyc.QueryDesc) (result []*wyc.Resour
 	}
 
 	for _, r := range rep.All {
-		result = append(result, &r)
+		tmp := r
+		result = append(result, &tmp)
 	}
 	return result, stringError(rep.Error)
 }
@@ -341,7 +358,8 @@ func (c *natsClient) FindLinks(query []*wyc.QueryDesc) (result []*wyc.Link, err 
 	}
 
 	for _, r := range rep.All {
-		result = append(result, &r)
+		tmp := r
+		result = append(result, &tmp)
 	}
 	return result, stringError(rep.Error)
 }
@@ -425,11 +443,34 @@ type natsServer struct {
 	conn   *nats.Conn
 	handler ServerHandler
 	subs []*nats.Subscription
+	embedded *natsd.Server
+}
+
+func (s *natsServer) spinup() (string, error) {
+	s.embedded = natsd.New(&natsd.Options{
+		Host: nats_default_host,
+		Port: nats_default_port,
+	})
+	go s.embedded.Start()
+
+	if s.embedded.ReadyForConnections(timeout) {
+		return fmt.Sprintf("nats://%s:%d", nats_default_host, nats_default_port), nil
+	}
+	return "", errors.New("Failed to spin up local nats server")
 }
 
 // Start up and serve client requests
 func (s *natsServer) ListenAndServe(config string, handler ServerHandler) error {
 	s.handler = handler
+
+	// If we've been told nothing, spin up our own nats
+	if config == "" {
+		url, err := s.spinup()
+		if err != nil {
+			return err
+		}
+		config = url
+	}
 
 	// set up the raw nats.io connection
 	err := s.connect(config)
@@ -438,17 +479,17 @@ func (s *natsServer) ListenAndServe(config string, handler ServerHandler) error 
 	}
 
 	// subscribe to all our chans
-	fromClients, err := s.subscribe(nats_route_client, nats_queue_server)
+	fromClients, err := s.subscribe(nats_route_client + ">", nats_queue_server)
 	if err != nil {
 		return err
 	}
 
-	fromServers, err := s.subscribe(nats_route_server, nats_queue_server)
+	fromServers, err := s.subscribe(nats_route_server + ">", nats_queue_server)
 	if err != nil {
 		return err
 	}
 
-	fromAdmin, err := s.subscribe(nats_route_internal, nats_queue_server)
+	fromAdmin, err := s.subscribe(nats_route_internal + ">", nats_queue_server)
 	if err != nil {
 		return err
 	}
@@ -469,8 +510,7 @@ func (s *natsServer) ListenAndServe(config string, handler ServerHandler) error 
 }
 
 func subjectSuffix(subject string) string {
-	parts := strings.Split(subject, ".")
-	return parts[len(parts) -1]
+	return subject[len(subject) - call_suffix_length:]
 }
 
 func errorString(err error) string {
@@ -613,7 +653,8 @@ func (s *natsServer) find_collection(msg *nats.Msg) marshalable {
 	}
 	qs := []*wyc.QueryDesc{}
 	for _, q := range req.Query {
-		qs = append(qs, &q)
+		tmp := q
+		qs = append(qs, &tmp)
 	}
 
 	result, err := s.handler.FindCollections(qs)
@@ -641,7 +682,8 @@ func (s *natsServer) find_item(msg *nats.Msg) marshalable {
 	}
 	qs := []*wyc.QueryDesc{}
 	for _, q := range req.Query {
-		qs = append(qs, &q)
+		tmp := q
+		qs = append(qs, &tmp)
 	}
 
 	result, err := s.handler.FindItems(qs)
@@ -669,7 +711,8 @@ func (s *natsServer) find_version(msg *nats.Msg) marshalable {
 	}
 	qs := []*wyc.QueryDesc{}
 	for _, q := range req.Query {
-		qs = append(qs, &q)
+		tmp := q
+		qs = append(qs, &tmp)
 	}
 
 	result, err := s.handler.FindVersions(qs)
@@ -697,7 +740,8 @@ func (s *natsServer) find_resource(msg *nats.Msg) marshalable {
 	}
 	qs := []*wyc.QueryDesc{}
 	for _, q := range req.Query {
-		qs = append(qs, &q)
+		tmp := q
+		qs = append(qs, &tmp)
 	}
 
 	result, err := s.handler.FindResources(qs)
@@ -725,7 +769,8 @@ func (s *natsServer) find_link(msg *nats.Msg) marshalable {
 	}
 	qs := []*wyc.QueryDesc{}
 	for _, q := range req.Query {
-		qs = append(qs, &q)
+		tmp := q
+		qs = append(qs, &tmp)
 	}
 
 	result, err := s.handler.FindLinks(qs)
@@ -895,12 +940,12 @@ func (s *natsServer) handle_client(msg *nats.Msg) {
 	s.send_reply(msg.Reply, result)
 }
 
-
 // Connect to nats given the url
 //  Url required by nats.io (from the docs)
 //    nats://derek:pass@localhost:4222
 //  As in,
 //    nats://user:password@host:port
+//
 func (s *natsServer) connect(config string) error {
 	raw, err := nats.Connect(config)
 	if err != nil {

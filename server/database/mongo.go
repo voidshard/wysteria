@@ -86,10 +86,14 @@ func (e *mongoEndpoint) Close() error {
 
 // Insert impl
 
+// Internal counter
+// Used to,
+//   Ensure items are unique in a collection
+//   Keep count of the highest version for an item
 type counter struct {
 	// Internal counter obj
 	CounterFor string `json:"CounterFor"`
-	Count      int    `json:"Count"`
+	Count      int32    `json:"Count"`
 }
 
 func (e *mongoEndpoint) SetPublished(version_id string) error {
@@ -203,7 +207,7 @@ func (e *mongoEndpoint) InsertNextVersion(id string, d *wyc.Version) (int32, err
 		return -1, err
 	}
 
-	d.Number = doc["Count"].(int32)
+	d.Number = int32(doc["Count"].(int))
 	return d.Number, e.insert(table_version, id, d)
 }
 func (e *mongoEndpoint) InsertResource(id string, d *wyc.Resource) error {

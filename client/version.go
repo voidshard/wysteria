@@ -104,7 +104,11 @@ func (i *version) LinkTo(name string, other *version) error {
 	return err
 }
 
-func (i *version) AddResource(name, rtype, location string) (string, error) {
+func (i *version) Publish() error {
+	return i.conn.middleware.PublishVersion(i.data.Id)
+}
+
+func (i *version) AddResource(name, rtype, location string) error {
 	res := &wyc.Resource{
 		Parent:       i.data.Id,
 		Name:         name,
@@ -112,7 +116,12 @@ func (i *version) AddResource(name, rtype, location string) (string, error) {
 		Location:     location,
 	}
 
-	return i.conn.middleware.CreateResource(res)
+	id, err := i.conn.middleware.CreateResource(res)
+	if err != nil {
+		return err
+	}
+	res.Id = id
+	return nil
 }
 
 func (i *version) GetAllResources() ([]*resource, error) {

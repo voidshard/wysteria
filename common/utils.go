@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gopkg.in/gcfg.v1"
 	"errors"
-	"log"
 )
 
 const (
@@ -39,7 +38,6 @@ func chooseConfig(paths ...string) (string, error) {
 		}
 
 		_, err := os.Stat(path)
-		log.Println(fmt.Sprintf("Searching for config: %s %v", path, err))
 		if err == nil {
 			return path, nil
 		}

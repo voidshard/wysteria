@@ -23,10 +23,10 @@ func init() {
 	Config = getDefaults()
 
 	config_filepath, err := common.ChooseClientConfig()
-	if err != nil {
+	if err == nil {
 		cnf := &configuration{}
 		err := common.ReadConfig(config_filepath, cnf)
-		if err == nil {
+		if err != nil {
 			log.Println("Unable to read config", config_filepath, err)
 		} else {
 			Config = cnf
@@ -40,8 +40,8 @@ func init() {
 func getDefaults() *configuration {
 	return &configuration{
 		wcm.MiddlewareSettings {
-			wcm.DRIVER_GRPC,
-			"10801",
+			Driver: wcm.DRIVER_NATS,
+			Config: "",
 		},
 	}
 }

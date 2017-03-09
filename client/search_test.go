@@ -158,7 +158,7 @@ func TestHasFacets(t *testing.T) {
 func TestIntTerms(t *testing.T) {
 	// Arrange
 	testSearch := newQuery()
-	terms := []int{
+	terms := []int32{
 		-1,
 		0,
 		100000,
@@ -166,8 +166,8 @@ func TestIntTerms(t *testing.T) {
 		1273901287,
 	}
 	cases := []struct{
-		CallFunc func (int) *search
-		CheckFunc func () int
+		CallFunc func (int32) *search
+		CheckFunc func () int32
 		Name string
 	} {
 		{ testSearch.Version, testSearch.nqVersion, "VersionNumber", },
@@ -271,11 +271,11 @@ func (i *search) nqLocation() string {
 
 func newQuery() *search {
 	return &search{
-		query: []wyc.QueryDesc{},
-		nextQuery: wyc.QueryDesc{},
+		query: []*wyc.QueryDesc{},
+		nextQuery: &wyc.QueryDesc{},
 	}
 }
 
-func (i *search) nqVersion() int {
+func (i *search) nqVersion() int32 {
 	return i.nextQuery.VersionNumber
 }

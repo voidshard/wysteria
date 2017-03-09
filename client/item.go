@@ -10,6 +10,17 @@ type item struct {
 	fromLink *link
 }
 
+func (i *item) GetPublishedVersion() (*version, error) {
+	ver, err := i.conn.middleware.GetPublishedVersion(i.data.Id)
+	if err != nil {
+		return nil, err
+	}
+	return &version{
+		conn: i.conn,
+		data: ver,
+	}, nil
+}
+
 func (i *item) Link() *link {
 	return i.fromLink
 }
@@ -18,8 +29,8 @@ func (i *item) Type() string {
 	return i.data.ItemType
 }
 
-func (c *item) Delete() error {
-	return c.conn.middleware.DeleteItem(c.data.Id)
+func (i *item) Delete() error {
+	return i.conn.middleware.DeleteItem(i.data.Id)
 }
 
 func (i *item) LinkTo(name string, other *item) error {
@@ -37,45 +48,35 @@ func (i *item) LinkTo(name string, other *item) error {
 }
 
 func (i *item) getLinkedItems(name string) ([]*item, error) {
-	links, err := i.conn.middleware.FindLinks(
-		[]*wyc.QueryDesc{
-			{LinkSrc: i.data.Id, Name: name},
-		},
-	)
+	links, err := i.conn.Search().Src(i.data.Id).Name(name).Links()
 	if err != nil {
 		return nil, err
 	}
 
-	item_id_to_link := map[string]*wyc.Link{}
-	ids := []*wyc.QueryDesc{}
+	item_id_to_link := map[string]*link{}
+	search := i.conn.Search()
 	for _, link := range links {
-		id := link.Src
+		id := link.SourceId()
 
-		if link.Src == i.data.Id {
-			id = link.Dst
+		if link.SourceId() == i.data.Id {
+			id = link.DestinationId()
 		}
 
 		item_id_to_link[id] = link
-		ids = append(ids, &wyc.QueryDesc{Id: id})
+		search.Id(id).Or()
 	}
 
-	items, err := i.conn.middleware.FindItems(ids)
+	items, err := search.Items()
 	if err != nil {
 		return nil, err
 	}
 
 	result := []*item{}
 	for _, itm := range items {
-		wrapped_item := &item{
-			conn: i.conn,
-			data: itm,
-		}
-
-		lnk, ok := item_id_to_link[itm.Id]
+		lnk, ok := item_id_to_link[itm.Id()]
 		if ok {
-			wrapped_item.fromLink = &link{conn: i.conn, data: lnk}
+			itm.fromLink = lnk
 		}
-		result = append(result, wrapped_item)
 	}
 	return result, nil
 }

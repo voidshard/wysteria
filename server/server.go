@@ -99,41 +99,18 @@ func (s *WysteriaServer) CreateCollection(name string) (string, error) {
 	return id, s.searchbase.InsertCollection(id, obj)
 }
 
-func exists(parent_id string, search func(int, int, ...*wyc.QueryDesc) ([]string, error)) (bool, error) {
-	results, err := search(0, 0, &wyc.QueryDesc{Id: parent_id})
-	if err != nil {
-		return false, err
-	}
-	return len(results) > 0, nil
-}
-
 func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	if in.Parent == "" || in.ItemType == "" || in.Variant == "" {
 		return "", errors.New("Require Parent, ItemType, Variant to be set")
 	}
 
-	exists, err := exists(in.Parent, s.searchbase.QueryCollection)
-	if err != nil {
-		return "", err
-	}
-	if !exists {
-		return "", errors.New(fmt.Sprintf("Parent with id %s not found", in.Parent))
-	}
-
-	// If there exists an item in your collection with the same Type and Variant .. err
-	items, err := s.searchbase.QueryItem(0, 0,
-		&wyc.QueryDesc{Parent: in.Parent, ItemType: in.ItemType, Variant: in.Variant},
-	)
-	if err != nil {
-		return "", err
-	}
-
-	if len(items) > 0 {
-		return "", errors.New("Item(s) exist in the collection with the given ItemType / Variant")
+	_, ok := in.Facets["collection"]
+	if !ok {
+		return "", errors.New("Required facet 'collection' not set")
 	}
 
 	in.Id = NewId()
-	err = s.database.InsertItem(in.Id, in)
+	err := s.database.InsertItem(in.Id, in)
 	if err != nil {
 		return "", err
 	}
@@ -145,12 +122,17 @@ func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 		return "", 0, errors.New("Require Parent to be set")
 	}
 
-	exists, err := exists(in.Parent, s.searchbase.QueryItem)
-	if err != nil {
-		return "", 0, err
+	_, ok := in.Facets["collection"]
+	if !ok {
+		return "", 0, errors.New("Required facet 'collection' not set")
 	}
-	if !exists {
-		return "", 0, errors.New(fmt.Sprintf("Parent with id %s not found", in.Parent))
+	_, ok = in.Facets["itemtype"]
+	if !ok {
+		return "", 0, errors.New("Required facet 'itemtype' not set")
+	}
+	_, ok = in.Facets["variant"]
+	if !ok {
+		return "", 0, errors.New("Required facet 'variant' not set")
 	}
 
 	in.Id = NewId()
@@ -168,16 +150,8 @@ func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {
 		return "", errors.New("Require Parent, Location to be set")
 	}
 
-	exists, err := exists(in.Parent, s.searchbase.QueryVersion)
-	if err != nil {
-		return "", err
-	}
-	if !exists {
-		return "", errors.New(fmt.Sprintf("Parent with id %s not found", in.Parent))
-	}
-
 	in.Id = NewId()
-	err = s.database.InsertResource(in.Id, in)
+	err := s.database.InsertResource(in.Id, in)
 	if err != nil {
 		return "", err
 	}

@@ -75,23 +75,23 @@ func (e *elasticSearch) UpdateVersion(id string, doc *wyc.Version) error {
 }
 
 func (e *elasticSearch) DeleteCollection(ids ...string) error {
-	return e.delete(table_collection, ids...)
+	return e.generic_delete(table_collection, ids...)
 }
 
 func (e *elasticSearch) DeleteItem(ids ...string) error {
-	return e.delete(table_item, ids...)
+	return e.generic_delete(table_item, ids...)
 }
 
 func (e *elasticSearch) DeleteVersion(ids ...string) error {
-	return e.delete(table_version, ids...)
+	return e.generic_delete(table_version, ids...)
 }
 
 func (e *elasticSearch) DeleteResource(ids ...string) error {
-	return e.delete(table_fileresource, ids...)
+	return e.generic_delete(table_fileresource, ids...)
 }
 
 func (e *elasticSearch) DeleteLink(ids ...string) error {
-	return e.delete(table_link, ids...)
+	return e.generic_delete(table_link, ids...)
 }
 
 func (e *elasticSearch) QueryCollection(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
@@ -123,7 +123,7 @@ func (e *elasticSearch) Close() error {
 //  - If the delete for an ID fails possibly it wasn't found as Elastic is still indexing it
 //  - To overcome this we'll retry the delete once after a small sleep period
 //
-func (e *elasticSearch) delete(col string, ids ...string) error {
+func (e *elasticSearch) generic_delete(col string, ids ...string) error {
 	wg := sync.WaitGroup{}
 	wg.Add(len(ids))
 
@@ -279,99 +279,48 @@ func termQuery(k, v string) elastic.TermQuery {
 	return elastic.NewTermQuery(k, strings.ToLower(v))
 }
 
-// Fan out elastic search,
-//  - Execute all queries from each wyc.QueryDesc in parallel & concatenate results
+// Send query to ElasticSearch
 //  - We only ever return IDs (our search db isn't our canonical data source)
 //  - Check to ensure we don't return duplicate IDs
-//  - ToDo: At the moment we only return the first err (if there are any)
 //  - The terms of each wyc.QueryDesc are joined via Bool query "MUST" thus are "AND" together
 //  - Because we concatenate all results, multiple wyc.QueryDesc form an "OR"
-//  - ToDo: Possibly Elastic could return the answer set faster with a more elaborate query
 //
 func (e *elasticSearch) fanSearch(table string, makeTerms func(*wyc.QueryDesc) []elastic.TermQuery, limit int, from int, queries ...*wyc.QueryDesc) ([]string, error) {
-	result_chan := make(chan *elastic.SearchResult, len(queries))
-	err_chan := make(chan error)
-	rwg := sync.WaitGroup{} // wait group to ensure we've finished compiling results
-	rwg.Add(1)
+	// Our query base - specify the index, page, limits & desired fields
+	base := e.client.Search().Index(e.Settings.Database).Type(table).Fields("Id").From(from)
+	if limit > 0 {
+		base.Size(limit)
+	}
 
-	wg := sync.WaitGroup{} // wait group to ensure we've completed all queries
-	wg.Add(len(queries))
-
-	all_errors := []error{}   // list of errors returned
-	results := []string{} // list of results (Ids) returned
-
-	go func() {
-		// Listen for errors, record them all
-		for err := range err_chan {
-			all_errors = append(all_errors, err)
-		}
-	}()
-
-	go func() {
-		// Listen for results, pull out the IDs and record those we don't have already
-		for result := range result_chan {
-			for _, hit := range result.Hits.Hits {
-				// ToDo: works, but could use some straightening up
-				result_id := hit.Fields["Id"].([]interface{})[0].(string)
-
-				add := true
-				for _, id := range results {
-					if id == result_id {
-						add = false
-						break
-					}
-				}
-				if add {
-					results = append(results, result_id)
-				}
-			}
-		}
-		rwg.Done()
-	}()
-
+	// Ultimately we're doing an "or" query where we're after any result that matches all
+	// the fields of at least one of our QueryDesc
+	or_query := elastic.NewBoolQuery()
 	for _, query := range queries {
-		// Here we go through our distinct queries to execute and run them all in their own routines.
-		// Loop through our queries
-		//  - build a list of QueryTerms w/ makeTerms func
-		//  - pass query terms to BoolQuery (w/ Must)
-		//  - execute the query
-		//  - if there was an error, pass to the err chan
-		//  - if there are result(s), pass them to the result chan
-		s_query := query
-		go func() {
-			s := e.client.Search().Index(e.Settings.Database).Type(table).Fields("Id")
-			
-			if limit > 0 {
-				s = s.Size(limit)
-			}
-			s = s.From(from)
-			
-			bquery := elastic.NewBoolQuery()
-			for _, q := range makeTerms(s_query) {
-				bquery.Must(q)
-			}
 
-			res, err := s.Query(bquery).Do()
-			if err != nil {
-				err_chan <- err
-			} else {
-				if len(res.Hits.Hits) > 0 {
-					result_chan <- res
-				}
-			}
-			wg.Done()
-		}()
+		// Represents an individual QueryDesc getting made into a "must" term query
+		bquery := elastic.NewBoolQuery()
+		for _, q := range makeTerms(query) {
+			bquery = bquery.Must(q)
+		}
+
+		or_query = or_query.Should(bquery)
 	}
 
-	wg.Wait() // wait for all queries to come back
+	results := []string{}
 
-	close(result_chan)
-	close(err_chan)
-
-	rwg.Wait() // wait for all results to be parsed
-
-	if len(all_errors) > 0 {
-		return results, all_errors[0]
+	// Finally, perform the query
+	res, err := base.Query(or_query).Do()
+	if err != nil {
+		return results, err
+	} else {
+		// And pull together all the results
+		for _, hit := range res.Hits.Hits {
+			// ToDo: works, but could use some straightening up
+			// (We only asked for the Id field)
+			result_id := hit.Fields["Id"].([]interface{})[0].(string)
+			results = append(results, result_id)
+		}
 	}
+
 	return results, nil
 }

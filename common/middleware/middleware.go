@@ -9,15 +9,18 @@ import (
 
 const (
 	DRIVER_GRPC = "grpc"
+	DRIVER_NATS = "nats"
 )
 
 var (
 	Timeout    = time.Second * 30
 	client_endpoints = map[string]func() EndpointClient{
 		DRIVER_GRPC: newGrpcClient,
+		DRIVER_NATS: newNatsClient,
 	}
 	server_endpoints = map[string]func() EndpointServer {
 		DRIVER_GRPC: newGrpcServer,
+		DRIVER_NATS: newNatsServer,
 	}
 
 )

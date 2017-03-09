@@ -12,9 +12,15 @@ type search struct {
 	nextQValid bool
 }
 
+func newQuery() *wyc.QueryDesc {
+	return &wyc.QueryDesc{
+		Facets: map[string]string{},
+	}
+}
+
 func (i *search) Clear() *search {
 	i.query = []*wyc.QueryDesc{}
-	i.nextQuery = &wyc.QueryDesc{}
+	i.nextQuery = newQuery()
 	i.nextQValid = false
 	return i
 }
@@ -23,13 +29,34 @@ func (i *search) ready() error {
 	if i.nextQValid {
 		i.query = append(i.query, i.nextQuery)
 		i.nextQValid = false
-		i.nextQuery = &wyc.QueryDesc{}
+		i.nextQuery = newQuery()
 	}
 
 	if len(i.query) < 1 {
 		return errors.New("You must specify at least one query term.")
 	}
 	return nil
+}
+
+func (i *search) Collections() ([]*collection, error) {
+	err := i.ready()
+	if err != nil {
+		return nil, err
+	}
+
+	results, err := i.conn.middleware.FindCollections(i.query)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := []*collection{}
+	for _, r := range results {
+		ret = append(ret, &collection{
+			conn: i.conn,
+			data: r,
+		})
+	}
+	return ret, nil
 }
 
 func (i *search) Items() ([]*item, error) {
@@ -180,7 +207,7 @@ func (i *search) Or() *search {
 	if i.nextQValid {
 		i.nextQValid = false
 		i.query = append(i.query, i.nextQuery)
-		i.nextQuery = &wyc.QueryDesc{}
+		i.nextQuery = newQuery()
 	}
 	return i
 }

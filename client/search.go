@@ -149,6 +149,12 @@ func (i *search) Id(s string) *search {
 	return i
 }
 
+func (i *search) ResourceType(s string) *search {
+	i.nextQValid = true
+	i.nextQuery.ResourceType = s
+	return i
+}
+
 func (i *search) ChildOf(s string) *search {
 	i.nextQValid = true
 	i.nextQuery.Parent = s

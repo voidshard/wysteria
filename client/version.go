@@ -82,11 +82,11 @@ func (i *version) getLinkedVersions(name string) ([]*version, error) {
 }
 
 
-func (i *version) GetLinkedVersionsByName(name string) ([]*version, error) {
+func (i *version) GetLinkedByName(name string) ([]*version, error) {
 	return i.getLinkedVersions(name)
 }
 
-func (i *version) GetLinkedVersions() ([]*version, error) {
+func (i *version) GetLinked() ([]*version, error) {
 	return i.getLinkedVersions("")
 }
 

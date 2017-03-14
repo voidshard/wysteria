@@ -6,24 +6,7 @@ import (
 )
 
 func main () {
-	// Example02: Getting things
-	//   Generates:
-	//-- Collection --
-	//tiles
-	//-- Items --
-	//tree oak
-	//tree elm
-	//tree pine
-	//-- Published Versions --
-	//2
-	//  [resource] default png /other/images/oak02.png
-	//1
-	//  [resource] default png /path/to/elm01.png
-	//  [resource] lowres jpeg /path/lowres/image.jpeg
-	//1
-	//  [resource] default png /path/to/pine01.png
-	//  [resource] lowres jpeg /path/lowres/image.jpeg
-	//  [resource] stats json url://file.json
+	// Example 02: Getting things
 
 	client, err := wysteria.New()
 	if err != nil {
@@ -37,8 +20,10 @@ func main () {
 	}
 	fmt.Println("-- Collection --")
 	fmt.Println(col.Name())
+	//-- Collection --
+	//tiles
 
-	// Find items
+	// Get all child items
 	items, err := col.GetItems()
 	if err != nil {
 		panic(err)
@@ -47,11 +32,15 @@ func main () {
 	for _, i := range items {
 		fmt.Println(i.Type(), i.Variant())
 	}
+	//-- Items --
+	//tree oak
+	//tree elm
+	//tree pine
 
-	// Look up our published versions
+	// Look up all published versions of our items
 	fmt.Println("-- Published Versions --")
 	for _, i := range items {
-		published, err := i.GetPublishedVersion()
+		published, err := i.GetPublished()
 		if err != nil {
 			panic(err)
 		}
@@ -66,5 +55,16 @@ func main () {
 			fmt.Println("  [resource]", r.Name(), r.Type(), r.Location())
 		}
 	}
+
+	//-- Published Versions --
+	//2
+	//  [resource] default png /other/images/oak02.png
+	//1
+	//  [resource] default png /path/to/elm01.png
+	//  [resource] lowres jpeg /path/lowres/image.jpeg
+	//1
+	//  [resource] default png /path/to/pine01.png
+	//  [resource] lowres jpeg /path/lowres/image.jpeg
+	//  [resource] stats json url://file.json
 }
 

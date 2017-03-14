@@ -10,7 +10,7 @@ type item struct {
 	fromLink *link
 }
 
-func (i *item) GetPublishedVersion() (*version, error) {
+func (i *item) GetPublished() (*version, error) {
 	ver, err := i.conn.middleware.GetPublishedVersion(i.data.Id)
 	if err != nil {
 		return nil, err
@@ -81,11 +81,11 @@ func (i *item) getLinkedItems(name string) ([]*item, error) {
 	return result, nil
 }
 
-func (i *item) GetLinkedItemsByName(name string) ([]*item, error) {
+func (i *item) GetLinkedByName(name string) ([]*item, error) {
 	return i.getLinkedItems(name)
 }
 
-func (i *item) GetLinkedItems() ([]*item, error) {
+func (i *item) GetLinked() ([]*item, error) {
 	return i.getLinkedItems("")
 }
 
@@ -106,18 +106,24 @@ func (i *item) SetFacets(in map[string]string) error {
 	return i.conn.middleware.UpdateItemFacets(i.data.Id, in)
 }
 
-func (i *item) CreateNextVersion() (*version, error) {
-	facets := map[string]string{}
+func (i *item) CreateVersion(facets map[string]string) (*version, error) {
+	all_facets := map[string]string{}
+	if all_facets != nil {
+		for key, value := range facets {
+			all_facets[key] = value
+		}
+	}
+
 	parentCol, ok := i.data.Facets["collection"]
 	if ok {
-		facets["collection"] = parentCol
+		all_facets["collection"] = parentCol
 	}
-	facets["itemtype"] = i.data.ItemType
-	facets["variant"] = i.data.Variant
+	all_facets["itemtype"] = i.data.ItemType
+	all_facets["variant"] = i.data.Variant
 
 	ver := &wyc.Version{
 		Parent: i.data.Id,
-		Facets: facets,
+		Facets: all_facets,
 	}
 
 	version_id, version_num, err := i.conn.middleware.CreateVersion(ver)

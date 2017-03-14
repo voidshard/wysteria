@@ -5,8 +5,8 @@ import (
 )
 
 func main () {
-	// Example01: Creating
-	//  (We'll use the resources created here in the next examples)
+	// Example 01: Creating
+	//  We'll use the objects we create here in following examples, so please run this first
 
 	client, err := wysteria.New()
 	if err != nil {
@@ -20,13 +20,13 @@ func main () {
 	}
 
 	// Create an item in our collection
-	oak, err := col.CreateItem("tree", "oak")
+	oak, err := col.CreateItem("tree", "oak", nil)
 	if err != nil {
 		panic(err)
 	}
 
 	// Create the first version of our oak tree
-	oak01, err := oak.CreateNextVersion()
+	oak01, err := oak.CreateVersion(nil)
 	if err != nil {
 		panic(err)
 	}
@@ -39,19 +39,19 @@ func main () {
 	oak01.AddResource("stats", "xml", "/path/to/file.xml")
 
 	// Throw in some more trees
-	elm, _ := col.CreateItem("tree", "elm")
-	elm01, _ := elm.CreateNextVersion()
+	elm, _ := col.CreateItem("tree", "elm", nil)
+	elm01, _ := elm.CreateVersion(nil)
 	elm01.AddResource("default", "png", "/path/to/elm01.png")
 	elm01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg")
 
-	pine, _ := col.CreateItem("tree", "pine")
-	pine01, _ := pine.CreateNextVersion()
+	pine, _ := col.CreateItem("tree", "pine", nil)
+	pine01, _ := pine.CreateVersion(nil)
 	pine01.AddResource("default", "png", "/path/to/pine01.png")
 	pine01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg")
 	pine01.AddResource("stats", "json", "url://file.json")
 
 	// Shoot. Our oak tree looks awful. Let's redo it
-	oak02, _ := oak.CreateNextVersion()
+	oak02, _ := oak.CreateVersion(nil)
 	oak02.AddResource("default", "png", "/other/images/oak02.png")
 
 	// Ok sweet. Let's publish the things
@@ -63,19 +63,25 @@ func main () {
 	pine01.Publish()
 
 	// One more oak (note that oak02 is still the "published" version -> important later)
-	oak03, _ := oak.CreateNextVersion()
+	oak03, _ := oak.CreateVersion(nil)
 	oak03.AddResource("default", "png", "/other/images/oak03.png")
 
 	// We'll create some links for later examples too, first, something to link to
 	maps, _ := client.CreateCollection("maps")
-	forest, _ := maps.CreateItem("map", "forest")
-	forest_map_01, _ := forest.CreateNextVersion()
+	forest, _ := maps.CreateItem("map", "forest", nil)
+	forest_map_01, _ := forest.CreateVersion(nil)
+	forest_map_01.Publish()
 
-	// Now, let's create links to our forest
-	err = oak02.LinkTo("oak", forest_map_01)
+	// Now, let's create links on our forest to it's constituent trees
+	err = forest_map_01.LinkTo("oak", oak02)
 	if err != nil {
 		panic(err)
 	}
-	elm01.LinkTo("elm", forest_map_01)
-	pine01.LinkTo("pine", forest_map_01)
+	forest_map_01.LinkTo("elm", elm01)
+	forest_map_01.LinkTo("pine", pine01)
+
+	// We can link the other way too
+	oak02.LinkTo("usedby", forest_map_01)
+	elm01.LinkTo("usedby", forest_map_01)
+	pine01.LinkTo("usedby", forest_map_01)
 }

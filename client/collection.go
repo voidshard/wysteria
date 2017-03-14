@@ -27,14 +27,22 @@ func (c *collection) GetItems() ([]*item, error) {
 	return c.conn.Search().ChildOf(c.data.Id).Items()
 }
 
-func (c *collection) CreateItem(itemtype, variant string) (*item, error) {
+
+func (c *collection) CreateItem(itemtype, variant string, facets map[string]string) (*item, error) {
+	all_facets := map[string]string{}
+	if facets != nil {
+		for key, value := range facets {
+			all_facets[key] = value
+		}
+	}
+
+	all_facets["collection"] = c.data.Name
+
 	cmn_item := &wyc.Item{
 		Parent:   c.data.Id,
 		ItemType: itemtype,
 		Variant:  variant,
-		Facets: map[string]string{
-			"collection": c.data.Name,
-		},
+		Facets: all_facets,
 	}
 
 	item_id, err := c.conn.middleware.CreateItem(cmn_item)

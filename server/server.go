@@ -108,6 +108,8 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	if !ok {
 		return "", errors.New("Required facet 'collection' not set")
 	}
+	in.Facets["itemtype"] = in.ItemType
+	in.Facets["variant"] = in.Variant
 
 	in.Id = NewId()
 	err := s.database.InsertItem(in.Id, in)
@@ -169,33 +171,9 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 		return "", errors.New("You may not link something to itself")
 	}
 
-	// We can either link two versions or two items .. both must exist and be the same type of obj
-	queries := []*wyc.QueryDesc{{Id: in.Src}, {Id: in.Dst},}
-
-	// We'll search the Items first, there's probably less of them and it's cheaper
-	items, err := s.searchbase.QueryItem(0, 0, queries...)
-	if err != nil {
-		return "", err
-	}
-	acceptable := len(items) == 2
-
-	// If we didn't find 2, then we have to search versions
-	if !acceptable {
-		vers, err := s.searchbase.QueryVersion(0, 0, queries...)
-		if err != nil {
-			return "", err
-		}
-		acceptable = len(vers) == 2
-	}
-
-	// If we still didn't find two objs of the same type with the given ids, we can't create this link
-	if !acceptable {
-		return "", errors.New(fmt.Sprintf("Unable to find 2 items or 2 versions with Ids %s %s", in.Src, in.Dst))
-	}
-
-	// Otherwise, we're good to create our link
+	// We're good to create our link
 	in.Id = NewId()
-	err = s.database.InsertLink(in.Id, in)
+	err := s.database.InsertLink(in.Id, in)
 	if err != nil {
 		return "", err
 	}

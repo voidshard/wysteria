@@ -1,4 +1,4 @@
-v0.96: consider beta, embedded database options & intergration test suite coming 
+v0.98: Working examples added. More embedded options coming to be able to launch stand alone
 #Wysteria
 
 An open source asset tracking, versioning & publishing system written in Go. 
@@ -6,11 +6,12 @@ An open source asset tracking, versioning & publishing system written in Go.
 
 ##Before You Start
 
-There are extra components that a wysteria server depends on, these are
+There are three components that a wysteria server uses in conjunction on to work, they are:
 - A database for long term storage
 - A 'searchbase' for indexing and running queries against
+- A middleware for ferrying data back and forth between server(s) and client(s)
 
-Each of these is behind an interface so it's easy to write implementations for your favourite solutions. Currently there are implementations for 
+Each of these components is behind an interface so it's easy to write implementations for your favourite solutions. Currently there are implementations for
 
 Databases
  - MongoDb
@@ -21,11 +22,9 @@ Search
 
 
 Middleware
- - Nats.io
+ - Nats.io (optionally embedded)
  - Gorpc (embedded)
 
-
-Note that a Nats server will be started embedded inside of wysteria if you don't supply a url to a Nats host
 
 ##Connecting
 Once you're set up, opening a connection to the server is reasonably simple

@@ -520,7 +520,7 @@ func errorString(err error) string {
 	return err.Error()
 }
 
-func (s *natsServer) create_collection(msg *nats.Msg) marshalable {
+func (s *natsServer) create_collection(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 	
 	// Unmarshal
@@ -537,7 +537,7 @@ func (s *natsServer) create_collection(msg *nats.Msg) marshalable {
 	}
 }
 
-func (s *natsServer) create_item(msg *nats.Msg) marshalable {
+func (s *natsServer) create_item(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 
 	// Unmarshal
@@ -554,7 +554,7 @@ func (s *natsServer) create_item(msg *nats.Msg) marshalable {
 	}
 }
 
-func (s *natsServer) create_version(msg *nats.Msg) marshalable {
+func (s *natsServer) create_version(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 	var num int32
 
@@ -573,7 +573,7 @@ func (s *natsServer) create_version(msg *nats.Msg) marshalable {
 	}
 }
 
-func (s *natsServer) create_resource(msg *nats.Msg) marshalable {
+func (s *natsServer) create_resource(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 
 	// Unmarshal
@@ -590,7 +590,7 @@ func (s *natsServer) create_resource(msg *nats.Msg) marshalable {
 	}
 }
 
-func (s *natsServer) create_link(msg *nats.Msg) marshalable {
+func (s *natsServer) create_link(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 
 	// Unmarshal
@@ -608,7 +608,7 @@ func (s *natsServer) create_link(msg *nats.Msg) marshalable {
 }
 
 // Generic version of the delete call
-func (s *natsServer) delete_generic(msg *nats.Msg, call func(string) error) marshalable {
+func (s *natsServer) delete_generic(msg *nats.Msg, call func(string) error) wyc.Marshalable {
 	// Unmarshal
 	req := codec.DeleteReq{}
 	err := req.UnmarshalJSON(msg.Data)
@@ -624,23 +624,23 @@ func (s *natsServer) delete_generic(msg *nats.Msg, call func(string) error) mars
 	}
 }
 
-func (s *natsServer) delete_collection(msg *nats.Msg) marshalable {
+func (s *natsServer) delete_collection(msg *nats.Msg) wyc.Marshalable {
 	return s.delete_generic(msg, s.handler.DeleteCollection)
 }
 
-func (s *natsServer) delete_item(msg *nats.Msg) marshalable {
+func (s *natsServer) delete_item(msg *nats.Msg) wyc.Marshalable {
 	return s.delete_generic(msg, s.handler.DeleteItem)
 }
 
-func (s *natsServer) delete_version(msg *nats.Msg) marshalable {
+func (s *natsServer) delete_version(msg *nats.Msg) wyc.Marshalable {
 	return s.delete_generic(msg, s.handler.DeleteVersion)
 }
 
-func (s *natsServer) delete_resource(msg *nats.Msg) marshalable {
+func (s *natsServer) delete_resource(msg *nats.Msg) wyc.Marshalable {
 	return s.delete_generic(msg, s.handler.DeleteResource)
 }
 
-func (s *natsServer) find_collection(msg *nats.Msg) marshalable {
+func (s *natsServer) find_collection(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyCollection{
 		All: []wyc.Collection{},
@@ -669,7 +669,7 @@ func (s *natsServer) find_collection(msg *nats.Msg) marshalable {
 	return rep
 }
 
-func (s *natsServer) find_item(msg *nats.Msg) marshalable {
+func (s *natsServer) find_item(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyItem{
 		All: []wyc.Item{},
@@ -698,7 +698,7 @@ func (s *natsServer) find_item(msg *nats.Msg) marshalable {
 	return rep
 }
 
-func (s *natsServer) find_version(msg *nats.Msg) marshalable {
+func (s *natsServer) find_version(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyVersion{
 		All: []wyc.Version{},
@@ -727,7 +727,7 @@ func (s *natsServer) find_version(msg *nats.Msg) marshalable {
 	return rep
 }
 
-func (s *natsServer) find_resource(msg *nats.Msg) marshalable {
+func (s *natsServer) find_resource(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyResource{
 		All: []wyc.Resource{},
@@ -756,7 +756,7 @@ func (s *natsServer) find_resource(msg *nats.Msg) marshalable {
 	return rep
 }
 
-func (s *natsServer) find_link(msg *nats.Msg) marshalable {
+func (s *natsServer) find_link(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyLink{
 		All: []wyc.Link{},
@@ -785,7 +785,7 @@ func (s *natsServer) find_link(msg *nats.Msg) marshalable {
 	return rep
 }
 
-func (s *natsServer) get_published(msg *nats.Msg) marshalable {
+func (s *natsServer) get_published(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.PublishedReq{}
 	rep := &codec.GetPublishedReply{}
 
@@ -805,7 +805,7 @@ func (s *natsServer) get_published(msg *nats.Msg) marshalable {
 	return rep
 }
 
-func (s *natsServer) set_published(msg *nats.Msg) marshalable {
+func (s *natsServer) set_published(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.PublishedReq{}
 	rep := &codec.CreateReplyVersion{}
 
@@ -819,7 +819,7 @@ func (s *natsServer) set_published(msg *nats.Msg) marshalable {
 	return rep
 }
 
-func (s *natsServer) generic_update_facets(msg *nats.Msg, call func(string, map[string]string) error) marshalable {
+func (s *natsServer) generic_update_facets(msg *nats.Msg, call func(string, map[string]string) error) wyc.Marshalable {
 	req := &codec.UpdateFacetsReq{}
 	rep := &codec.UpdateFacetsReply{}
 
@@ -836,11 +836,11 @@ func (s *natsServer) generic_update_facets(msg *nats.Msg, call func(string, map[
 	return rep
 }
 
-func (s *natsServer) update_version(msg *nats.Msg) marshalable {
+func (s *natsServer) update_version(msg *nats.Msg) wyc.Marshalable {
 	return s.generic_update_facets(msg, s.handler.UpdateVersionFacets)
 }
 
-func (s *natsServer) update_item(msg *nats.Msg) marshalable {
+func (s *natsServer) update_item(msg *nats.Msg) wyc.Marshalable {
 	return s.generic_update_facets(msg, s.handler.UpdateItemFacets)
 }
 
@@ -850,7 +850,7 @@ func (s *natsServer) update_item(msg *nats.Msg) marshalable {
 // idea is that the client (even on an err) will have something helpful to
 // print / understand what happened if nothing else.
 //
-func (s *natsServer) send_reply(to string, m marshalable) {
+func (s *natsServer) send_reply(to string, m wyc.Marshalable) {
 	// Marshal reply
 	data, err := m.MarshalJSON()
 	if err != nil {
@@ -868,13 +868,8 @@ func (s *natsServer) send_reply(to string, m marshalable) {
 	}
 }
 
-// An object that can be turned into a byte array
-type marshalable interface {
-	MarshalJSON() ([]byte, error)
-}
-
-func (s *natsServer) choose_client_handler(subject string) func(*nats.Msg) marshalable {
-	var handler func(*nats.Msg) marshalable
+func (s *natsServer) choose_client_handler(subject string) func(*nats.Msg) wyc.Marshalable {
+	var handler func(*nats.Msg) wyc.Marshalable
 
 	switch subjectSuffix(subject) {
 	case call_create_collection:
@@ -932,7 +927,7 @@ func (s *natsServer) handle_client(msg *nats.Msg) {
 	}
 
 	// Here we call the handler - it can do whatever and return us 
-	// some kind of marshalable result
+	// some kind of wyc.Marshalable result
 	result := handler(msg)
 	
 	// Pass whatever the result was to our func to be turned back into

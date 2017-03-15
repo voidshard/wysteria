@@ -49,3 +49,7 @@ type QueryDesc struct {
 	LinkSrc       string
 	LinkDst       string
 }
+
+type Marshalable interface {
+	MarshalJSON() ([]byte, error)
+}

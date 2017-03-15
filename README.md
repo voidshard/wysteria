@@ -1,10 +1,10 @@
-v0.98: Working examples added. More embedded options coming to be able to launch stand alone
-#Wysteria
+v0.99: Just waiting on embedded bleve implementation for embedded search
+# Wysteria
 
 An open source asset tracking, versioning & publishing system written in Go. 
 
 
-##Before You Start
+## Before You Start
 
 There are three components that a wysteria server uses in conjunction on to work, they are:
 - A database for long term storage
@@ -26,7 +26,7 @@ Middleware
  - Gorpc (embedded)
 
 
-##Connecting
+## Connecting
 Once you're set up, opening a connection to the server is reasonably simple
 ```Go
 import (       
@@ -43,7 +43,7 @@ func main() {
 ```
 By default wysteria will check for an ini file in the current directory, then it'll poll the env variable WYSTERIA_CLIENT_INI to see if it can find a config file there. Failing that, it'll assume a set of default values.
 
-##Collections
+## Collections
 At the highest level are collections. Collections are straight forward enough - each has a unique name and can be created via
 
 ```Go
@@ -60,7 +60,7 @@ And all child items of a collection via
 items, _ := collection.GetItems()
 ```
 
-##Items
+## Items
 A collection can have any number of items, with the constraint that there is at most one item of each 'item type' and 'variant'.
 The 'item type' and 'variant' are simply strings that are passed in when an item is created. 
 ```Go
@@ -99,7 +99,8 @@ myitem.GetPublished()         # fetch the published version for this
 ```
 
 Which brings us to ..
-##Versions
+
+## Versions
 Wysteria is about asset tracking and versioning. So far we have a 'sherwoodForest' item which is an 'exterior' belonging to a collection of 'maps' which we might think of as an asset. 
 Now we consider different iterations of the asset, which we call versions. Each item has any number of versions which are numbered automatically, starting at 1. Naturally, there is only one version of each number belonging to a given item.
 
@@ -122,7 +123,7 @@ each Item can have at most one child Version marked as Published.
 
 Lastly they are also able to have Resources attached to them. Which brings us to ..
 
-##Resources
+## Resources
 Resources each have a name, type and location, all strings. Any number of them can be attached to a version.
 ```Go
 myVersion.AddResource("floorA", "image", "/path/to/image.0001.png")
@@ -140,7 +141,7 @@ image_resouces, err = ver.GetResourcesByType("image")
 batman_resources, err = ver.GetResourcesByName("sprite")
 ```
 
-##Searching
+## Searching
 At this point, you could start with a given collection, then walk up, down and/or sideways through the hierarchy to find what you're looking for. But more likely you're looking for an easier way. You can search on almost any field, facet, name, type, location or id, or any combination of the above.
 A search is it's own object that keeps track of your parameters. You can keep tacking them on to refine the search as much as you want,
 ```Go
@@ -167,24 +168,21 @@ That is, this search will return all items from any collection(s) that have eith
 - item type of "b"
 
 
-##Notes
+## Notes
 
-- At the moment Nats.io provides auto round-robin between listening servers. In theory then you can dynamically stand up and tear down more wysteria servers as required and the middleware will handle routing requests, at the cost of killing currently running client requests on the unfortunate server (there is a ToDo to make this graceful). 
 - There will be a delay between when something is created in wysteria, and when it is returnable via a search. This delay should be measured in seconds at most, depending on the 'searchbase' being used. It's possible that different searchbase implementations will overcome this in the future
 - "Moving" and/or "renaming" are foreign concepts to wysteria, if you need to move something you should delete and recreate it. Part of this is because of the complications it introduces, and part of this is to be able to support deterministic ids (in a later version). That is, most objects and fields are immutable after creation.
 - Wysteria makes no attempt to understand the links you set or sanitize strings given. The meaning behind the resource 'location' for example is left entirely to the user -- it could be a filepath, a url, an id into another system or something else entirely.
 - There is no maximum number of facets, links or resources that one can attach that is enforced by the system. Practical limits of the underlying systems will begin to apply at some point however.
 
-##Contributing
+## Contributing
 
 All contributors are welcome. If you write a new implementation for any of the interfaces or make any improvements please do make a pull request. 
 
 Also, if (when) you find bugs, let me know.
 
-##Required Before 1.0 release
-- add embedded nats server ability
+## Required Before 1.0 release
 - add embedded searchbase 
-- add embedded database implementation (boltdb)
 
 ##ToDo List
 - unittests for business logic

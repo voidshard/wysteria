@@ -66,8 +66,8 @@ func getDefaults() *configuration {
 			PemFile: "",
 		},
 		wcm.MiddlewareSettings {
-			wcm.DRIVER_GRPC,
-			"10801",
+			Driver: wcm.DRIVER_NATS,
+			Config: "",
 		},
 	}
 }

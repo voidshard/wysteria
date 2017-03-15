@@ -23,6 +23,9 @@ type grpcClient struct {
 }
 
 func (c *grpcClient) Connect(config string) error {
+	if config == "" {
+		config = "localhost:50051"
+	}
 	conn, err := grpc.Dial(config, grpc.WithInsecure())
 	if err != nil {
 		return err
@@ -45,11 +48,10 @@ func (c *grpcClient) CreateCollection(name string) (string, error) {
 		context.Background(),
 		&wrpc.Text{Text: name},
 	)
-
 	if err != nil {
 		return "", err
 	}
-	if result.Error.Text != "" {
+	if result.Error != nil {
 		return "", errors.New(result.Error.Text)
 	}
 	return result.Id, nil
@@ -74,7 +76,7 @@ func (c *grpcClient) CreateItem(in *wyc.Item) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if result.Error.Text != "" {
+	if result.Error != nil{
 		return "", errors.New(result.Error.Text)
 	}
 	return result.Id, nil
@@ -124,7 +126,7 @@ func (c *grpcClient) CreateResource(in *wyc.Resource) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if result.Error.Text != "" {
+	if result.Error != nil{
 		return "", errors.New(result.Error.Text)
 	}
 	return result.Id, nil
@@ -148,7 +150,7 @@ func (c *grpcClient) CreateLink(in *wyc.Link) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if result.Error.Text != "" {
+	if result.Error != nil{
 		return "", errors.New(result.Error.Text)
 	}
 	return result.Id, nil
@@ -221,7 +223,7 @@ func (c *grpcClient) FindCollections(in []*wyc.QueryDesc) ([]*wyc.Collection, er
 		return nil, err
 	}
 
-	if result.Error.Text != "" {
+	if result.Error != nil{
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRCollections(result.All...), nil
@@ -247,7 +249,7 @@ func (c *grpcClient) FindItems(in []*wyc.QueryDesc) ([]*wyc.Item, error) {
 		return nil, err
 	}
 
-	if result.Error.Text != "" {
+	if result.Error != nil{
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRItems(result.All...), nil
@@ -272,7 +274,7 @@ func (c *grpcClient) FindVersions(in []*wyc.QueryDesc) ([]*wyc.Version, error) {
 		return nil, err
 	}
 
-	if result.Error.Text != "" {
+	if result.Error != nil{
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRVersions(result.All...), nil
@@ -298,7 +300,7 @@ func (c *grpcClient) FindResources(in []*wyc.QueryDesc) ([]*wyc.Resource, error)
 		return nil, err
 	}
 
-	if result.Error.Text != "" {
+	if result.Error != nil{
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRResources(result.All...), nil	
@@ -323,7 +325,7 @@ func (c *grpcClient) FindLinks(in []*wyc.QueryDesc) ([]*wyc.Link, error) {
 		return nil, err
 	}
 
-	if result.Error.Text != "" {
+	if result.Error != nil{
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRLinks(result.All...), nil
@@ -344,7 +346,7 @@ func (c *grpcClient) GetPublishedVersion(in string) (*wyc.Version, error) {
 		return nil, err
 	}
 
-	if result.Error.Text != "" {
+	if result.Error != nil{
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRVersion(result), nil
@@ -424,6 +426,10 @@ func newGrpcServer() EndpointServer {
 // It's simple really, if you don't think about it.
 //
 func (s *grpcServer) ListenAndServe(config string, handler ServerHandler) error {
+	if config == "" {
+		config = ":50051"
+	}
+
 	conn, err := net.Listen("tcp", config)
 	if err != nil {
 		return err

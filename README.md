@@ -15,7 +15,7 @@ Each of these components is behind an interface so it's easy to write implementa
 
 Databases
  - MongoDb
-
+ - BoltDB
 
 Search
  - ElasticSearch

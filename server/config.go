@@ -47,13 +47,8 @@ func init() {
 func getDefaults() *configuration {
 	return &configuration{
 		wdb.DatabaseSettings {
-			Driver: wdb.DRIVER_MONGO,
-			Host: "127.0.0.1",
-			Port: 27017,
-			User: "",
-			Pass: "",
+			Driver: wdb.DRIVER_BOLT,
 			Database: "wysteria_db",
-			PemFile: "",
 		},
 
 		wsb.SearchbaseSettings {

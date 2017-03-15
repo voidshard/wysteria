@@ -8,11 +8,13 @@ import (
 
 const (
 	DRIVER_MONGO = "mongo"
+	DRIVER_BOLT = "bolt"
 )
 
 var (
 	connectors = map[string]func(*DatabaseSettings) (Database, error){
 		DRIVER_MONGO: mongo_connect,
+		DRIVER_BOLT: bolt_connect,
 	}
 )
 

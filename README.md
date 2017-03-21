@@ -180,8 +180,6 @@ All contributors are welcome. If you write a new implementation for any of the i
 
 Also, if (when) you find bugs, let me know.
 
-## Required Before 1.0 release
-- add embedded searchbase 
 
 ## ToDo List
 - unittests for business logic
@@ -193,5 +191,5 @@ Also, if (when) you find bugs, let me know.
     - allow changing of configuration option(s) 
     - add alerts for certain events or server statuses
     - allow temporary rerouting of client requests
-- implement system for deterministic ids
+- implement system for deterministic ids (?)
 - check if ffjson using the Marshalable interface is slowing it down - suspect it might be after reading the docs a bit more

@@ -375,7 +375,7 @@ func (s *WysteriaServer) close_connections() {
 }
 
 func (s *WysteriaServer) Run() error {
-	msg := "Attempting connection to %s %s %s:%d"
+	msg := "Opening %s %s %s:%d"
 
 	// [1] Connect / spin up the database
 	log.Println(fmt.Sprintf(msg, "database", s.settings.Database.Driver, s.settings.Database.Host, s.settings.Database.Port))
@@ -394,13 +394,13 @@ func (s *WysteriaServer) Run() error {
 	s.searchbase = searchbase
 
 	// [3] Lastly, spin up or connect to whatever is bring us requests
-	log.Println(fmt.Sprintf("Initializing middleware %s (%s)", s.settings.Middleware.Driver, s.settings.Middleware.Config))
+	log.Println(fmt.Sprintf("Initializing middleware %s", s.settings.Middleware.Driver))
 	mware_server, err := wcm.NewServer(s.settings.Middleware.Driver)
 	if err != nil {
 		return err
 	}
 	s.middleware_server = mware_server
 
-	log.Println("Spinning up middleware, listening for connections")
+	log.Println("Spinning up middleware & waiting for connections")
 	return mware_server.ListenAndServe(s.settings.Middleware.Config, s)
 }

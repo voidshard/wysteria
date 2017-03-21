@@ -7,6 +7,8 @@ import (
 	wsb "github.com/voidshard/wysteria/server/searchbase"
 	"log"
 	"fmt"
+	"os"
+	"path/filepath"
 )
 
 var Config *configuration
@@ -39,7 +41,6 @@ func init() {
 			Config = cnf
 		}
 	}
-	log.Println("Config loaded", Config)
 }
 
 // Get the default settings.
@@ -48,16 +49,16 @@ func getDefaults() *configuration {
 	return &configuration{
 		wdb.DatabaseSettings {
 			Driver: wdb.DRIVER_BOLT,
-			Database: "wysteria_db",
+			Database: filepath.Join(os.TempDir(), "wysteria_db"),
 		},
 
 		wsb.SearchbaseSettings {
-			Driver: wsb.DRIVER_ELASTIC,
-			Host: "127.0.0.1",
-			Port: 9200,
+			Driver: wsb.DRIVER_BLEVE,
+			Host: "",
+			Port: 0,
 			User: "",
 			Pass: "",
-			Database: "wysteria_idx",
+			Database: filepath.Join(os.TempDir(), "wysteria_sb"),
 			PemFile: "",
 		},
 		wcm.MiddlewareSettings {

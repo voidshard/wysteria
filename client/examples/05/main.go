@@ -2,6 +2,7 @@ package main
 
 import (
 	wysteria "github.com/voidshard/wysteria/client"
+	"fmt"
 )
 
 func main() {
@@ -37,4 +38,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Created with metadata")
 }

@@ -1,7 +1,6 @@
 package searchends
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"gopkg.in/olivere/elastic.v2"
@@ -56,7 +55,7 @@ func (e *elasticSearch) InsertVersion(id string, doc *wyc.Version) error {
 
 func (e *elasticSearch) InsertResource(id string, doc *wyc.Resource) error {
 	// Hash path to nullify tokenizing on '/' or '\' symbols
-	doc.Location = hashResourceLocation(doc.Location)
+	doc.Location = b64encode(doc.Location)
 	return e.insert(table_fileresource, id, doc)
 }
 
@@ -162,11 +161,6 @@ func (e *elasticSearch) generic_delete(col string, ids ...string) error {
 	return nil
 }
 
-func hashResourceLocation(path string) string {
-	// avoid any odd chars or tokenizing by Elastic by b64 encoding the string
-	return strings.TrimRight(base64.StdEncoding.EncodeToString([]byte(path)), "=")
-}
-
 func (e *elasticSearch) insert(col, id string, doc interface{}) error {
 	_, err := e.client.Index().Index(e.Settings.Database).Type(col).BodyJson(doc).Id(id).Do()
 	return err
@@ -206,7 +200,7 @@ func elasticTermsResource(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 		q = append(q, termQuery("Parent", qd.Parent))
 	}
 	if qd.Location != "" {
-		hsh := hashResourceLocation(qd.Location)
+		hsh := b64encode(qd.Location)
 		q = append(q, termQuery("Location", hsh))
 	}
 

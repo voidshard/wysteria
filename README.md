@@ -1,4 +1,3 @@
-v0.99: Just waiting on embedded bleve implementation for embedded search
 # Wysteria
 
 An open source asset tracking, versioning & publishing system written in Go. 
@@ -15,15 +14,15 @@ Each of these components is behind an interface so it's easy to write implementa
 
 Databases
  - MongoDb
- - BoltDB
+ - BoltDB (embedded)
 
 Search
  - ElasticSearch
-
+ - Bleve (embedded)
 
 Middleware
- - Nats.io (optionally embedded)
  - Gorpc (embedded)
+ - Nats.io (either)
 
 
 ## Connecting
@@ -184,7 +183,7 @@ Also, if (when) you find bugs, let me know.
 ## Required Before 1.0 release
 - add embedded searchbase 
 
-##ToDo List
+## ToDo List
 - unittests for business logic
 - logging & live statistics gathering functionality
 - admin console 
@@ -195,3 +194,4 @@ Also, if (when) you find bugs, let me know.
     - add alerts for certain events or server statuses
     - allow temporary rerouting of client requests
 - implement system for deterministic ids
+- check if ffjson using the Marshalable interface is slowing it down - suspect it might be after reading the docs a bit more

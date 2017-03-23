@@ -6,38 +6,38 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 )
 
-type version struct {
+type Version struct {
 	conn *wysteriaClient
 	data *wyc.Version
-	fromLink *link
+	fromLink *Link
 }
 
-func (i *version) Version() int32 {
+func (i *Version) Version() int32 {
 	return i.data.Number
 }
 
-func (i *version) Link() *link {
+func (i *Version) Link() *Link {
 	return i.fromLink
 }
 
-func (i *version) Delete() error {
+func (i *Version) Delete() error {
 	return i.conn.middleware.DeleteVersion(i.data.Id)
 }
 
-func (i *version) Facet(key string) (string, bool) {
+func (i *Version) Facet(key string) (string, bool) {
 	val, ok := i.data.Facets[key]
 	return val, ok
 }
 
-func (i *version) Id() string {
+func (i *Version) Id() string {
 	return i.data.Id
 }
 
-func (i *version) SetFacets(in map[string]string) error {
+func (i *Version) SetFacets(in map[string]string) error {
 	return i.conn.middleware.UpdateVersionFacets(i.data.Id, in)
 }
 
-func (i *version) getLinkedVersions(name string) ([]*version, error) {
+func (i *Version) getLinkedVersions(name string) ([]*Version, error) {
 	links, err := i.conn.middleware.FindLinks(
 		[]*wyc.QueryDesc{
 			{LinkSrc: i.data.Id, Name: name},
@@ -65,16 +65,16 @@ func (i *version) getLinkedVersions(name string) ([]*version, error) {
 		return nil, err
 	}
 
-	result := []*version{}
+	result := []*Version{}
 	for _, ver := range items {
-		wrapped_item := &version{
+		wrapped_item := &Version{
 			conn: i.conn,
 			data: ver,
 		}
 
 		lnk, ok := version_id_to_link[ver.Id]
 		if ok {
-			wrapped_item.fromLink = &link{conn: i.conn, data: lnk}
+			wrapped_item.fromLink = &Link{conn: i.conn, data: lnk}
 		}
 		result = append(result, wrapped_item)
 	}
@@ -82,15 +82,15 @@ func (i *version) getLinkedVersions(name string) ([]*version, error) {
 }
 
 
-func (i *version) GetLinkedByName(name string) ([]*version, error) {
+func (i *Version) GetLinkedByName(name string) ([]*Version, error) {
 	return i.getLinkedVersions(name)
 }
 
-func (i *version) GetLinked() ([]*version, error) {
+func (i *Version) GetLinked() ([]*Version, error) {
 	return i.getLinkedVersions("")
 }
 
-func (i *version) LinkTo(name string, other *version) error {
+func (i *Version) LinkTo(name string, other *Version) error {
 	if i.Id() == other.Id() { // Prevent linking to oneself
 		return nil
 	}
@@ -104,11 +104,11 @@ func (i *version) LinkTo(name string, other *version) error {
 	return err
 }
 
-func (i *version) Publish() error {
+func (i *Version) Publish() error {
 	return i.conn.middleware.PublishVersion(i.data.Id)
 }
 
-func (i *version) AddResource(name, rtype, location string) error {
+func (i *Version) AddResource(name, rtype, location string) error {
 	res := &wyc.Resource{
 		Parent:       i.data.Id,
 		Name:         name,
@@ -124,23 +124,23 @@ func (i *version) AddResource(name, rtype, location string) error {
 	return nil
 }
 
-func (i *version) GetAllResources() ([]*resource, error) {
+func (i *Version) GetAllResources() ([]*Resource, error) {
 	return i.getResources("", "")
 }
 
-func (i *version) GetResources(name, resource_type string) ([]*resource, error) {
+func (i *Version) GetResources(name, resource_type string) ([]*Resource, error) {
 	return i.getResources(name, resource_type)
 }
 
-func (i *version) GetResourcesByType(resource_type string) ([]*resource, error) {
+func (i *Version) GetResourcesByType(resource_type string) ([]*Resource, error) {
 	return i.getResources("", resource_type)
 }
 
-func (i *version) GetResourcesByName(name string) ([]*resource, error) {
+func (i *Version) GetResourcesByName(name string) ([]*Resource, error) {
 	return i.getResources(name, "")
 }
 
-func (i *version) getResources(name, resource_type string) ([]*resource, error) {
+func (i *Version) getResources(name, resource_type string) ([]*Resource, error) {
 	results, err := i.conn.middleware.FindResources(
 		[]*wyc.QueryDesc{{Parent: i.data.Id, Name: name, ResourceType: resource_type}},
 	)
@@ -148,9 +148,9 @@ func (i *version) getResources(name, resource_type string) ([]*resource, error) 
 		return nil, err
 	}
 
-	items := []*resource{}
+	items := []*Resource{}
 	for _, data := range results {
-		items = append(items, &resource{
+		items = append(items, &Resource{
 			conn: i.conn,
 			data: data,
 		})
@@ -158,11 +158,11 @@ func (i *version) getResources(name, resource_type string) ([]*resource, error) 
 	return items, nil
 }
 
-func (i *version) Parent() string {
+func (i *Version) Parent() string {
 	return i.data.Parent
 }
 
-func (i *version) GetParent() (*item, error) {
+func (i *Version) GetParent() (*Item, error) {
 	items, err := i.conn.middleware.FindItems(
 		[]*wyc.QueryDesc{{Id: i.data.Parent}},
 	)
@@ -172,7 +172,7 @@ func (i *version) GetParent() (*item, error) {
 	if len(items) < 1 {
 		return nil, errors.New(fmt.Sprintf("Expected 1 result, got %s", len(items)))
 	}
-	return &item{
+	return &Item{
 		conn: i.conn,
 		data: items[0],
 	}, nil

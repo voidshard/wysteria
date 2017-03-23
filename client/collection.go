@@ -6,29 +6,29 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 )
 
-type collection struct {
+type Collection struct {
 	conn *wysteriaClient
 	data *wyc.Collection
 }
 
-func (c *collection) Name() string {
+func (c *Collection) Name() string {
 	return c.data.Name
 }
 
-func (c *collection) Id() string {
+func (c *Collection) Id() string {
 	return c.data.Id
 }
 
-func (c *collection) Delete() error {
+func (c *Collection) Delete() error {
 	return c.conn.middleware.DeleteCollection(c.data.Id)
 }
 
-func (c *collection) GetItems() ([]*item, error) {
+func (c *Collection) GetItems() ([]*Item, error) {
 	return c.conn.Search().ChildOf(c.data.Id).Items()
 }
 
 
-func (c *collection) CreateItem(itemtype, variant string, facets map[string]string) (*item, error) {
+func (c *Collection) CreateItem(itemtype, variant string, facets map[string]string) (*Item, error) {
 	all_facets := map[string]string{}
 	if facets != nil {
 		for key, value := range facets {
@@ -51,19 +51,19 @@ func (c *collection) CreateItem(itemtype, variant string, facets map[string]stri
 	}
 	cmn_item.Id = item_id
 
-	return &item{
+	return &Item{
 		conn: c.conn,
 		data: cmn_item,
 	}, nil
 }
 
-func (w *wysteriaClient) CreateCollection(name string) (*collection, error) {
+func (w *wysteriaClient) CreateCollection(name string) (*Collection, error) {
 	collection_id, err := w.middleware.CreateCollection(name)
 	if err != nil {
 		return nil, err
 	}
 
-	return &collection{
+	return &Collection{
 		conn: w,
 		data: &wyc.Collection{
 			Id: collection_id,
@@ -72,7 +72,7 @@ func (w *wysteriaClient) CreateCollection(name string) (*collection, error) {
 	}, nil
 }
 
-func (w *wysteriaClient) GetCollection(identifier string) (*collection, error) {
+func (w *wysteriaClient) GetCollection(identifier string) (*Collection, error) {
 	results, err := w.Search().Id(identifier).Or().Name(identifier).Collections()
 	if err != nil {
 		return nil, err

@@ -6,36 +6,36 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 )
 
-type resource struct {
+type Resource struct {
 	conn *wysteriaClient
 	data *wyc.Resource
 }
 
-func (i *resource) Name() string {
+func (i *Resource) Name() string {
 	return i.data.Name
 }
 
-func (i *resource) Type() string {
+func (i *Resource) Type() string {
 	return i.data.ResourceType
 }
 
-func (i *resource) Delete() error {
+func (i *Resource) Delete() error {
 	return i.conn.middleware.DeleteResource(i.data.Id)
 }
 
-func (i *resource) Id() string {
+func (i *Resource) Id() string {
 	return i.data.Id
 }
 
-func (i *resource) Location() string {
+func (i *Resource) Location() string {
 	return i.data.Location
 }
 
-func (i *resource) Parent() string {
+func (i *Resource) Parent() string {
 	return i.data.Parent
 }
 
-func (i *resource) GetParent() (*version, error) {
+func (i *Resource) GetParent() (*Version, error) {
 	versions, err := i.conn.middleware.FindVersions([]*wyc.QueryDesc{
 		{Id: i.data.Parent},
 	})
@@ -46,7 +46,7 @@ func (i *resource) GetParent() (*version, error) {
 		return nil, errors.New(fmt.Sprintf("Version with Id %s not found", i.data.Parent))
 	}
 
-	return &version{
+	return &Version{
 		conn: i.conn,
 		data: versions[0],
 	}, nil

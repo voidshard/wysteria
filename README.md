@@ -185,11 +185,12 @@ Also, if (when) you find bugs, let me know.
 - unittests for business logic
 - logging & live statistics gathering functionality
 - admin console 
-  - extend the wysteria server chan (currently subscribed to but unused) to allow realtime management of live server(s)
+  - extend the wysteria server chan to allow realtime management of live server(s)
     - allow / disallow certain client requests
     - introduce some kind of configurable auto load-balancing 
     - allow changing of configuration option(s) 
     - add alerts for certain events or server statuses
     - allow temporary rerouting of client requests
-- implement system for deterministic ids (?)
-- check if ffjson using the Marshalable interface is slowing it down - suspect it might be after reading the docs a bit more
+- implement system for deterministic ids  
+- ability to write to backup db / sb (might be useful for hot swapping or dev dataset)
+- ability to swap over to backup db without server restart

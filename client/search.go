@@ -38,7 +38,7 @@ func (i *search) ready() error {
 	return nil
 }
 
-func (i *search) Collections() ([]*collection, error) {
+func (i *search) Collections() ([]*Collection, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -49,9 +49,9 @@ func (i *search) Collections() ([]*collection, error) {
 		return nil, err
 	}
 
-	ret := []*collection{}
+	ret := []*Collection{}
 	for _, r := range results {
-		ret = append(ret, &collection{
+		ret = append(ret, &Collection{
 			conn: i.conn,
 			data: r,
 		})
@@ -59,7 +59,7 @@ func (i *search) Collections() ([]*collection, error) {
 	return ret, nil
 }
 
-func (i *search) Items() ([]*item, error) {
+func (i *search) Items() ([]*Item, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -70,9 +70,9 @@ func (i *search) Items() ([]*item, error) {
 		return nil, err
 	}
 
-	ret := []*item{}
+	ret := []*Item{}
 	for _, r := range results {
-		ret = append(ret, &item{
+		ret = append(ret, &Item{
 			conn: i.conn,
 			data: r,
 		})
@@ -80,7 +80,7 @@ func (i *search) Items() ([]*item, error) {
 	return ret, nil
 }
 
-func (i *search) Versions() ([]*version, error) {
+func (i *search) Versions() ([]*Version, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -91,9 +91,9 @@ func (i *search) Versions() ([]*version, error) {
 		return nil, err
 	}
 
-	ret := []*version{}
+	ret := []*Version{}
 	for _, r := range results {
-		ret = append(ret, &version{
+		ret = append(ret, &Version{
 			conn: i.conn,
 			data: r,
 		})
@@ -101,7 +101,7 @@ func (i *search) Versions() ([]*version, error) {
 	return ret, nil
 }
 
-func (i *search) Resources() ([]*resource, error) {
+func (i *search) Resources() ([]*Resource, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -112,9 +112,9 @@ func (i *search) Resources() ([]*resource, error) {
 		return nil, err
 	}
 
-	ret := []*resource{}
+	ret := []*Resource{}
 	for _, r := range results {
-		ret = append(ret, &resource{
+		ret = append(ret, &Resource{
 			conn: i.conn,
 			data: r,
 		})
@@ -122,7 +122,7 @@ func (i *search) Resources() ([]*resource, error) {
 	return ret, nil
 }
 
-func (i *search) Links() ([]*link, error) {
+func (i *search) Links() ([]*Link, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -133,9 +133,9 @@ func (i *search) Links() ([]*link, error) {
 		return nil, err
 	}
 
-	ret := []*link{}
+	ret := []*Link{}
 	for _, r := range results {
-		ret = append(ret, &link{
+		ret = append(ret, &Link{
 			conn: i.conn,
 			data: r,
 		})

@@ -4,36 +4,36 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 )
 
-type item struct {
+type Item struct {
 	conn *wysteriaClient
 	data *wyc.Item
-	fromLink *link
+	fromLink *Link
 }
 
-func (i *item) GetPublished() (*version, error) {
+func (i *Item) GetPublished() (*Version, error) {
 	ver, err := i.conn.middleware.GetPublishedVersion(i.data.Id)
 	if err != nil {
 		return nil, err
 	}
-	return &version{
+	return &Version{
 		conn: i.conn,
 		data: ver,
 	}, nil
 }
 
-func (i *item) Link() *link {
+func (i *Item) Link() *Link {
 	return i.fromLink
 }
 
-func (i *item) Type() string {
+func (i *Item) Type() string {
 	return i.data.ItemType
 }
 
-func (i *item) Delete() error {
+func (i *Item) Delete() error {
 	return i.conn.middleware.DeleteItem(i.data.Id)
 }
 
-func (i *item) LinkTo(name string, other *item) error {
+func (i *Item) LinkTo(name string, other *Item) error {
 	if i.Id() == other.Id() { // Prevent linking to oneself
 		return nil
 	}
@@ -47,13 +47,13 @@ func (i *item) LinkTo(name string, other *item) error {
 	return err
 }
 
-func (i *item) getLinkedItems(name string) ([]*item, error) {
+func (i *Item) getLinkedItems(name string) ([]*Item, error) {
 	links, err := i.conn.Search().Src(i.data.Id).Name(name).Links()
 	if err != nil {
 		return nil, err
 	}
 
-	item_id_to_link := map[string]*link{}
+	item_id_to_link := map[string]*Link{}
 	search := i.conn.Search()
 	for _, link := range links {
 		id := link.SourceId()
@@ -71,7 +71,7 @@ func (i *item) getLinkedItems(name string) ([]*item, error) {
 		return nil, err
 	}
 
-	result := []*item{}
+	result := []*Item{}
 	for _, itm := range items {
 		lnk, ok := item_id_to_link[itm.Id()]
 		if ok {
@@ -81,32 +81,32 @@ func (i *item) getLinkedItems(name string) ([]*item, error) {
 	return result, nil
 }
 
-func (i *item) GetLinkedByName(name string) ([]*item, error) {
+func (i *Item) GetLinkedByName(name string) ([]*Item, error) {
 	return i.getLinkedItems(name)
 }
 
-func (i *item) GetLinked() ([]*item, error) {
+func (i *Item) GetLinked() ([]*Item, error) {
 	return i.getLinkedItems("")
 }
 
-func (i *item) Variant() string {
+func (i *Item) Variant() string {
 	return i.data.Variant
 }
 
-func (i *item) Facet(key string) (string, bool) {
+func (i *Item) Facet(key string) (string, bool) {
 	val, ok := i.data.Facets[key]
 	return val, ok
 }
 
-func (i *item) Id() string {
+func (i *Item) Id() string {
 	return i.data.Id
 }
 
-func (i *item) SetFacets(in map[string]string) error {
+func (i *Item) SetFacets(in map[string]string) error {
 	return i.conn.middleware.UpdateItemFacets(i.data.Id, in)
 }
 
-func (i *item) CreateVersion(facets map[string]string) (*version, error) {
+func (i *Item) CreateVersion(facets map[string]string) (*Version, error) {
 	all_facets := map[string]string{}
 	if all_facets != nil {
 		for key, value := range facets {
@@ -132,16 +132,16 @@ func (i *item) CreateVersion(facets map[string]string) (*version, error) {
 	}
 	ver.Id = version_id
 	ver.Number = version_num
-	return &version{
+	return &Version{
 		data: ver,
 		conn: i.conn,
 	}, nil
 }
 
-func (i *item) Parent() string {
+func (i *Item) Parent() string {
 	return i.data.Parent
 }
 
-func (i *item) GetParent() (*collection, error) {
+func (i *Item) GetParent() (*Collection, error) {
 	return i.conn.GetCollection(i.data.Parent)
 }

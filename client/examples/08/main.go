@@ -6,7 +6,8 @@ import (
 )
 
 func main () {
-	// Example 09: Resources
+	// Example 08: Resources
+
 	client, err := wysteria.New()
 	if err != nil {
 		panic(err)

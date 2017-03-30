@@ -1,13 +1,14 @@
 package main
 
 import (
-	wysteria "github.com/voidshard/wysteria/client"
 	"fmt"
+	wysteria "github.com/voidshard/wysteria/client"
 )
 
 func main() {
 	// Example 05: Adding metadata: the sequel
 	//  Alternatively, creating items / versions with metadata out of the box is more efficient
+	//  as we don't have to make two round trips - handy if we know all the facets we want up front!
 
 	client, err := wysteria.New()
 	if err != nil {

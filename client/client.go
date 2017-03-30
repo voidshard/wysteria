@@ -6,14 +6,14 @@ import (
 )
 
 type wysteriaClient struct {
-	settings 	   *configuration
-	middleware         wcm.EndpointClient
+	settings   *configuration
+	middleware wcm.EndpointClient
 }
 
 func (w *wysteriaClient) Search() *search {
 	return &search{
 		conn:      w,
-		query: []*wyc.QueryDesc{},
+		query:     []*wyc.QueryDesc{},
 		nextQuery: &wyc.QueryDesc{},
 	}
 }

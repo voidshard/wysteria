@@ -3,8 +3,8 @@ package middleware
 import (
 	"errors"
 	"fmt"
-	"time"
 	wyc "github.com/voidshard/wysteria/common"
+	"time"
 )
 
 const (
@@ -13,16 +13,15 @@ const (
 )
 
 var (
-	Timeout    = time.Second * 30
+	Timeout          = time.Second * 30
 	client_endpoints = map[string]func() EndpointClient{
 		DRIVER_GRPC: newGrpcClient,
 		DRIVER_NATS: newNatsClient,
 	}
-	server_endpoints = map[string]func() EndpointServer {
+	server_endpoints = map[string]func() EndpointServer{
 		DRIVER_GRPC: newGrpcServer,
 		DRIVER_NATS: newNatsServer,
 	}
-
 )
 
 func NewClient(driver string) (EndpointClient, error) {

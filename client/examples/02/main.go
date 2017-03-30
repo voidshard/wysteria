@@ -1,12 +1,14 @@
 package main
 
 import (
-	wysteria "github.com/voidshard/wysteria/client"
 	"fmt"
+	wysteria "github.com/voidshard/wysteria/client"
 )
 
-func main () {
+func main() {
 	// Example 02: Getting things
+	//  Before we get into searching, let's try just grabbing the children of each object
+	//  on the way down.
 
 	client, err := wysteria.New()
 	if err != nil {
@@ -67,4 +69,3 @@ func main () {
 	//  [resource] lowres jpeg /path/lowres/image.jpeg
 	//  [resource] stats json url://file.json
 }
-

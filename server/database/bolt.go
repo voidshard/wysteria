@@ -1,19 +1,19 @@
 package database
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/boltdb/bolt"
 	wyc "github.com/voidshard/wysteria/common"
-	"fmt"
-	"errors"
-	"encoding/json"
 )
 
 var (
 	bucket_collection = []byte(table_collection)
-	bucket_item = []byte(table_item)
-	bucket_version = []byte(table_version)
-	bucket_resource = []byte(table_fileresource)
-	bucket_link = []byte(table_link)
+	bucket_item       = []byte(table_item)
+	bucket_version    = []byte(table_version)
+	bucket_resource   = []byte(table_fileresource)
+	bucket_link       = []byte(table_link)
 
 	// bucket that we use to keep track of unique constraints
 	bucket_collisions = []byte("collisions")

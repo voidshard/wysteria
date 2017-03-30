@@ -8,16 +8,18 @@ import (
 
 const (
 	DRIVER_ELASTIC = "elastic"
-	DRIVER_BLEVE = "bleve"
+	DRIVER_BLEVE   = "bleve"
 )
 
 var (
 	connectors = map[string]func(*SearchbaseSettings) (Searchbase, error){
 		DRIVER_ELASTIC: elastic_connect,
-		DRIVER_BLEVE: bleve_connect,
+		DRIVER_BLEVE:   bleve_connect,
 	}
 )
 
+// Return a connect function for the given settings, or err if it can't be found
+//
 func Connect(settings *SearchbaseSettings) (Searchbase, error) {
 	connector, ok := connectors[settings.Driver]
 	if !ok {

@@ -3,15 +3,15 @@ package main
 import (
 	"errors"
 	"fmt"
+	wyc "github.com/voidshard/wysteria/common"
+	wcm "github.com/voidshard/wysteria/common/middleware"
+	wdb "github.com/voidshard/wysteria/server/database"
+	wsb "github.com/voidshard/wysteria/server/searchbase"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	wyc "github.com/voidshard/wysteria/common"
-	wcm "github.com/voidshard/wysteria/common/middleware"
-	wdb "github.com/voidshard/wysteria/server/database"
-	wsb "github.com/voidshard/wysteria/server/searchbase"
 )
 
 // Our main server struct
@@ -37,17 +37,19 @@ type WysteriaServer struct {
 
 	settings *configuration
 
-	database   wdb.Database
-	searchbase wsb.Searchbase
+	database          wdb.Database
+	searchbase        wsb.Searchbase
 	middleware_server wcm.EndpointServer
 }
 
+// Update facets on the version with the given ID
+//
 func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string) error {
 	vers, err := s.database.RetrieveVersion(id)
 	if err != nil {
 		return err
 	}
-	if len(vers) != 1 {
+	if len(vers) != 1 { // there must be something to update
 		return errors.New(fmt.Sprintf("No Version found with id %s", id))
 	}
 
@@ -63,12 +65,14 @@ func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string
 	return s.searchbase.UpdateVersion(id, version)
 }
 
+// Update facets on the item with the given ID
+//
 func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) error {
 	vers, err := s.database.RetrieveItem(id)
 	if err != nil {
 		return err
 	}
-	if len(vers) != 1 {
+	if len(vers) != 1 { // there must be something to update
 		return errors.New(fmt.Sprintf("No Item found with id %s", id))
 	}
 
@@ -108,6 +112,7 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	if !ok {
 		return "", errors.New("Required facet 'collection' not set")
 	}
+
 	in.Facets["itemtype"] = in.ItemType
 	in.Facets["variant"] = in.Variant
 
@@ -165,8 +170,8 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 		return "", errors.New("Require Src, Dst to be set")
 	}
 
-	// Not a perfect check but hopefully no one tries this too hard
-	// It shouldn't break anything it's just kinda dense ...
+	// Not a perfect check but hopefully no one tries this too hard.
+	// It shouldn't break anything it's just ... pointless.
 	if in.Src == in.Dst {
 		return "", errors.New("You may not link something to itself")
 	}
@@ -180,6 +185,8 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 	return in.Id, s.searchbase.InsertLink(in.Id, in)
 }
 
+// Given some ids, build the query to return all of their children (where they exist still)
+//
 func childrenOf(ids ...string) []*wyc.QueryDesc {
 	result := []*wyc.QueryDesc{}
 	for _, id := range ids {
@@ -211,6 +218,8 @@ func (s *WysteriaServer) DeleteCollection(id string) error {
 	return nil
 }
 
+// Given some ids, build query to find all links mentioning those ids (either src or dst)
+//
 func linkedTo(ids ...string) []*wyc.QueryDesc {
 	result := []*wyc.QueryDesc{}
 	for _, id := range ids {

@@ -1,15 +1,15 @@
 package wysteria_client
 
 import (
-	"testing"
-	"reflect"
 	wyc "github.com/voidshard/wysteria/common"
+	"reflect"
+	"testing"
 )
 
 func TestMultiOr(t *testing.T) {
 	// Arrange
 	testSearch := newQuery()
-	funcs := []func (string) *search {
+	funcs := []func(string) *search{
 		testSearch.Id,
 		testSearch.ChildOf,
 		testSearch.Src,
@@ -21,32 +21,32 @@ func TestMultiOr(t *testing.T) {
 	}
 
 	cases := []struct {
-		CallFuncs []func (string) *search
+		CallFuncs []func(string) *search
 	}{
-		{ []func (string) *search{funcs[0], funcs[3], funcs[5], funcs[7],}, },
-		{ []func (string) *search{funcs[1], funcs[5], funcs[6], funcs[2],}, },
-		{ []func (string) *search{funcs[2], funcs[0], funcs[4], funcs[7],}, },
-		{ []func (string) *search{funcs[3], funcs[1], funcs[1], funcs[1],}, },
-		{ []func (string) *search{funcs[4], funcs[2], funcs[7], funcs[2],}, },
-		{ []func (string) *search{funcs[5], funcs[7], funcs[6], funcs[3],}, },
-		{ []func (string) *search{funcs[6], funcs[6], funcs[5], funcs[5],}, },
-		{ []func (string) *search{funcs[7], funcs[5], funcs[4],}, },
-		{ []func (string) *search{funcs[0], funcs[4], funcs[1],}, },
-		{ []func (string) *search{funcs[1], funcs[3], funcs[2],}, },
-		{ []func (string) *search{funcs[2], funcs[2], funcs[3],}, },
-		{ []func (string) *search{funcs[3], funcs[1], funcs[1],}, },
-		{ []func (string) *search{funcs[4], funcs[0], funcs[5],}, },
-		{ []func (string) *search{funcs[5], funcs[1], funcs[2],}, },
-		{ []func (string) *search{funcs[6], funcs[2], funcs[7],}, },
-		{ []func (string) *search{funcs[7], funcs[4], funcs[3],}, },
-		{ []func (string) *search{funcs[0], funcs[7],}, },
-		{ []func (string) *search{funcs[1], funcs[1],}, },
-		{ []func (string) *search{funcs[2], funcs[1],}, },
-		{ []func (string) *search{funcs[3], funcs[3],}, },
-		{ []func (string) *search{funcs[4], funcs[1],}, },
-		{ []func (string) *search{funcs[5], funcs[0],}, },
-		{ []func (string) *search{funcs[6], funcs[1],}, },
-		{ []func (string) *search{funcs[7], funcs[0],}, },
+		{[]func(string) *search{funcs[0], funcs[3], funcs[5], funcs[7]}},
+		{[]func(string) *search{funcs[1], funcs[5], funcs[6], funcs[2]}},
+		{[]func(string) *search{funcs[2], funcs[0], funcs[4], funcs[7]}},
+		{[]func(string) *search{funcs[3], funcs[1], funcs[1], funcs[1]}},
+		{[]func(string) *search{funcs[4], funcs[2], funcs[7], funcs[2]}},
+		{[]func(string) *search{funcs[5], funcs[7], funcs[6], funcs[3]}},
+		{[]func(string) *search{funcs[6], funcs[6], funcs[5], funcs[5]}},
+		{[]func(string) *search{funcs[7], funcs[5], funcs[4]}},
+		{[]func(string) *search{funcs[0], funcs[4], funcs[1]}},
+		{[]func(string) *search{funcs[1], funcs[3], funcs[2]}},
+		{[]func(string) *search{funcs[2], funcs[2], funcs[3]}},
+		{[]func(string) *search{funcs[3], funcs[1], funcs[1]}},
+		{[]func(string) *search{funcs[4], funcs[0], funcs[5]}},
+		{[]func(string) *search{funcs[5], funcs[1], funcs[2]}},
+		{[]func(string) *search{funcs[6], funcs[2], funcs[7]}},
+		{[]func(string) *search{funcs[7], funcs[4], funcs[3]}},
+		{[]func(string) *search{funcs[0], funcs[7]}},
+		{[]func(string) *search{funcs[1], funcs[1]}},
+		{[]func(string) *search{funcs[2], funcs[1]}},
+		{[]func(string) *search{funcs[3], funcs[3]}},
+		{[]func(string) *search{funcs[4], funcs[1]}},
+		{[]func(string) *search{funcs[5], funcs[0]}},
+		{[]func(string) *search{funcs[6], funcs[1]}},
+		{[]func(string) *search{funcs[7], funcs[0]}},
 	}
 
 	for _, tst := range cases {
@@ -65,11 +65,10 @@ func TestMultiOr(t *testing.T) {
 	}
 }
 
-
 func TestSingleOr(t *testing.T) {
 	// Arrange
 	testSearch := newQuery()
-	funcs := []func (string) *search {
+	funcs := []func(string) *search{
 		testSearch.Id,
 		testSearch.ChildOf,
 		testSearch.Src,
@@ -81,32 +80,32 @@ func TestSingleOr(t *testing.T) {
 	}
 
 	cases := []struct {
-		CallFuncs []func (string) *search
+		CallFuncs []func(string) *search
 	}{
-		{ []func (string) *search{funcs[0], funcs[3], funcs[5], funcs[7],}, },
-		{ []func (string) *search{funcs[1], funcs[5], funcs[6], funcs[2],}, },
-		{ []func (string) *search{funcs[2], funcs[0], funcs[4], funcs[7],}, },
-		{ []func (string) *search{funcs[3], funcs[1], funcs[1], funcs[1],}, },
-		{ []func (string) *search{funcs[4], funcs[2], funcs[7], funcs[2],}, },
-		{ []func (string) *search{funcs[5], funcs[7], funcs[6], funcs[3],}, },
-		{ []func (string) *search{funcs[6], funcs[6], funcs[5], funcs[5],}, },
-		{ []func (string) *search{funcs[7], funcs[5], funcs[4],}, },
-		{ []func (string) *search{funcs[0], funcs[4], funcs[1],}, },
-		{ []func (string) *search{funcs[1], funcs[3], funcs[2],}, },
-		{ []func (string) *search{funcs[2], funcs[2], funcs[3],}, },
-		{ []func (string) *search{funcs[3], funcs[1], funcs[1],}, },
-		{ []func (string) *search{funcs[4], funcs[0], funcs[5],}, },
-		{ []func (string) *search{funcs[5], funcs[1], funcs[2],}, },
-		{ []func (string) *search{funcs[6], funcs[2], funcs[7],}, },
-		{ []func (string) *search{funcs[7], funcs[4], funcs[3],}, },
-		{ []func (string) *search{funcs[0], funcs[7],}, },
-		{ []func (string) *search{funcs[1], funcs[1],}, },
-		{ []func (string) *search{funcs[2], funcs[1],}, },
-		{ []func (string) *search{funcs[3], funcs[3],}, },
-		{ []func (string) *search{funcs[4], funcs[1],}, },
-		{ []func (string) *search{funcs[5], funcs[0],}, },
-		{ []func (string) *search{funcs[6], funcs[1],}, },
-		{ []func (string) *search{funcs[7], funcs[0],}, },
+		{[]func(string) *search{funcs[0], funcs[3], funcs[5], funcs[7]}},
+		{[]func(string) *search{funcs[1], funcs[5], funcs[6], funcs[2]}},
+		{[]func(string) *search{funcs[2], funcs[0], funcs[4], funcs[7]}},
+		{[]func(string) *search{funcs[3], funcs[1], funcs[1], funcs[1]}},
+		{[]func(string) *search{funcs[4], funcs[2], funcs[7], funcs[2]}},
+		{[]func(string) *search{funcs[5], funcs[7], funcs[6], funcs[3]}},
+		{[]func(string) *search{funcs[6], funcs[6], funcs[5], funcs[5]}},
+		{[]func(string) *search{funcs[7], funcs[5], funcs[4]}},
+		{[]func(string) *search{funcs[0], funcs[4], funcs[1]}},
+		{[]func(string) *search{funcs[1], funcs[3], funcs[2]}},
+		{[]func(string) *search{funcs[2], funcs[2], funcs[3]}},
+		{[]func(string) *search{funcs[3], funcs[1], funcs[1]}},
+		{[]func(string) *search{funcs[4], funcs[0], funcs[5]}},
+		{[]func(string) *search{funcs[5], funcs[1], funcs[2]}},
+		{[]func(string) *search{funcs[6], funcs[2], funcs[7]}},
+		{[]func(string) *search{funcs[7], funcs[4], funcs[3]}},
+		{[]func(string) *search{funcs[0], funcs[7]}},
+		{[]func(string) *search{funcs[1], funcs[1]}},
+		{[]func(string) *search{funcs[2], funcs[1]}},
+		{[]func(string) *search{funcs[3], funcs[3]}},
+		{[]func(string) *search{funcs[4], funcs[1]}},
+		{[]func(string) *search{funcs[5], funcs[0]}},
+		{[]func(string) *search{funcs[6], funcs[1]}},
+		{[]func(string) *search{funcs[7], funcs[0]}},
 	}
 
 	for _, tst := range cases {
@@ -128,14 +127,14 @@ func TestSingleOr(t *testing.T) {
 func TestHasFacets(t *testing.T) {
 	// Arrange
 	testSearch := newQuery()
-	cases := []struct{
+	cases := []struct {
 		Facets map[string]string
 	}{
-		{ map[string]string{"foo": "bar"} },
-		{ map[string]string{"foo": "bar", "baz": "moo"} },
-		{ map[string]string{"foo": "bar", "blah": "/some/path"} },
-		{ map[string]string{"symbols": "yaaa*!@&#(!@&"} },
-		{ map[string]string{"something": "123"} },
+		{map[string]string{"foo": "bar"}},
+		{map[string]string{"foo": "bar", "baz": "moo"}},
+		{map[string]string{"foo": "bar", "blah": "/some/path"}},
+		{map[string]string{"symbols": "yaaa*!@&#(!@&"}},
+		{map[string]string{"something": "123"}},
 	}
 
 	for _, tst := range cases {
@@ -165,12 +164,12 @@ func TestIntTerms(t *testing.T) {
 		-100000,
 		1273901287,
 	}
-	cases := []struct{
-		CallFunc func (int32) *search
-		CheckFunc func () int32
-		Name string
-	} {
-		{ testSearch.Version, testSearch.nqVersion, "VersionNumber", },
+	cases := []struct {
+		CallFunc  func(int32) *search
+		CheckFunc func() int32
+		Name      string
+	}{
+		{testSearch.Version, testSearch.nqVersion, "VersionNumber"},
 	}
 
 	for _, tst := range cases {
@@ -202,19 +201,19 @@ func TestStringTerms(t *testing.T) {
 		"123awd",
 		"/this/is/a/path.something.####.foo",
 	}
-	cases := []struct{
-		CallFunc func (string) *search
-		CheckFunc func () string
-		Name string
+	cases := []struct {
+		CallFunc  func(string) *search
+		CheckFunc func() string
+		Name      string
 	}{
-		{ testSearch.Id, testSearch.nqId, "Id", },
-		{ testSearch.ChildOf, testSearch.nqChildOf, "ChildOf" },
-		{ testSearch.Src, testSearch.nqSrc, "Src", },
-		{ testSearch.Dst, testSearch.nqDst, "Dst" },
-		{ testSearch.ItemType, testSearch.nqIType, "ItemType" },
-		{ testSearch.ItemVariant, testSearch.nqIVariant, "ItemVariant" },
-		{ testSearch.Name, testSearch.nqName, "Name" },
-		{ testSearch.Location, testSearch.nqLocation, "Location" },
+		{testSearch.Id, testSearch.nqId, "Id"},
+		{testSearch.ChildOf, testSearch.nqChildOf, "ChildOf"},
+		{testSearch.Src, testSearch.nqSrc, "Src"},
+		{testSearch.Dst, testSearch.nqDst, "Dst"},
+		{testSearch.ItemType, testSearch.nqIType, "ItemType"},
+		{testSearch.ItemVariant, testSearch.nqIVariant, "ItemVariant"},
+		{testSearch.Name, testSearch.nqName, "Name"},
+		{testSearch.Location, testSearch.nqLocation, "Location"},
 	}
 
 	for _, tst := range cases {
@@ -271,7 +270,7 @@ func (i *search) nqLocation() string {
 
 func newQuery() *search {
 	return &search{
-		query: []*wyc.QueryDesc{},
+		query:     []*wyc.QueryDesc{},
 		nextQuery: &wyc.QueryDesc{},
 	}
 }

@@ -7,7 +7,7 @@ import (
 func TestDecrypt(t *testing.T) {
 	// Arrange
 	tst_key, _ := formKey(`!@#$%^&*()_+?><":{}|OADm+-*/23870adw~|\`)
-	cases := []struct{
+	cases := []struct {
 		PlainText string
 	}{
 		{ // Valid
@@ -37,8 +37,8 @@ func TestDecrypt(t *testing.T) {
 func TestFormKey(t *testing.T) {
 	// Arrange
 	required_len := 32
-	cases := []struct{
-		Input string
+	cases := []struct {
+		Input     string
 		ErrRaised bool
 	}{
 		{ // Valid

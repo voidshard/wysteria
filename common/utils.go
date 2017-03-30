@@ -1,10 +1,10 @@
 package wysteria_common
 
 import (
-	"os"
+	"errors"
 	"fmt"
 	"gopkg.in/gcfg.v1"
-	"errors"
+	"os"
 )
 
 const (

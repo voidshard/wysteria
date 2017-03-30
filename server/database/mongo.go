@@ -5,16 +5,16 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	wyc "github.com/voidshard/wysteria/common"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net"
 	"strconv"
-	wyc "github.com/voidshard/wysteria/common"
 )
 
 const (
-	url_prefix          = "mongodb"
+	url_prefix = "mongodb"
 
 	// Keeps track of highest version
 	counters_collection = "counters"
@@ -24,8 +24,8 @@ const (
 )
 
 type mongoEndpoint struct {
-	session *mgo.Session
-	db      *mgo.Database
+	session  *mgo.Session
+	db       *mgo.Database
 	settings *DatabaseSettings
 }
 
@@ -55,6 +55,8 @@ func mongo_ssl_connect(settings *DatabaseSettings) (*mgo.Session, error) {
 	return mgo.DialWithInfo(dialInfo)
 }
 
+// Connect function to be used in func Connect (database.go)
+//
 func mongo_connect(settings *DatabaseSettings) (Database, error) {
 	sess := &mgo.Session{}
 	var err error
@@ -72,19 +74,19 @@ func mongo_connect(settings *DatabaseSettings) (Database, error) {
 
 	ep := mongoEndpoint{
 		settings: settings,
-		session: sess,
+		session:  sess,
 	}
 	ep.db = ep.session.DB(settings.Database)
 
 	return &ep, nil
 }
 
+// Kill connection to db
+//
 func (e *mongoEndpoint) Close() error {
 	e.session.Close()
 	return nil
 }
-
-// Insert impl
 
 // Internal counter
 // Used to,
@@ -93,7 +95,7 @@ func (e *mongoEndpoint) Close() error {
 type counter struct {
 	// Internal counter obj
 	CounterFor string `json:"CounterFor"`
-	Count      int32    `json:"Count"`
+	Count      int32  `json:"Count"`
 }
 
 func (e *mongoEndpoint) SetPublished(version_id string) error {

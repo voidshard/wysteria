@@ -191,6 +191,6 @@ Also, if (when) you find bugs, let me know.
     - allow changing of configuration option(s) 
     - add alerts for certain events or server statuses
     - allow temporary rerouting of client requests
-- implement system for deterministic ids  
+- implement system for deterministic ids
 - ability to write to backup db / sb (might be useful for hot swapping or dev dataset)
 - ability to swap over to backup db without server restart

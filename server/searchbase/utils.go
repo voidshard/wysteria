@@ -1,8 +1,8 @@
 package searchends
 
 import (
-	"strings"
 	"encoding/base64"
+	"strings"
 )
 
 // util to avoid odd chars or tokenizing via b64 encoding the string

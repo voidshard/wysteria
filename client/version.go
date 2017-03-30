@@ -7,8 +7,8 @@ import (
 )
 
 type Version struct {
-	conn *wysteriaClient
-	data *wyc.Version
+	conn     *wysteriaClient
+	data     *wyc.Version
 	fromLink *Link
 }
 
@@ -80,7 +80,6 @@ func (i *Version) getLinkedVersions(name string) ([]*Version, error) {
 	}
 	return result, nil
 }
-
 
 func (i *Version) GetLinkedByName(name string) ([]*Version, error) {
 	return i.getLinkedVersions(name)

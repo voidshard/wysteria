@@ -14,10 +14,10 @@ type Item struct {
 }
 
 type Version struct {
-	Parent    string            `json:"Parent"`
-	Id        string            `json:"Id"`
-	Number    int32               `json:"Number"`
-	Facets    map[string]string `json:"Facets"`
+	Parent string            `json:"Parent"`
+	Id     string            `json:"Id"`
+	Number int32             `json:"Number"`
+	Facets map[string]string `json:"Facets"`
 }
 
 type Resource struct {

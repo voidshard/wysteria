@@ -1,20 +1,20 @@
 package searchends
 
 import (
-	wyc "github.com/voidshard/wysteria/common"
+	"fmt"
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
-	"fmt"
-	"strings"
+	wyc "github.com/voidshard/wysteria/common"
 	"os"
+	"strings"
 )
 
 type bleveSearchbase struct {
 	collections bleve.Index
-	items bleve.Index
-	versions bleve.Index
-	resources bleve.Index
-	links bleve.Index
+	items       bleve.Index
+	versions    bleve.Index
+	resources   bleve.Index
+	links       bleve.Index
 }
 
 func create_bleve_index(name string, documentMapping *mapping.IndexMappingImpl) (bleve.Index, error) {
@@ -31,31 +31,31 @@ func bleve_connect(settings *SearchbaseSettings) (Searchbase, error) {
 	sb := &bleveSearchbase{}
 	imapping := bleve.NewIndexMapping()
 
-	idx, err := create_bleve_index(settings.Database + table_collection, imapping)
+	idx, err := create_bleve_index(settings.Database+table_collection, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.collections = idx
 
-	idx, err = create_bleve_index(settings.Database + table_item, imapping)
+	idx, err = create_bleve_index(settings.Database+table_item, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.items = idx
 
-	idx, err = create_bleve_index(settings.Database + table_version, imapping)
+	idx, err = create_bleve_index(settings.Database+table_version, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.versions = idx
 
-	idx, err = create_bleve_index(settings.Database + table_fileresource, imapping)
+	idx, err = create_bleve_index(settings.Database+table_fileresource, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.resources = idx
 
-	idx, err = create_bleve_index(settings.Database + table_link, imapping)
+	idx, err = create_bleve_index(settings.Database+table_link, imapping)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (b *bleveSearchbase) UpdateVersion(id string, in *wyc.Version) error {
 	return b.versions.Index(id, in)
 }
 
-func generic_delete (index bleve.Index, ids ...string) error {
+func generic_delete(index bleve.Index, ids ...string) error {
 	for _, id := range ids {
 		err := index.Delete(id)
 		if err != nil {
@@ -249,31 +249,31 @@ func genericQuery(limit, from int, index bleve.Index, convert func(desc *wyc.Que
 		return ids, nil
 	}
 
-	if limit + from >= len(ids) {
+	if limit+from >= len(ids) {
 		// we've been asked for the last segment of the values
 		return ids[from:], nil
 	}
 
 	// We've been asked for a page of results somewhere in the middle
-	return ids[from: limit + from], nil
+	return ids[from : limit+from], nil
 }
 
 func (b *bleveSearchbase) QueryCollection(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.collections, toCollectionQueryString, query...)
 }
 
-func (b *bleveSearchbase) QueryItem(limit , from int, query ...*wyc.QueryDesc) ([]string, error) {
+func (b *bleveSearchbase) QueryItem(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.items, toItemQueryString, query...)
 }
 
-func (b *bleveSearchbase) QueryVersion(limit , from int, query ...*wyc.QueryDesc) ([]string, error) {
+func (b *bleveSearchbase) QueryVersion(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.versions, toVersionQueryString, query...)
 }
 
-func (b *bleveSearchbase) QueryResource(limit , from int, query ...*wyc.QueryDesc) ([]string, error) {
+func (b *bleveSearchbase) QueryResource(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.resources, toResourceQueryString, query...)
 }
 
-func (b *bleveSearchbase) QueryLink(limit , from int, query ...*wyc.QueryDesc) ([]string, error) {
+func (b *bleveSearchbase) QueryLink(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.links, toLinkQueryString, query...)
 }

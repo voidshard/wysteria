@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"github.com/gtank/cryptopasta"
 	"errors"
+	"github.com/gtank/cryptopasta"
 )
 
 func formKey(s string) (key [32]byte, err error) {

@@ -1,5 +1,35 @@
 package: github.com/voidshard/wysteria/common
 import:
+- package: bytes
+- package: encoding/json
+- package: errors
+- package: fmt
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
 - package: github.com/gtank/cryptopasta
+- package: github.com/nats-io/gnatsd
+  version: ^0.9.6
+  subpackages:
+  - server
 - package: github.com/nats-io/nats
   version: ^1.2.2
+- package: github.com/pquerna/ffjson
+  subpackages:
+  - fflib/v1
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: google.golang.org/grpc
+  version: ^1.2.1
+  subpackages:
+  - reflection
+- package: gopkg.in/gcfg.v1
+  version: ^1.2.0
+- package: log
+- package: math
+- package: net
+- package: os
+- package: time
+testImport:
+- package: testing

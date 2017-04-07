@@ -1,12 +1,15 @@
 package main
 
 import (
-	wysteria "github.com/voidshard/wysteria/client"
 	"fmt"
+	wysteria "github.com/voidshard/wysteria/client"
 )
 
 func main() {
 	// Example 06: Searching for custom fields
+	//  Facets are intended to be short terms that you might want to search for.
+	//  They can be attached to items or versions to make finding the exact
+	//  obj you're looking for easier.
 
 	client, err := wysteria.New()
 	if err != nil {

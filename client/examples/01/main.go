@@ -4,9 +4,11 @@ import (
 	wysteria "github.com/voidshard/wysteria/client"
 )
 
-func main () {
+func main() {
 	// Example 01: Creating
-	//  We'll use the objects we create here in following examples, so please run this first
+	//  We'll use the objects we create here in following examples, so please run this first!
+	//
+	//  Creating things is pretty straight forward/
 
 	client, err := wysteria.New()
 	if err != nil {

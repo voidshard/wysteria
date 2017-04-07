@@ -1,8 +1,8 @@
 package wysteria_client
 
 import (
-	wcm "github.com/voidshard/wysteria/common/middleware"
 	common "github.com/voidshard/wysteria/common"
+	wcm "github.com/voidshard/wysteria/common/middleware"
 	"log"
 )
 
@@ -39,10 +39,9 @@ func init() {
 //
 func getDefaults() *configuration {
 	return &configuration{
-		wcm.MiddlewareSettings {
+		wcm.MiddlewareSettings{
 			Driver: wcm.DRIVER_NATS,
 			Config: "",
 		},
 	}
 }
-

@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func main () {
+func main() {
 	// Example 09: Deleting things
 	//  Deleting something will daisy-chain delete everything downstream too - all the way down to links.
 	//  But the things you link to wont be touched.

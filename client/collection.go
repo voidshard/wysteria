@@ -27,7 +27,6 @@ func (c *Collection) GetItems() ([]*Item, error) {
 	return c.conn.Search().ChildOf(c.data.Id).Items()
 }
 
-
 func (c *Collection) CreateItem(itemtype, variant string, facets map[string]string) (*Item, error) {
 	all_facets := map[string]string{}
 	if facets != nil {
@@ -42,7 +41,7 @@ func (c *Collection) CreateItem(itemtype, variant string, facets map[string]stri
 		Parent:   c.data.Id,
 		ItemType: itemtype,
 		Variant:  variant,
-		Facets: all_facets,
+		Facets:   all_facets,
 	}
 
 	item_id, err := c.conn.middleware.CreateItem(cmn_item)
@@ -66,7 +65,7 @@ func (w *wysteriaClient) CreateCollection(name string) (*Collection, error) {
 	return &Collection{
 		conn: w,
 		data: &wyc.Collection{
-			Id: collection_id,
+			Id:   collection_id,
 			Name: name,
 		},
 	}, nil

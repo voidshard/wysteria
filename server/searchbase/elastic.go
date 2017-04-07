@@ -3,11 +3,11 @@ package searchends
 import (
 	"errors"
 	"fmt"
+	wyc "github.com/voidshard/wysteria/common"
 	"gopkg.in/olivere/elastic.v2"
 	"strings"
 	"sync"
 	"time"
-	wyc "github.com/voidshard/wysteria/common"
 )
 
 const (

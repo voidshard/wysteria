@@ -1,12 +1,15 @@
 package main
 
 import (
-	wysteria "github.com/voidshard/wysteria/client"
 	"fmt"
+	wysteria "github.com/voidshard/wysteria/client"
 )
 
-func main () {
+func main() {
 	// Example 07: Using links
+	//  Links are an arbitrary way of describing that things are related.
+	//  Both items and versions can be linked, though versions only to versions,
+	//  and items only to items.
 
 	client, err := wysteria.New()
 	if err != nil {

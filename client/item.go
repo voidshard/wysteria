@@ -5,8 +5,8 @@ import (
 )
 
 type Item struct {
-	conn *wysteriaClient
-	data *wyc.Item
+	conn     *wysteriaClient
+	data     *wyc.Item
 	fromLink *Link
 }
 

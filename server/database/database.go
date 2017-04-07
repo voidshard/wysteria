@@ -8,16 +8,18 @@ import (
 
 const (
 	DRIVER_MONGO = "mongo"
-	DRIVER_BOLT = "bolt"
+	DRIVER_BOLT  = "bolt"
 )
 
 var (
 	connectors = map[string]func(*DatabaseSettings) (Database, error){
 		DRIVER_MONGO: mongo_connect,
-		DRIVER_BOLT: bolt_connect,
+		DRIVER_BOLT:  bolt_connect,
 	}
 )
 
+// Return a connect function for the given settings, or err if it can't be found
+//
 func Connect(settings *DatabaseSettings) (Database, error) {
 	connector, ok := connectors[settings.Driver]
 	if !ok {
@@ -36,8 +38,8 @@ type Database interface {
 	// Given an Item ID, return the ID of the current Published version (if any)
 	GetPublished(string) (*wyc.Version, error)
 
-	InsertCollection(string, *wyc.Collection) error      // Ensure only one collection with given Name
-	InsertItem(string, *wyc.Item) error                  // Ensure only one item with the same Collection, Type and Variant
+	InsertCollection(string, *wyc.Collection) error        // Ensure only one collection with given Name
+	InsertItem(string, *wyc.Item) error                    // Ensure only one item with the same Collection, Type and Variant
 	InsertNextVersion(string, *wyc.Version) (int32, error) // Ensure only one version of an Item with a given Number
 	InsertResource(string, *wyc.Resource) error
 	InsertLink(string, *wyc.Link) error

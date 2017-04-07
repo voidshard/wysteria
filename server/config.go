@@ -1,19 +1,17 @@
 package main
 
 import (
+	"fmt"
 	common "github.com/voidshard/wysteria/common"
 	wcm "github.com/voidshard/wysteria/common/middleware"
 	wdb "github.com/voidshard/wysteria/server/database"
 	wsb "github.com/voidshard/wysteria/server/searchbase"
 	"log"
-	"fmt"
 	"os"
 	"path/filepath"
 )
 
 var Config *configuration
-
-
 
 type configuration struct {
 	Database   wdb.DatabaseSettings
@@ -47,21 +45,21 @@ func init() {
 //
 func getDefaults() *configuration {
 	return &configuration{
-		wdb.DatabaseSettings {
-			Driver: wdb.DRIVER_BOLT,
+		wdb.DatabaseSettings{
+			Driver:   wdb.DRIVER_BOLT,
 			Database: filepath.Join(os.TempDir(), "wysteria_db"),
 		},
 
-		wsb.SearchbaseSettings {
-			Driver: wsb.DRIVER_BLEVE,
-			Host: "",
-			Port: 0,
-			User: "",
-			Pass: "",
+		wsb.SearchbaseSettings{
+			Driver:   wsb.DRIVER_BLEVE,
+			Host:     "",
+			Port:     0,
+			User:     "",
+			Pass:     "",
 			Database: filepath.Join(os.TempDir(), "wysteria_sb"),
-			PemFile: "",
+			PemFile:  "",
 		},
-		wcm.MiddlewareSettings {
+		wcm.MiddlewareSettings{
 			Driver: wcm.DRIVER_NATS,
 			Config: "",
 		},

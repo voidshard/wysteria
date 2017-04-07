@@ -1,24 +1,24 @@
 package middleware
 
 import (
+	"errors"
 	wyc "github.com/voidshard/wysteria/common"
 	wrpc "github.com/voidshard/wysteria/common/middleware/grpc_proto"
-	"google.golang.org/grpc"
 	"golang.org/x/net/context"
-	"errors"
-	"net"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"net"
 )
 
 var (
-	null_wrpc_id = &wrpc.Id{Id: ""}
+	null_wrpc_id         = &wrpc.Id{Id: ""}
 	null_wrpc_id_and_num = &wrpc.IdAndNum{Id: "", Version: 0}
-	null_wrpc_text = &wrpc.Text{Text: ""}
+	null_wrpc_text       = &wrpc.Text{Text: ""}
 )
 
 type grpcClient struct {
 	config string
-	conn *grpc.ClientConn
+	conn   *grpc.ClientConn
 	client wrpc.WysteriaGrpcClient
 }
 
@@ -57,13 +57,13 @@ func (c *grpcClient) CreateCollection(name string) (string, error) {
 	return result.Id, nil
 }
 
-func convWItem (in *wyc.Item) *wrpc.Item {
+func convWItem(in *wyc.Item) *wrpc.Item {
 	return &wrpc.Item{
-		Id: in.Id,
-		Parent: in.Parent,
+		Id:       in.Id,
+		Parent:   in.Parent,
 		ItemType: in.ItemType,
-		Variant: in.Variant,
-		Facets: in.Facets,
+		Variant:  in.Variant,
+		Facets:   in.Facets,
 	}
 }
 
@@ -76,15 +76,15 @@ func (c *grpcClient) CreateItem(in *wyc.Item) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if result.Error != nil{
+	if result.Error != nil {
 		return "", errors.New(result.Error.Text)
 	}
 	return result.Id, nil
 }
 
-func convWVersion (in *wyc.Version) *wrpc.Version {
+func convWVersion(in *wyc.Version) *wrpc.Version {
 	return &wrpc.Version{
-		Id: in.Id,
+		Id:     in.Id,
 		Parent: in.Parent,
 		Number: in.Number,
 		Facets: in.Facets,
@@ -106,16 +106,15 @@ func (c *grpcClient) CreateVersion(in *wyc.Version) (string, int32, error) {
 	return result.Id, result.Version, nil
 }
 
-func convWResource (in *wyc.Resource) *wrpc.Resource {
+func convWResource(in *wyc.Resource) *wrpc.Resource {
 	return &wrpc.Resource{
-		Id: in.Id,
-		Parent: in.Parent,
-		Name: in.Name,
-		Location: in.Location,
+		Id:           in.Id,
+		Parent:       in.Parent,
+		Name:         in.Name,
+		Location:     in.Location,
 		ResourceType: in.ResourceType,
 	}
 }
-
 
 func (c *grpcClient) CreateResource(in *wyc.Resource) (string, error) {
 	result, err := c.client.CreateResource(
@@ -126,18 +125,18 @@ func (c *grpcClient) CreateResource(in *wyc.Resource) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if result.Error != nil{
+	if result.Error != nil {
 		return "", errors.New(result.Error.Text)
 	}
 	return result.Id, nil
 }
 
-func convWLink (in *wyc.Link) *wrpc.Link {
+func convWLink(in *wyc.Link) *wrpc.Link {
 	return &wrpc.Link{
-		Id: in.Id,
-		Src: in.Src,
+		Id:   in.Id,
+		Src:  in.Src,
 		Name: in.Name,
-		Dst: in.Dst,
+		Dst:  in.Dst,
 	}
 }
 
@@ -150,13 +149,13 @@ func (c *grpcClient) CreateLink(in *wyc.Link) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if result.Error != nil{
+	if result.Error != nil {
 		return "", errors.New(result.Error.Text)
 	}
 	return result.Id, nil
 }
 
-func client_call_delete(delete_id string, call func (ctx context.Context, in *wrpc.Id, opts ...grpc.CallOption) (*wrpc.Text, error) ) error {
+func client_call_delete(delete_id string, call func(ctx context.Context, in *wrpc.Id, opts ...grpc.CallOption) (*wrpc.Text, error)) error {
 	result, err := call(context.Background(), &wrpc.Id{Id: delete_id})
 	if err != nil {
 		return err
@@ -189,17 +188,17 @@ func convWQueryDescs(in ...*wyc.QueryDesc) *wrpc.QueryDescs {
 		result = append(
 			result,
 			&wrpc.QueryDesc{
-				Parent: q.Parent,
-				Id: q.Id,
+				Parent:        q.Parent,
+				Id:            q.Id,
 				VersionNumber: q.VersionNumber,
-				ItemType: q.ItemType,
-				Variant: q.Variant,
-				Facets: q.Facets,
-				Name: q.Name,
-				ResourceType: q.ResourceType,
-				Location: q.Location,
-				LinkSrc: q.LinkSrc,
-				LinkDst: q.LinkDst,
+				ItemType:      q.ItemType,
+				Variant:       q.Variant,
+				Facets:        q.Facets,
+				Name:          q.Name,
+				ResourceType:  q.ResourceType,
+				Location:      q.Location,
+				LinkSrc:       q.LinkSrc,
+				LinkDst:       q.LinkDst,
 			},
 		)
 	}
@@ -210,7 +209,7 @@ func convRCollections(in ...*wrpc.Collection) []*wyc.Collection {
 	result := []*wyc.Collection{}
 	for _, i := range in {
 		result = append(result, &wyc.Collection{
-			Id: i.Id,
+			Id:   i.Id,
 			Name: i.Name,
 		})
 	}
@@ -223,7 +222,7 @@ func (c *grpcClient) FindCollections(in []*wyc.QueryDesc) ([]*wyc.Collection, er
 		return nil, err
 	}
 
-	if result.Error != nil{
+	if result.Error != nil {
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRCollections(result.All...), nil
@@ -233,11 +232,11 @@ func convRItems(in ...*wrpc.Item) []*wyc.Item {
 	result := []*wyc.Item{}
 	for _, i := range in {
 		result = append(result, &wyc.Item{
-			Id: i.Id,
-			Parent: i.Parent,
+			Id:       i.Id,
+			Parent:   i.Parent,
 			ItemType: i.ItemType,
-			Variant: i.Variant,
-			Facets: i.Facets,
+			Variant:  i.Variant,
+			Facets:   i.Facets,
 		})
 	}
 	return result
@@ -249,7 +248,7 @@ func (c *grpcClient) FindItems(in []*wyc.QueryDesc) ([]*wyc.Item, error) {
 		return nil, err
 	}
 
-	if result.Error != nil{
+	if result.Error != nil {
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRItems(result.All...), nil
@@ -259,7 +258,7 @@ func convRVersions(in ...*wrpc.Version) []*wyc.Version {
 	result := []*wyc.Version{}
 	for _, i := range in {
 		result = append(result, &wyc.Version{
-			Id: i.Id,
+			Id:     i.Id,
 			Parent: i.Parent,
 			Facets: i.Facets,
 			Number: i.Number,
@@ -274,7 +273,7 @@ func (c *grpcClient) FindVersions(in []*wyc.QueryDesc) ([]*wyc.Version, error) {
 		return nil, err
 	}
 
-	if result.Error != nil{
+	if result.Error != nil {
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRVersions(result.All...), nil
@@ -284,11 +283,11 @@ func convRResources(in ...*wrpc.Resource) []*wyc.Resource {
 	result := []*wyc.Resource{}
 	for _, i := range in {
 		result = append(result, &wyc.Resource{
-			Id: i.Id,
-			Parent: i.Parent,
-			Name: i.Name,
+			Id:           i.Id,
+			Parent:       i.Parent,
+			Name:         i.Name,
 			ResourceType: i.ResourceType,
-			Location: i.Location,
+			Location:     i.Location,
 		})
 	}
 	return result
@@ -300,20 +299,20 @@ func (c *grpcClient) FindResources(in []*wyc.QueryDesc) ([]*wyc.Resource, error)
 		return nil, err
 	}
 
-	if result.Error != nil{
+	if result.Error != nil {
 		return nil, errors.New(result.Error.Text)
 	}
-	return convRResources(result.All...), nil	
+	return convRResources(result.All...), nil
 }
 
 func convRLinks(in ...*wrpc.Link) []*wyc.Link {
 	result := []*wyc.Link{}
 	for _, i := range in {
 		result = append(result, &wyc.Link{
-			Id: i.Id,
+			Id:   i.Id,
 			Name: i.Name,
-			Src: i.Src,
-			Dst: i.Dst,
+			Src:  i.Src,
+			Dst:  i.Dst,
 		})
 	}
 	return result
@@ -325,7 +324,7 @@ func (c *grpcClient) FindLinks(in []*wyc.QueryDesc) ([]*wyc.Link, error) {
 		return nil, err
 	}
 
-	if result.Error != nil{
+	if result.Error != nil {
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRLinks(result.All...), nil
@@ -333,7 +332,7 @@ func (c *grpcClient) FindLinks(in []*wyc.QueryDesc) ([]*wyc.Link, error) {
 
 func convRVersion(in *wrpc.Version) *wyc.Version {
 	return &wyc.Version{
-		Id: in.Id,
+		Id:     in.Id,
 		Parent: in.Parent,
 		Facets: in.Facets,
 		Number: in.Number,
@@ -346,7 +345,7 @@ func (c *grpcClient) GetPublishedVersion(in string) (*wyc.Version, error) {
 		return nil, err
 	}
 
-	if result.Error != nil{
+	if result.Error != nil {
 		return nil, errors.New(result.Error.Text)
 	}
 	return convRVersion(result), nil
@@ -364,7 +363,7 @@ func (c *grpcClient) PublishVersion(in string) error {
 	return nil
 }
 
-func call_update(id string, facets map[string]string, call func(context.Context, *wrpc.IdAndDict, ...grpc.CallOption)(*wrpc.Text, error)) error {
+func call_update(id string, facets map[string]string, call func(context.Context, *wrpc.IdAndDict, ...grpc.CallOption) (*wrpc.Text, error)) error {
 	result, err := call(context.Background(), &wrpc.IdAndDict{Id: id, Facets: facets})
 	if err != nil {
 		return err
@@ -388,9 +387,9 @@ func newGrpcClient() EndpointClient {
 }
 
 type grpcServer struct {
-	conn net.Listener
-	config string
-	server wrpc.WysteriaGrpcServer
+	conn    net.Listener
+	config  string
+	server  wrpc.WysteriaGrpcServer
 	handler ServerHandler
 }
 
@@ -539,30 +538,30 @@ func convRQueryDescs(in ...*wrpc.QueryDesc) []*wyc.QueryDesc {
 		result = append(
 			result,
 			&wyc.QueryDesc{
-				Parent: q.Parent,
-				Id: q.Id,
+				Parent:        q.Parent,
+				Id:            q.Id,
 				VersionNumber: q.VersionNumber,
-				ItemType: q.ItemType,
-				Variant: q.Variant,
-				Facets: q.Facets,
-				Name: q.Name,
-				ResourceType: q.ResourceType,
-				Location: q.Location,
-				LinkSrc: q.LinkSrc,
-				LinkDst: q.LinkDst,
+				ItemType:      q.ItemType,
+				Variant:       q.Variant,
+				Facets:        q.Facets,
+				Name:          q.Name,
+				ResourceType:  q.ResourceType,
+				Location:      q.Location,
+				LinkSrc:       q.LinkSrc,
+				LinkDst:       q.LinkDst,
 			},
 		)
 	}
 	return result
 }
 
-func convWCollections (in ...*wyc.Collection) *wrpc.Collections {
+func convWCollections(in ...*wyc.Collection) *wrpc.Collections {
 	result := []*wrpc.Collection{}
 	for _, i := range in {
 		result = append(
 			result,
 			&wrpc.Collection{
-				Id: i.Id,
+				Id:   i.Id,
 				Name: i.Name,
 			},
 		)

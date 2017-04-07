@@ -1,12 +1,14 @@
 package main
 
 import (
-	wysteria "github.com/voidshard/wysteria/client"
 	"fmt"
+	wysteria "github.com/voidshard/wysteria/client"
 )
 
-func main () {
+func main() {
 	// Example 03: Searching for things
+	//  Rather than starting at the collection and grabbing everything, we'd like to
+	//  be able to find exactly what we're looking for.
 
 	client, err := wysteria.New()
 	if err != nil {
@@ -32,7 +34,6 @@ func main () {
 	//default png /other/images/oak02.png
 	//default png /other/images/oak03.png
 
-
 	// A single search works like an "and"
 	items, err := client.Search().ItemType("tree").ItemVariant("oak").Items()
 	if err != nil {
@@ -45,7 +46,6 @@ func main () {
 	}
 	//--tree/oak items--
 	//tree oak
-
 
 	// You can search for multiple things at once via an "Or" call like so
 	items, err = client.Search().ItemType("tree").ItemVariant("oak").Or().ItemType("tree").ItemVariant("elm").Items()

@@ -35,13 +35,13 @@ type CreateReqLink struct {
 
 type CreateReply struct {
 	Error string
-	Id string
+	Id    string
 }
 
 type CreateReplyVersion struct {
-	Error string
+	Error   string
 	Version int32
-	Id string
+	Id      string
 }
 
 type DeleteReq struct {
@@ -57,27 +57,27 @@ type FindReq struct {
 }
 
 type FindReplyCollection struct {
-	All []wyc.Collection
+	All   []wyc.Collection
 	Error string
 }
 
 type FindReplyItem struct {
-	All []wyc.Item
+	All   []wyc.Item
 	Error string
 }
 
 type FindReplyVersion struct {
-	All []wyc.Version
+	All   []wyc.Version
 	Error string
 }
 
 type FindReplyResource struct {
-	All []wyc.Resource
+	All   []wyc.Resource
 	Error string
 }
 
 type FindReplyLink struct {
-	All []wyc.Link
+	All   []wyc.Link
 	Error string
 }
 
@@ -86,7 +86,7 @@ type PublishedReq struct {
 }
 
 type GetPublishedReply struct {
-	Error string
+	Error   string
 	Version wyc.Version
 }
 
@@ -95,12 +95,12 @@ type SetPublishedReply struct {
 }
 
 type UpdateFacetsReq struct {
-	Id string
+	Id     string
 	Facets map[string]string
 }
 
 type UpdateFacetsReply struct {
-	Id string
-	Error string
+	Id     string
+	Error  string
 	Facets map[string]string
 }

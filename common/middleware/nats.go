@@ -12,39 +12,39 @@ import (
 )
 
 const (
-	nats_default_host = "localhost"
-	nats_default_port = 4222
-	nats_queue_server = "server_queue"
+	natsDefaultHost = "localhost"
+	natsDefaultPort = 4222
+	natsQueueServer = "server_queue"
 
 	// These routes indicate who is sending the message
-	nats_route_server   = "w.server."   // From a wysteria server
-	nats_route_client   = "w.client."   // From a client
-	nats_route_internal = "w.internal." // From the admin(s)
+	natsRouteServer   = "w.server."   // From a wysteria server
+	natsRouteClient   = "w.client."   // From a client
+	natsRouteInternal = "w.internal." // From the admin(s)
 
 	// messages suffixes
-	call_suffix_length     = 2
-	call_create_collection = "cc"
-	call_create_item       = "ci"
-	call_create_version    = "cv"
-	call_create_resource   = "cr"
-	call_create_link       = "cl"
+	callSuffixLength     = 2
+	callCreateCollection = "cc"
+	callCreateItem       = "ci"
+	callCreateVersion    = "cv"
+	callCreateResource   = "cr"
+	callCreateLink       = "cl"
 
-	call_delete_collection = "dc"
-	call_delete_item       = "di"
-	call_delete_version    = "dv"
-	call_delete_resource   = "dr"
+	callDeleteCollection = "dc"
+	callDeleteItem       = "di"
+	callDeleteVersion    = "dv"
+	callDeleteResource   = "dr"
 
-	call_find_collection = "fc"
-	call_find_item       = "fi"
-	call_find_version    = "fv"
-	call_find_resource   = "fr"
-	call_find_link       = "fl"
+	callFindCollection = "fc"
+	callFindItem       = "fi"
+	callFindVersion    = "fv"
+	callFindResource   = "fr"
+	callFindLink       = "fl"
 
-	call_get_published = "gp"
-	call_set_published = "sp"
+	callGetPublished = "gp"
+	callSetPublished = "sp"
 
-	call_update_version = "uv"
-	call_update_item    = "ui"
+	callUpdateVersion = "uv"
+	callUpdateItem    = "ui"
 )
 
 var (
@@ -66,7 +66,7 @@ func newNatsClient() EndpointClient {
 //    nats://user:password@host:port
 func (c *natsClient) Connect(config string) error {
 	if config == "" {
-		config = fmt.Sprintf("nats://%s:%d", nats_default_host, nats_default_port)
+		config = fmt.Sprintf("nats://%s:%d", natsDefaultHost, natsDefaultPort)
 	}
 
 	raw, err := nats.Connect(config)
@@ -77,8 +77,8 @@ func (c *natsClient) Connect(config string) error {
 	return err
 }
 
-func (c *natsClient) server_request(subject string, data []byte) (*nats.Msg, error) {
-	return c.conn.Request(nats_route_client+subject, data, timeout)
+func (c *natsClient) serverRequest(subject string, data []byte) (*nats.Msg, error) {
+	return c.conn.Request(natsRouteClient+subject, data, timeout)
 }
 
 func (c *natsClient) Close() error {
@@ -101,7 +101,7 @@ func (c *natsClient) CreateCollection(name string) (id string, err error) {
 		return
 	}
 
-	msg, err := c.server_request(call_create_collection, data)
+	msg, err := c.serverRequest(callCreateCollection, data)
 	if err != nil {
 		return
 	}
@@ -122,7 +122,7 @@ func (c *natsClient) CreateItem(in *wyc.Item) (id string, err error) {
 		return
 	}
 
-	msg, err := c.server_request(call_create_item, data)
+	msg, err := c.serverRequest(callCreateItem, data)
 	if err != nil {
 		return
 	}
@@ -143,7 +143,7 @@ func (c *natsClient) CreateVersion(in *wyc.Version) (id string, num int32, err e
 		return
 	}
 
-	msg, err := c.server_request(call_create_version, data)
+	msg, err := c.serverRequest(callCreateVersion, data)
 	if err != nil {
 		return
 	}
@@ -164,7 +164,7 @@ func (c *natsClient) CreateResource(in *wyc.Resource) (id string, err error) {
 		return
 	}
 
-	msg, err := c.server_request(call_create_resource, data)
+	msg, err := c.serverRequest(callCreateResource, data)
 	if err != nil {
 		return
 	}
@@ -185,7 +185,7 @@ func (c *natsClient) CreateLink(in *wyc.Link) (id string, err error) {
 		return
 	}
 
-	msg, err := c.server_request(call_create_link, data)
+	msg, err := c.serverRequest(callCreateLink, data)
 	if err != nil {
 		return
 	}
@@ -206,7 +206,7 @@ func (c *natsClient) genericDelete(id, subject string) error {
 		return err
 	}
 
-	msg, err := c.server_request(subject, data)
+	msg, err := c.serverRequest(subject, data)
 	if err != nil {
 		return err
 	}
@@ -221,19 +221,19 @@ func (c *natsClient) genericDelete(id, subject string) error {
 }
 
 func (c *natsClient) DeleteCollection(id string) error {
-	return c.genericDelete(id, call_delete_collection)
+	return c.genericDelete(id, callDeleteCollection)
 }
 
 func (c *natsClient) DeleteItem(id string) error {
-	return c.genericDelete(id, call_delete_item)
+	return c.genericDelete(id, callDeleteItem)
 }
 
 func (c *natsClient) DeleteVersion(id string) error {
-	return c.genericDelete(id, call_delete_version)
+	return c.genericDelete(id, callDeleteVersion)
 }
 
 func (c *natsClient) DeleteResource(id string) error {
-	return c.genericDelete(id, call_delete_resource)
+	return c.genericDelete(id, callDeleteResource)
 }
 
 func toFindReq(query []*wyc.QueryDesc) *codec.FindReq {
@@ -252,7 +252,7 @@ func (c *natsClient) FindCollections(query []*wyc.QueryDesc) (result []*wyc.Coll
 		return
 	}
 
-	msg, err := c.server_request(call_find_collection, data)
+	msg, err := c.serverRequest(callFindCollection, data)
 	if err != nil {
 		return
 	}
@@ -276,7 +276,7 @@ func (c *natsClient) FindItems(query []*wyc.QueryDesc) (result []*wyc.Item, err 
 		return
 	}
 
-	msg, err := c.server_request(call_find_item, data)
+	msg, err := c.serverRequest(callFindItem, data)
 	if err != nil {
 		return
 	}
@@ -299,7 +299,7 @@ func (c *natsClient) FindVersions(query []*wyc.QueryDesc) (result []*wyc.Version
 		return
 	}
 
-	msg, err := c.server_request(call_find_version, data)
+	msg, err := c.serverRequest(callFindVersion, data)
 	if err != nil {
 		return
 	}
@@ -322,7 +322,7 @@ func (c *natsClient) FindResources(query []*wyc.QueryDesc) (result []*wyc.Resour
 		return
 	}
 
-	msg, err := c.server_request(call_find_resource, data)
+	msg, err := c.serverRequest(callFindResource, data)
 	if err != nil {
 		return
 	}
@@ -346,7 +346,7 @@ func (c *natsClient) FindLinks(query []*wyc.QueryDesc) (result []*wyc.Link, err 
 		return
 	}
 
-	msg, err := c.server_request(call_find_link, data)
+	msg, err := c.serverRequest(callFindLink, data)
 	if err != nil {
 		return
 	}
@@ -371,7 +371,7 @@ func (c *natsClient) GetPublishedVersion(id string) (*wyc.Version, error) {
 		return nil, err
 	}
 
-	msg, err := c.server_request(call_get_published, data)
+	msg, err := c.serverRequest(callGetPublished, data)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +392,7 @@ func (c *natsClient) PublishVersion(id string) error {
 		return err
 	}
 
-	msg, err := c.server_request(call_set_published, data)
+	msg, err := c.serverRequest(callSetPublished, data)
 	if err != nil {
 		return err
 	}
@@ -417,7 +417,7 @@ func (c *natsClient) genericUpdateFacets(id, subject string, facets map[string]s
 		return err
 	}
 
-	msg, err := c.server_request(subject, data)
+	msg, err := c.serverRequest(subject, data)
 	if err != nil {
 		return err
 	}
@@ -432,11 +432,11 @@ func (c *natsClient) genericUpdateFacets(id, subject string, facets map[string]s
 }
 
 func (c *natsClient) UpdateItemFacets(id string, facets map[string]string) error {
-	return c.genericUpdateFacets(id, call_update_item, facets)
+	return c.genericUpdateFacets(id, callUpdateItem, facets)
 }
 
 func (c *natsClient) UpdateVersionFacets(id string, facets map[string]string) error {
-	return c.genericUpdateFacets(id, call_update_version, facets)
+	return c.genericUpdateFacets(id, callUpdateVersion, facets)
 }
 
 type natsServer struct {
@@ -448,13 +448,13 @@ type natsServer struct {
 
 func (s *natsServer) spinup() (string, error) {
 	s.embedded = natsd.New(&natsd.Options{
-		Host: nats_default_host,
-		Port: nats_default_port,
+		Host: natsDefaultHost,
+		Port: natsDefaultPort,
 	})
 	go s.embedded.Start()
 
 	if s.embedded.ReadyForConnections(timeout) {
-		return fmt.Sprintf("nats://%s:%d", nats_default_host, nats_default_port), nil
+		return fmt.Sprintf("nats://%s:%d", natsDefaultHost, natsDefaultPort), nil
 	}
 	return "", errors.New("Failed to spin up local nats server")
 }
@@ -479,17 +479,17 @@ func (s *natsServer) ListenAndServe(config string, handler ServerHandler) error 
 	}
 
 	// subscribe to all our chans
-	fromClients, err := s.subscribe(nats_route_client+">", nats_queue_server)
+	fromClients, err := s.subscribe(natsRouteClient+">", natsQueueServer)
 	if err != nil {
 		return err
 	}
 
-	fromServers, err := s.subscribe(nats_route_server+">", nats_queue_server)
+	fromServers, err := s.subscribe(natsRouteServer+">", natsQueueServer)
 	if err != nil {
 		return err
 	}
 
-	fromAdmin, err := s.subscribe(nats_route_internal+">", nats_queue_server)
+	fromAdmin, err := s.subscribe(natsRouteInternal+">", natsQueueServer)
 	if err != nil {
 		return err
 	}
@@ -498,7 +498,7 @@ func (s *natsServer) ListenAndServe(config string, handler ServerHandler) error 
 	for {
 		select {
 		case message := <-fromClients:
-			go s.handle_client(message)
+			go s.handleClient(message)
 		case message := <-fromServers:
 			// ToDo: utilize
 			log.Println("server", message)
@@ -510,7 +510,7 @@ func (s *natsServer) ListenAndServe(config string, handler ServerHandler) error 
 }
 
 func subjectSuffix(subject string) string {
-	return subject[len(subject)-call_suffix_length:]
+	return subject[len(subject)-callSuffixLength:]
 }
 
 func errorString(err error) string {
@@ -520,7 +520,7 @@ func errorString(err error) string {
 	return err.Error()
 }
 
-func (s *natsServer) create_collection(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) createCollection(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 
 	// Unmarshal
@@ -537,7 +537,7 @@ func (s *natsServer) create_collection(msg *nats.Msg) wyc.Marshalable {
 	}
 }
 
-func (s *natsServer) create_item(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) createItem(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 
 	// Unmarshal
@@ -554,7 +554,7 @@ func (s *natsServer) create_item(msg *nats.Msg) wyc.Marshalable {
 	}
 }
 
-func (s *natsServer) create_version(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) createVersion(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 	var num int32
 
@@ -573,7 +573,7 @@ func (s *natsServer) create_version(msg *nats.Msg) wyc.Marshalable {
 	}
 }
 
-func (s *natsServer) create_resource(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) createResource(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 
 	// Unmarshal
@@ -590,7 +590,7 @@ func (s *natsServer) create_resource(msg *nats.Msg) wyc.Marshalable {
 	}
 }
 
-func (s *natsServer) create_link(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) createLink(msg *nats.Msg) wyc.Marshalable {
 	id := ""
 
 	// Unmarshal
@@ -608,7 +608,7 @@ func (s *natsServer) create_link(msg *nats.Msg) wyc.Marshalable {
 }
 
 // Generic version of the delete call
-func (s *natsServer) delete_generic(msg *nats.Msg, call func(string) error) wyc.Marshalable {
+func (s *natsServer) deleteGeneric(msg *nats.Msg, call func(string) error) wyc.Marshalable {
 	// Unmarshal
 	req := codec.DeleteReq{}
 	err := req.UnmarshalJSON(msg.Data)
@@ -624,23 +624,23 @@ func (s *natsServer) delete_generic(msg *nats.Msg, call func(string) error) wyc.
 	}
 }
 
-func (s *natsServer) delete_collection(msg *nats.Msg) wyc.Marshalable {
-	return s.delete_generic(msg, s.handler.DeleteCollection)
+func (s *natsServer) deleteCollection(msg *nats.Msg) wyc.Marshalable {
+	return s.deleteGeneric(msg, s.handler.DeleteCollection)
 }
 
-func (s *natsServer) delete_item(msg *nats.Msg) wyc.Marshalable {
-	return s.delete_generic(msg, s.handler.DeleteItem)
+func (s *natsServer) deleteItem(msg *nats.Msg) wyc.Marshalable {
+	return s.deleteGeneric(msg, s.handler.DeleteItem)
 }
 
-func (s *natsServer) delete_version(msg *nats.Msg) wyc.Marshalable {
-	return s.delete_generic(msg, s.handler.DeleteVersion)
+func (s *natsServer) deleteVersion(msg *nats.Msg) wyc.Marshalable {
+	return s.deleteGeneric(msg, s.handler.DeleteVersion)
 }
 
-func (s *natsServer) delete_resource(msg *nats.Msg) wyc.Marshalable {
-	return s.delete_generic(msg, s.handler.DeleteResource)
+func (s *natsServer) deleteResource(msg *nats.Msg) wyc.Marshalable {
+	return s.deleteGeneric(msg, s.handler.DeleteResource)
 }
 
-func (s *natsServer) find_collection(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) findCollection(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyCollection{
 		All: []wyc.Collection{},
@@ -669,7 +669,7 @@ func (s *natsServer) find_collection(msg *nats.Msg) wyc.Marshalable {
 	return rep
 }
 
-func (s *natsServer) find_item(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) findItem(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyItem{
 		All: []wyc.Item{},
@@ -698,7 +698,7 @@ func (s *natsServer) find_item(msg *nats.Msg) wyc.Marshalable {
 	return rep
 }
 
-func (s *natsServer) find_version(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) findVersion(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyVersion{
 		All: []wyc.Version{},
@@ -727,7 +727,7 @@ func (s *natsServer) find_version(msg *nats.Msg) wyc.Marshalable {
 	return rep
 }
 
-func (s *natsServer) find_resource(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) findResource(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyResource{
 		All: []wyc.Resource{},
@@ -756,7 +756,7 @@ func (s *natsServer) find_resource(msg *nats.Msg) wyc.Marshalable {
 	return rep
 }
 
-func (s *natsServer) find_link(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) findLink(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.FindReq{}
 	rep := &codec.FindReplyLink{
 		All: []wyc.Link{},
@@ -785,7 +785,7 @@ func (s *natsServer) find_link(msg *nats.Msg) wyc.Marshalable {
 	return rep
 }
 
-func (s *natsServer) get_published(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) getPublished(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.PublishedReq{}
 	rep := &codec.GetPublishedReply{}
 
@@ -805,7 +805,7 @@ func (s *natsServer) get_published(msg *nats.Msg) wyc.Marshalable {
 	return rep
 }
 
-func (s *natsServer) set_published(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) setPublished(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.PublishedReq{}
 	rep := &codec.CreateReplyVersion{}
 
@@ -819,7 +819,7 @@ func (s *natsServer) set_published(msg *nats.Msg) wyc.Marshalable {
 	return rep
 }
 
-func (s *natsServer) generic_update_facets(msg *nats.Msg, call func(string, map[string]string) error) wyc.Marshalable {
+func (s *natsServer) genericUpdateFacets(msg *nats.Msg, call func(string, map[string]string) error) wyc.Marshalable {
 	req := &codec.UpdateFacetsReq{}
 	rep := &codec.UpdateFacetsReply{}
 
@@ -836,12 +836,12 @@ func (s *natsServer) generic_update_facets(msg *nats.Msg, call func(string, map[
 	return rep
 }
 
-func (s *natsServer) update_version(msg *nats.Msg) wyc.Marshalable {
-	return s.generic_update_facets(msg, s.handler.UpdateVersionFacets)
+func (s *natsServer) updateVersion(msg *nats.Msg) wyc.Marshalable {
+	return s.genericUpdateFacets(msg, s.handler.UpdateVersionFacets)
 }
 
-func (s *natsServer) update_item(msg *nats.Msg) wyc.Marshalable {
-	return s.generic_update_facets(msg, s.handler.UpdateItemFacets)
+func (s *natsServer) updateItem(msg *nats.Msg) wyc.Marshalable {
+	return s.genericUpdateFacets(msg, s.handler.UpdateItemFacets)
 }
 
 // Send reply to client ..
@@ -850,11 +850,11 @@ func (s *natsServer) update_item(msg *nats.Msg) wyc.Marshalable {
 // idea is that the client (even on an err) will have something helpful to
 // print / understand what happened if nothing else.
 //
-func (s *natsServer) send_reply(to string, m wyc.Marshalable) {
+func (s *natsServer) sendReply(to string, m wyc.Marshalable) {
 	// Marshal reply
 	data, err := m.MarshalJSON()
 	if err != nil {
-		log.Println("error in send_reply [MarshalJSON]", err, "given", m)
+		log.Println("error in sendReply [MarshalJSON]", err, "given", m)
 		s.publish(to, []byte(err.Error()))
 		return
 	}
@@ -862,64 +862,64 @@ func (s *natsServer) send_reply(to string, m wyc.Marshalable) {
 	// Send reply
 	err = s.publish(to, data)
 	if err != nil {
-		log.Println("error in send_reply [publish]", err, "given", m)
+		log.Println("error in sendReply [publish]", err, "given", m)
 		s.publish(to, []byte(err.Error()))
 		return
 	}
 }
 
-func (s *natsServer) choose_client_handler(subject string) func(*nats.Msg) wyc.Marshalable {
+func (s *natsServer) chooseClientHandler(subject string) func(*nats.Msg) wyc.Marshalable {
 	var handler func(*nats.Msg) wyc.Marshalable
 
 	switch subjectSuffix(subject) {
-	case call_create_collection:
-		handler = s.create_collection
-	case call_create_item:
-		handler = s.create_item
-	case call_create_version:
-		handler = s.create_version
-	case call_create_resource:
-		handler = s.create_resource
-	case call_create_link:
-		handler = s.create_link
+	case callCreateCollection:
+		handler = s.createCollection
+	case callCreateItem:
+		handler = s.createItem
+	case callCreateVersion:
+		handler = s.createVersion
+	case callCreateResource:
+		handler = s.createResource
+	case callCreateLink:
+		handler = s.createLink
 
-	case call_delete_collection:
-		handler = s.delete_collection
-	case call_delete_item:
-		handler = s.delete_item
-	case call_delete_version:
-		handler = s.delete_version
-	case call_delete_resource:
-		handler = s.delete_resource
+	case callDeleteCollection:
+		handler = s.deleteCollection
+	case callDeleteItem:
+		handler = s.deleteItem
+	case callDeleteVersion:
+		handler = s.deleteVersion
+	case callDeleteResource:
+		handler = s.deleteResource
 
-	case call_find_collection:
-		handler = s.find_collection
-	case call_find_item:
-		handler = s.find_item
-	case call_find_version:
-		handler = s.find_version
-	case call_find_resource:
-		handler = s.find_resource
-	case call_find_link:
-		handler = s.find_link
+	case callFindCollection:
+		handler = s.findCollection
+	case callFindItem:
+		handler = s.findItem
+	case callFindVersion:
+		handler = s.findVersion
+	case callFindResource:
+		handler = s.findResource
+	case callFindLink:
+		handler = s.findLink
 
-	case call_get_published:
-		handler = s.get_published
-	case call_set_published:
-		handler = s.set_published
-	case call_update_item:
-		handler = s.update_item
-	case call_update_version:
-		handler = s.update_version
+	case callGetPublished:
+		handler = s.getPublished
+	case callSetPublished:
+		handler = s.setPublished
+	case callUpdateItem:
+		handler = s.updateItem
+	case callUpdateVersion:
+		handler = s.updateVersion
 	}
 
 	return handler
 }
 
-func (s *natsServer) handle_client(msg *nats.Msg) {
+func (s *natsServer) handleClient(msg *nats.Msg) {
 	// Pick out the correct function to call. This handles parsing
 	// the req, calling the handler and returning the correct reply format
-	handler := s.choose_client_handler(msg.Subject)
+	handler := s.chooseClientHandler(msg.Subject)
 
 	if handler == nil {
 		log.Println("Handler not found for", msg.Subject)
@@ -932,7 +932,7 @@ func (s *natsServer) handle_client(msg *nats.Msg) {
 
 	// Pass whatever the result was to our func to be turned back into
 	// a []byte and sent off.
-	s.send_reply(msg.Reply, result)
+	s.sendReply(msg.Reply, result)
 }
 
 // Connect to nats given the url

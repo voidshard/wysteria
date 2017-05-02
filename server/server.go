@@ -366,7 +366,7 @@ func (s *WysteriaServer) PublishVersion(version_id string) error {
 }
 
 func (s *WysteriaServer) Shutdown() {
-	go s.close_connections() // send a routine to kill off connections nicely
+	go s.closeConnection() // send a routine to kill off connections nicely
 
 	ch := make(chan os.Signal, 2)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -382,7 +382,7 @@ func (s *WysteriaServer) Shutdown() {
 	}
 }
 
-func (s *WysteriaServer) close_connections() {
+func (s *WysteriaServer) closeConnection() {
 	go s.middleware_server.Shutdown()
 
 	select {

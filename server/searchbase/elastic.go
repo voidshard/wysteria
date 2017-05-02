@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	err_delete_backoff = time.Second * 5
+	errDeleteBackoff = time.Second * 5
 )
 
-func elastic_connect(settings *SearchbaseSettings) (Searchbase, error) {
+func elasticConnect(settings *SearchbaseSettings) (Searchbase, error) {
 	client, err := elastic.NewClient(
 		elastic.SetURL(fmt.Sprintf("http://%s:%d", settings.Host, settings.Port)),
 		elastic.SetSniff(false),
@@ -42,75 +42,75 @@ type elasticSearch struct {
 }
 
 func (e *elasticSearch) InsertCollection(id string, doc *wyc.Collection) error {
-	return e.insert(table_collection, id, doc)
+	return e.insert(tableCollection, id, doc)
 }
 
 func (e *elasticSearch) InsertItem(id string, doc *wyc.Item) error {
-	return e.insert(table_item, id, doc)
+	return e.insert(tableItem, id, doc)
 }
 
 func (e *elasticSearch) InsertVersion(id string, doc *wyc.Version) error {
-	return e.insert(table_version, id, doc)
+	return e.insert(tableVersion, id, doc)
 }
 
 func (e *elasticSearch) InsertResource(id string, doc *wyc.Resource) error {
 	// Hash path to nullify tokenizing on '/' or '\' symbols
 	doc.Location = b64encode(doc.Location)
-	return e.insert(table_fileresource, id, doc)
+	return e.insert(tableFileresource, id, doc)
 }
 
 func (e *elasticSearch) InsertLink(id string, doc *wyc.Link) error {
-	return e.insert(table_link, id, doc)
+	return e.insert(tableLink, id, doc)
 }
 
 func (e *elasticSearch) UpdateItem(id string, doc *wyc.Item) error {
 	// Explicit insert to ID deletes & replaces doc
-	return e.insert(table_item, id, doc)
+	return e.insert(tableItem, id, doc)
 }
 
 func (e *elasticSearch) UpdateVersion(id string, doc *wyc.Version) error {
 	// Explicit insert to ID deletes & replaces doc
-	return e.insert(table_version, id, doc)
+	return e.insert(tableVersion, id, doc)
 }
 
 func (e *elasticSearch) DeleteCollection(ids ...string) error {
-	return e.generic_delete(table_collection, ids...)
+	return e.generic_delete(tableCollection, ids...)
 }
 
 func (e *elasticSearch) DeleteItem(ids ...string) error {
-	return e.generic_delete(table_item, ids...)
+	return e.generic_delete(tableItem, ids...)
 }
 
 func (e *elasticSearch) DeleteVersion(ids ...string) error {
-	return e.generic_delete(table_version, ids...)
+	return e.generic_delete(tableVersion, ids...)
 }
 
 func (e *elasticSearch) DeleteResource(ids ...string) error {
-	return e.generic_delete(table_fileresource, ids...)
+	return e.generic_delete(tableFileresource, ids...)
 }
 
 func (e *elasticSearch) DeleteLink(ids ...string) error {
-	return e.generic_delete(table_link, ids...)
+	return e.generic_delete(tableLink, ids...)
 }
 
 func (e *elasticSearch) QueryCollection(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_collection, elasticTermsCollection, limit, from, qs...)
+	return e.fanSearch(tableCollection, elasticTermsCollection, limit, from, qs...)
 }
 
 func (e *elasticSearch) QueryItem(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_item, elasticTermsItem, limit, from, qs...)
+	return e.fanSearch(tableItem, elasticTermsItem, limit, from, qs...)
 }
 
 func (e *elasticSearch) QueryVersion(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_version, elasticTermsVersion, limit, from, qs...)
+	return e.fanSearch(tableVersion, elasticTermsVersion, limit, from, qs...)
 }
 
 func (e *elasticSearch) QueryResource(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_fileresource, elasticTermsResource, limit, from, qs...)
+	return e.fanSearch(tableFileresource, elasticTermsResource, limit, from, qs...)
 }
 
 func (e *elasticSearch) QueryLink(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
-	return e.fanSearch(table_link, elasticTermsLink, limit, from, qs...)
+	return e.fanSearch(tableLink, elasticTermsLink, limit, from, qs...)
 }
 
 func (e *elasticSearch) Close() error {
@@ -142,7 +142,7 @@ func (e *elasticSearch) generic_delete(col string, ids ...string) error {
 			_, err := e.client.Delete().Index(e.Settings.Database).Type(col).Id(my_id).Do()
 			if err != nil {
 				// Delete called too quickly? Give elastic time to index & retry
-				time.Sleep(err_delete_backoff)
+				time.Sleep(errDeleteBackoff)
 				_, err = e.client.Delete().Index(e.Settings.Database).Type(col).Id(my_id).Do()
 			}
 			if err != nil {

@@ -9,23 +9,23 @@ import (
 )
 
 var (
-	bucket_collection = []byte(table_collection)
-	bucket_item       = []byte(table_item)
-	bucket_version    = []byte(table_version)
-	bucket_resource   = []byte(table_fileresource)
-	bucket_link       = []byte(table_link)
+	bucketCollection = []byte(tableCollection)
+	bucketItem       = []byte(tableItem)
+	bucketVersion    = []byte(tableVersion)
+	bucketResource   = []byte(tableFileresource)
+	bucketLink       = []byte(tableLink)
 
 	// bucket that we use to keep track of unique constraints
-	bucket_collisions = []byte("collisions")
+	bucketCollisions = []byte("collisions")
 )
 
 type boltDb struct {
 	db *bolt.DB
 }
 
-func (b *boltDb) create_buckets() error {
+func (b *boltDb) createBuckets() error {
 	return b.db.Update(func(tx *bolt.Tx) error {
-		for _, bucket := range [][]byte{bucket_collection, bucket_item, bucket_version, bucket_resource, bucket_link, bucket_collisions} {
+		for _, bucket := range [][]byte{bucketCollection, bucketItem, bucketVersion, bucketResource, bucketLink, bucketCollisions} {
 			_, err := tx.CreateBucket(bucket)
 			if err != nil {
 				return nil
@@ -35,7 +35,7 @@ func (b *boltDb) create_buckets() error {
 	})
 }
 
-func bolt_connect(settings *DatabaseSettings) (Database, error) {
+func boltConnect(settings *DatabaseSettings) (Database, error) {
 	db, err := bolt.Open(settings.Database, 0600, nil)
 	if err != nil {
 		return nil, err
@@ -44,13 +44,13 @@ func bolt_connect(settings *DatabaseSettings) (Database, error) {
 	bolt_endpoint := &boltDb{
 		db: db,
 	}
-	return bolt_endpoint, bolt_endpoint.create_buckets()
+	return bolt_endpoint, bolt_endpoint.createBuckets()
 }
 
 func (b *boltDb) SetPublished(in string) error {
 	version_id := []byte(in)
 	return b.db.Update(func(tx *bolt.Tx) error {
-		version_data := tx.Bucket(bucket_version).Get(version_id)
+		version_data := tx.Bucket(bucketVersion).Get(version_id)
 		if version_data == nil {
 			return errors.New(fmt.Sprintf("Version with id %s doesn't exist", in))
 		}
@@ -61,7 +61,7 @@ func (b *boltDb) SetPublished(in string) error {
 		}
 
 		collision_key := []byte(fmt.Sprintf("published:%s", version.Parent))
-		return tx.Bucket(bucket_collisions).Put(collision_key, version_id)
+		return tx.Bucket(bucketCollisions).Put(collision_key, version_id)
 	})
 }
 
@@ -70,12 +70,12 @@ func (b *boltDb) GetPublished(in string) (*wyc.Version, error) {
 
 	val := &wyc.Version{}
 	err := b.db.Update(func(tx *bolt.Tx) error {
-		version_id := tx.Bucket(bucket_collisions).Get(collision_key)
+		version_id := tx.Bucket(bucketCollisions).Get(collision_key)
 		if version_id == nil {
 			return errors.New(fmt.Sprintf("No published version for item with id %s", in))
 		}
 
-		version_data := tx.Bucket(bucket_version).Get(version_id)
+		version_data := tx.Bucket(bucketVersion).Get(version_id)
 		if version_data == nil {
 			return errors.New(fmt.Sprintf("Version with id %s doesn't exist", in))
 		}
@@ -85,7 +85,7 @@ func (b *boltDb) GetPublished(in string) (*wyc.Version, error) {
 	return val, err
 }
 
-func (b *boltDb) generic_insert(id string, in wyc.Marshalable, bucket []byte) error {
+func (b *boltDb) genericInsert(id string, in wyc.Marshalable, bucket []byte) error {
 	data, err := in.MarshalJSON()
 	if err != nil {
 		return err
@@ -104,17 +104,17 @@ func (b *boltDb) InsertCollection(id string, in *wyc.Collection) error { // Ensu
 	}
 
 	return b.db.Update(func(tx *bolt.Tx) error {
-		val := tx.Bucket(bucket_collisions).Get(collision_key)
+		val := tx.Bucket(bucketCollisions).Get(collision_key)
 		if val != nil {
 			return errors.New("Unable to create: Would cause duplicate Collection")
 		}
 
-		err := tx.Bucket(bucket_collisions).Put(collision_key, []byte("x"))
+		err := tx.Bucket(bucketCollisions).Put(collision_key, []byte("x"))
 		if err != nil {
 			return err
 		}
 
-		return tx.Bucket(bucket_collection).Put([]byte(id), data)
+		return tx.Bucket(bucketCollection).Put([]byte(id), data)
 	})
 }
 
@@ -126,17 +126,17 @@ func (b *boltDb) InsertItem(id string, in *wyc.Item) error { // Ensure only one 
 	}
 
 	return b.db.Update(func(tx *bolt.Tx) error {
-		val := tx.Bucket(bucket_collisions).Get(collision_key)
+		val := tx.Bucket(bucketCollisions).Get(collision_key)
 		if val != nil {
 			return errors.New(fmt.Sprintf("Unable to insert Item %s %s it exists in collection already", in.ItemType, in.Variant))
 		}
 
-		err := tx.Bucket(bucket_collisions).Put(collision_key, []byte("x"))
+		err := tx.Bucket(bucketCollisions).Put(collision_key, []byte("x"))
 		if err != nil {
 			return err
 		}
 
-		return tx.Bucket(bucket_item).Put([]byte(id), data)
+		return tx.Bucket(bucketItem).Put([]byte(id), data)
 	})
 }
 
@@ -145,12 +145,12 @@ type bint32 struct {
 	I int32 `json:"I"`
 }
 
-func int32_to_byte(in int32) ([]byte, error) {
+func int32ToByte(in int32) ([]byte, error) {
 	tmp := &bint32{in}
 	return json.Marshal(tmp)
 }
 
-func byte_to_int32(in []byte) (int32, error) {
+func byteToInt32(in []byte) (int32, error) {
 	tmp := &bint32{}
 	err := json.Unmarshal(in, tmp)
 	if err != nil {
@@ -165,23 +165,23 @@ func (b *boltDb) InsertNextVersion(id string, in *wyc.Version) (int32, error) { 
 	new_version := int32(0)
 
 	return new_version, b.db.Update(func(tx *bolt.Tx) error {
-		raw_val := tx.Bucket(bucket_collisions).Get(collision_key)
+		raw_val := tx.Bucket(bucketCollisions).Get(collision_key)
 		if raw_val == nil {
 			new_version = 1
 		} else {
-			val, err := byte_to_int32(raw_val)
+			val, err := byteToInt32(raw_val)
 			if err != nil {
 				return err
 			}
 			new_version = int32(val) + 1
 		}
 
-		raw_result, err := int32_to_byte(new_version)
+		raw_result, err := int32ToByte(new_version)
 		if err != nil {
 			return err
 		}
 
-		err = tx.Bucket(bucket_collisions).Put(collision_key, raw_result)
+		err = tx.Bucket(bucketCollisions).Put(collision_key, raw_result)
 		if err != nil {
 			return err
 		}
@@ -192,21 +192,21 @@ func (b *boltDb) InsertNextVersion(id string, in *wyc.Version) (int32, error) { 
 			return err
 		}
 
-		return tx.Bucket(bucket_version).Put([]byte(id), data)
+		return tx.Bucket(bucketVersion).Put([]byte(id), data)
 	})
 }
 
 func (b *boltDb) InsertResource(id string, in *wyc.Resource) error {
-	return b.generic_insert(id, in, bucket_resource)
+	return b.genericInsert(id, in, bucketResource)
 }
 
 func (b *boltDb) InsertLink(id string, in *wyc.Link) error {
-	return b.generic_insert(id, in, bucket_link)
+	return b.genericInsert(id, in, bucketLink)
 }
 
 func (b *boltDb) RetrieveCollection(ids ...string) (result []*wyc.Collection, err error) {
 	err = b.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(bucket_collection)
+		bucket := tx.Bucket(bucketCollection)
 		for _, id := range ids {
 			value := bucket.Get([]byte(id))
 			if value == nil {
@@ -227,7 +227,7 @@ func (b *boltDb) RetrieveCollection(ids ...string) (result []*wyc.Collection, er
 
 func (b *boltDb) RetrieveItem(ids ...string) (result []*wyc.Item, err error) {
 	err = b.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(bucket_item)
+		bucket := tx.Bucket(bucketItem)
 		for _, id := range ids {
 			value := bucket.Get([]byte(id))
 			if value == nil {
@@ -248,7 +248,7 @@ func (b *boltDb) RetrieveItem(ids ...string) (result []*wyc.Item, err error) {
 
 func (b *boltDb) RetrieveVersion(ids ...string) (result []*wyc.Version, err error) {
 	err = b.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(bucket_version)
+		bucket := tx.Bucket(bucketVersion)
 		for _, id := range ids {
 			value := bucket.Get([]byte(id))
 			if value == nil {
@@ -269,7 +269,7 @@ func (b *boltDb) RetrieveVersion(ids ...string) (result []*wyc.Version, err erro
 
 func (b *boltDb) RetrieveResource(ids ...string) (result []*wyc.Resource, err error) {
 	err = b.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(bucket_resource)
+		bucket := tx.Bucket(bucketResource)
 		for _, id := range ids {
 			value := bucket.Get([]byte(id))
 			if value == nil {
@@ -290,7 +290,7 @@ func (b *boltDb) RetrieveResource(ids ...string) (result []*wyc.Resource, err er
 
 func (b *boltDb) RetrieveLink(ids ...string) (result []*wyc.Link, err error) {
 	err = b.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(bucket_link)
+		bucket := tx.Bucket(bucketLink)
 		for _, id := range ids {
 			value := bucket.Get([]byte(id))
 			if value == nil {
@@ -310,14 +310,14 @@ func (b *boltDb) RetrieveLink(ids ...string) (result []*wyc.Link, err error) {
 }
 
 func (b *boltDb) UpdateItem(id string, in *wyc.Item) error {
-	return b.generic_insert(id, in, bucket_item)
+	return b.genericInsert(id, in, bucketItem)
 }
 
 func (b *boltDb) UpdateVersion(id string, in *wyc.Version) error {
-	return b.generic_insert(id, in, bucket_version)
+	return b.genericInsert(id, in, bucketVersion)
 }
 
-func (b *boltDb) generic_delete(bucket []byte, ids ...string) error {
+func (b *boltDb) genericDelete(bucket []byte, ids ...string) error {
 	for _, id := range ids {
 		err := b.db.Update(func(tx *bolt.Tx) error {
 			return tx.Bucket(bucket).Delete([]byte(id))
@@ -338,11 +338,11 @@ func (b *boltDb) DeleteCollection(ids ...string) error {
 	for _, collection := range collections {
 		collision_key := []byte(fmt.Sprintf("collection:%s", collection.Name))
 		return b.db.Update(func(tx *bolt.Tx) error {
-			return tx.Bucket(bucket_collisions).Delete(collision_key)
+			return tx.Bucket(bucketCollisions).Delete(collision_key)
 		})
 	}
 
-	return b.generic_delete(bucket_collection, ids...)
+	return b.genericDelete(bucketCollection, ids...)
 }
 
 func (b *boltDb) DeleteItem(ids ...string) error {
@@ -355,23 +355,23 @@ func (b *boltDb) DeleteItem(ids ...string) error {
 		collision_key := []byte(fmt.Sprintf("item:%s:%s:%s", item.Parent, item.ItemType, item.Variant))
 
 		return b.db.Update(func(tx *bolt.Tx) error {
-			return tx.Bucket(bucket_collisions).Delete(collision_key)
+			return tx.Bucket(bucketCollisions).Delete(collision_key)
 		})
 	}
 
-	return b.generic_delete(bucket_item, ids...)
+	return b.genericDelete(bucketItem, ids...)
 }
 
 func (b *boltDb) DeleteVersion(ids ...string) error {
-	return b.generic_delete(bucket_version, ids...)
+	return b.genericDelete(bucketVersion, ids...)
 }
 
 func (b *boltDb) DeleteResource(ids ...string) error {
-	return b.generic_delete(bucket_resource, ids...)
+	return b.genericDelete(bucketResource, ids...)
 }
 
 func (b *boltDb) DeleteLink(ids ...string) error {
-	return b.generic_delete(bucket_link, ids...)
+	return b.genericDelete(bucketLink, ids...)
 }
 
 func (b *boltDb) Close() error {

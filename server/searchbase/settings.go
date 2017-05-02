@@ -1,11 +1,11 @@
 package searchends
 
 const (
-	table_collection   = "collections"
-	table_item         = "items"
-	table_version      = "versions"
-	table_fileresource = "fileresource"
-	table_link         = "link"
+	tableCollection   = "collections"
+	tableItem         = "items"
+	tableVersion      = "versions"
+	tableFileresource = "fileresource"
+	tableLink         = "link"
 )
 
 type SearchbaseSettings struct {

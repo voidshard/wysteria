@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	DRIVER_MONGO = "mongo"
-	DRIVER_BOLT  = "bolt"
+	DriverMongo = "mongo"
+	DriverBolt  = "bolt"
 )
 
 var (
 	connectors = map[string]func(*DatabaseSettings) (Database, error){
-		DRIVER_MONGO: mongo_connect,
-		DRIVER_BOLT:  bolt_connect,
+		DriverMongo: mongoConnect,
+		DriverBolt:  boltConnect,
 	}
 )
 
@@ -54,7 +54,7 @@ type Database interface {
 	UpdateItem(string, *wyc.Item) error
 	UpdateVersion(string, *wyc.Version) error
 
-	// delete_by_id data in table/collection with ids
+	// deleteById data in table/collection with ids
 	DeleteCollection(...string) error
 	DeleteItem(...string) error
 	DeleteVersion(...string) error

@@ -17,7 +17,7 @@ type bleveSearchbase struct {
 	links       bleve.Index
 }
 
-func create_bleve_index(name string, documentMapping *mapping.IndexMappingImpl) (bleve.Index, error) {
+func createBleveIndex(name string, documentMapping *mapping.IndexMappingImpl) (bleve.Index, error) {
 	_, err := os.Stat(name)
 	if err == nil {
 		// Open existing index
@@ -27,35 +27,35 @@ func create_bleve_index(name string, documentMapping *mapping.IndexMappingImpl) 
 	return bleve.New(name, documentMapping)
 }
 
-func bleve_connect(settings *SearchbaseSettings) (Searchbase, error) {
+func bleveConnect(settings *SearchbaseSettings) (Searchbase, error) {
 	sb := &bleveSearchbase{}
 	imapping := bleve.NewIndexMapping()
 
-	idx, err := create_bleve_index(settings.Database+table_collection, imapping)
+	idx, err := createBleveIndex(settings.Database+tableCollection, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.collections = idx
 
-	idx, err = create_bleve_index(settings.Database+table_item, imapping)
+	idx, err = createBleveIndex(settings.Database+tableItem, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.items = idx
 
-	idx, err = create_bleve_index(settings.Database+table_version, imapping)
+	idx, err = createBleveIndex(settings.Database+tableVersion, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.versions = idx
 
-	idx, err = create_bleve_index(settings.Database+table_fileresource, imapping)
+	idx, err = createBleveIndex(settings.Database+tableFileresource, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.resources = idx
 
-	idx, err = create_bleve_index(settings.Database+table_link, imapping)
+	idx, err = createBleveIndex(settings.Database+tableLink, imapping)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (b *bleveSearchbase) UpdateVersion(id string, in *wyc.Version) error {
 	return b.versions.Index(id, in)
 }
 
-func generic_delete(index bleve.Index, ids ...string) error {
+func genericDelete(index bleve.Index, ids ...string) error {
 	for _, id := range ids {
 		err := index.Delete(id)
 		if err != nil {
@@ -108,23 +108,23 @@ func generic_delete(index bleve.Index, ids ...string) error {
 }
 
 func (b *bleveSearchbase) DeleteCollection(ids ...string) error {
-	return generic_delete(b.collections, ids...)
+	return genericDelete(b.collections, ids...)
 }
 
 func (b *bleveSearchbase) DeleteItem(ids ...string) error {
-	return generic_delete(b.items, ids...)
+	return genericDelete(b.items, ids...)
 }
 
 func (b *bleveSearchbase) DeleteVersion(ids ...string) error {
-	return generic_delete(b.versions, ids...)
+	return genericDelete(b.versions, ids...)
 }
 
 func (b *bleveSearchbase) DeleteResource(ids ...string) error {
-	return generic_delete(b.resources, ids...)
+	return genericDelete(b.resources, ids...)
 }
 
 func (b *bleveSearchbase) DeleteLink(ids ...string) error {
-	return generic_delete(b.links, ids...)
+	return genericDelete(b.links, ids...)
 }
 
 func toCollectionQueryString(desc *wyc.QueryDesc) string {

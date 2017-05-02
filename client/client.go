@@ -1,3 +1,9 @@
+/*
+client package implements the Go wysteria client over some middleware
+
+
+*/
+
 package wysteria_client
 
 import (

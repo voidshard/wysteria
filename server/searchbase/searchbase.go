@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	DRIVER_ELASTIC = "elastic"
-	DRIVER_BLEVE   = "bleve"
+	DriverElastic = "elastic"
+	DriverBleve   = "bleve"
 )
 
 var (
 	connectors = map[string]func(*SearchbaseSettings) (Searchbase, error){
-		DRIVER_ELASTIC: elastic_connect,
-		DRIVER_BLEVE:   bleve_connect,
+		DriverElastic: elasticConnect,
+		DriverBleve:   bleveConnect,
 	}
 )
 

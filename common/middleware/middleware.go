@@ -4,23 +4,21 @@ import (
 	"errors"
 	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
-	"time"
 )
 
 const (
-	DRIVER_GRPC = "grpc"
-	DRIVER_NATS = "nats"
+	DriverGrpc = "grpc"
+	DriverNats = "nats"
 )
 
 var (
-	Timeout          = time.Second * 30
 	client_endpoints = map[string]func() EndpointClient{
-		DRIVER_GRPC: newGrpcClient,
-		DRIVER_NATS: newNatsClient,
+		DriverGrpc: newGrpcClient,
+		DriverNats: newNatsClient,
 	}
 	server_endpoints = map[string]func() EndpointServer{
-		DRIVER_GRPC: newGrpcServer,
-		DRIVER_NATS: newNatsServer,
+		DriverGrpc: newGrpcServer,
+		DriverNats: newNatsServer,
 	}
 )
 

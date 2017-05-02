@@ -46,12 +46,12 @@ func init() {
 func getDefaults() *configuration {
 	return &configuration{
 		wdb.DatabaseSettings{
-			Driver:   wdb.DRIVER_BOLT,
+			Driver:   wdb.DriverBolt,
 			Database: filepath.Join(os.TempDir(), "wysteria_db"),
 		},
 
 		wsb.SearchbaseSettings{
-			Driver:   wsb.DRIVER_BLEVE,
+			Driver:   wsb.DriverBleve,
 			Host:     "",
 			Port:     0,
 			User:     "",
@@ -60,7 +60,7 @@ func getDefaults() *configuration {
 			PemFile:  "",
 		},
 		wcm.MiddlewareSettings{
-			Driver: wcm.DRIVER_NATS,
+			Driver: wcm.DriverNats,
 			Config: "",
 		},
 	}

@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	null_wrpc_id         = &wrpc.Id{Id: ""}
-	null_wrpc_id_and_num = &wrpc.IdAndNum{Id: "", Version: 0}
-	null_wrpc_text       = &wrpc.Text{Text: ""}
+	nullWrpcId       = &wrpc.Id{Id: ""}
+	nullWrpcIdAndNum = &wrpc.IdAndNum{Id: "", Version: 0}
+	nullWrpcText     = &wrpc.Text{Text: ""}
 )
 
 type grpcClient struct {
@@ -155,7 +155,7 @@ func (c *grpcClient) CreateLink(in *wyc.Link) (string, error) {
 	return result.Id, nil
 }
 
-func client_call_delete(delete_id string, call func(ctx context.Context, in *wrpc.Id, opts ...grpc.CallOption) (*wrpc.Text, error)) error {
+func clientCallDelete(delete_id string, call func(ctx context.Context, in *wrpc.Id, opts ...grpc.CallOption) (*wrpc.Text, error)) error {
 	result, err := call(context.Background(), &wrpc.Id{Id: delete_id})
 	if err != nil {
 		return err
@@ -167,19 +167,19 @@ func client_call_delete(delete_id string, call func(ctx context.Context, in *wrp
 }
 
 func (c *grpcClient) DeleteCollection(in string) error {
-	return client_call_delete(in, c.client.DeleteCollection)
+	return clientCallDelete(in, c.client.DeleteCollection)
 }
 
 func (c *grpcClient) DeleteItem(in string) error {
-	return client_call_delete(in, c.client.DeleteItem)
+	return clientCallDelete(in, c.client.DeleteItem)
 }
 
 func (c *grpcClient) DeleteVersion(in string) error {
-	return client_call_delete(in, c.client.DeleteVersion)
+	return clientCallDelete(in, c.client.DeleteVersion)
 }
 
 func (c *grpcClient) DeleteResource(in string) error {
-	return client_call_delete(in, c.client.DeleteResource)
+	return clientCallDelete(in, c.client.DeleteResource)
 }
 
 func convWQueryDescs(in ...*wyc.QueryDesc) *wrpc.QueryDescs {
@@ -363,7 +363,7 @@ func (c *grpcClient) PublishVersion(in string) error {
 	return nil
 }
 
-func call_update(id string, facets map[string]string, call func(context.Context, *wrpc.IdAndDict, ...grpc.CallOption) (*wrpc.Text, error)) error {
+func callUpdate(id string, facets map[string]string, call func(context.Context, *wrpc.IdAndDict, ...grpc.CallOption) (*wrpc.Text, error)) error {
 	result, err := call(context.Background(), &wrpc.IdAndDict{Id: id, Facets: facets})
 	if err != nil {
 		return err
@@ -375,11 +375,11 @@ func call_update(id string, facets map[string]string, call func(context.Context,
 }
 
 func (c *grpcClient) UpdateVersionFacets(id string, to_update map[string]string) error {
-	return call_update(id, to_update, c.client.UpdateVersionFacets)
+	return callUpdate(id, to_update, c.client.UpdateVersionFacets)
 }
 
 func (c *grpcClient) UpdateItemFacets(id string, to_update map[string]string) error {
-	return call_update(id, to_update, c.client.UpdateItemFacets)
+	return callUpdate(id, to_update, c.client.UpdateItemFacets)
 }
 
 func newGrpcClient() EndpointClient {
@@ -458,7 +458,7 @@ func (s *grpcServer) UpdateVersionFacets(_ context.Context, in *wrpc.IdAndDict) 
 	if err != nil {
 		return &wrpc.Text{Text: err.Error()}, err
 	}
-	return null_wrpc_text, nil
+	return nullWrpcText, nil
 }
 
 func (s *grpcServer) UpdateItemFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
@@ -466,13 +466,13 @@ func (s *grpcServer) UpdateItemFacets(_ context.Context, in *wrpc.IdAndDict) (*w
 	if err != nil {
 		return &wrpc.Text{Text: err.Error()}, err
 	}
-	return null_wrpc_text, nil
+	return nullWrpcText, nil
 }
 
 func (s *grpcServer) CreateCollection(_ context.Context, in *wrpc.Text) (*wrpc.Id, error) {
 	created_id, err := s.handler.CreateCollection(in.Text)
 	if err != nil {
-		return null_wrpc_id, err
+		return nullWrpcId, err
 	}
 	return &wrpc.Id{Id: created_id}, err
 }
@@ -480,7 +480,7 @@ func (s *grpcServer) CreateCollection(_ context.Context, in *wrpc.Text) (*wrpc.I
 func (s *grpcServer) CreateItem(_ context.Context, in *wrpc.Item) (*wrpc.Id, error) {
 	created_id, err := s.handler.CreateItem(convRItems(in)[0])
 	if err != nil {
-		return null_wrpc_id, err
+		return nullWrpcId, err
 	}
 	return &wrpc.Id{Id: created_id}, err
 }
@@ -488,7 +488,7 @@ func (s *grpcServer) CreateItem(_ context.Context, in *wrpc.Item) (*wrpc.Id, err
 func (s *grpcServer) CreateVersion(_ context.Context, in *wrpc.Version) (*wrpc.IdAndNum, error) {
 	created_id, number, err := s.handler.CreateVersion(convRVersion(in))
 	if err != nil {
-		return null_wrpc_id_and_num, err
+		return nullWrpcIdAndNum, err
 	}
 	return &wrpc.IdAndNum{Id: created_id, Version: number}, err
 }
@@ -496,7 +496,7 @@ func (s *grpcServer) CreateVersion(_ context.Context, in *wrpc.Version) (*wrpc.I
 func (s *grpcServer) CreateResource(_ context.Context, in *wrpc.Resource) (*wrpc.Id, error) {
 	created_id, err := s.handler.CreateResource(convRResources(in)[0])
 	if err != nil {
-		return null_wrpc_id, err
+		return nullWrpcId, err
 	}
 	return &wrpc.Id{Id: created_id}, err
 }
@@ -504,32 +504,32 @@ func (s *grpcServer) CreateResource(_ context.Context, in *wrpc.Resource) (*wrpc
 func (s *grpcServer) CreateLink(_ context.Context, in *wrpc.Link) (*wrpc.Id, error) {
 	created_id, err := s.handler.CreateLink(convRLinks(in)[0])
 	if err != nil {
-		return null_wrpc_id, err
+		return nullWrpcId, err
 	}
 	return &wrpc.Id{Id: created_id}, err
 }
 
-func server_call_delete(in string, call func(string) error) (*wrpc.Text, error) {
+func serverCallDelete(in string, call func(string) error) (*wrpc.Text, error) {
 	err := call(in)
 	if err != nil {
 		return &wrpc.Text{Text: err.Error()}, err
 	}
-	return null_wrpc_text, err
+	return nullWrpcText, err
 }
 
 func (s *grpcServer) DeleteCollection(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	return server_call_delete(in.Id, s.handler.DeleteCollection)
+	return serverCallDelete(in.Id, s.handler.DeleteCollection)
 }
 
 func (s *grpcServer) DeleteItem(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	return server_call_delete(in.Id, s.handler.DeleteItem)
+	return serverCallDelete(in.Id, s.handler.DeleteItem)
 }
 func (s *grpcServer) DeleteVersion(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	return server_call_delete(in.Id, s.handler.DeleteVersion)
+	return serverCallDelete(in.Id, s.handler.DeleteVersion)
 }
 
 func (s *grpcServer) DeleteResource(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	return server_call_delete(in.Id, s.handler.DeleteResource)
+	return serverCallDelete(in.Id, s.handler.DeleteResource)
 }
 
 func convRQueryDescs(in ...*wrpc.QueryDesc) []*wyc.QueryDesc {
@@ -643,5 +643,5 @@ func (s *grpcServer) PublishVersion(_ context.Context, in *wrpc.Id) (*wrpc.Text,
 	if err != nil {
 		return &wrpc.Text{Text: err.Error()}, err
 	}
-	return null_wrpc_text, err
+	return nullWrpcText, err
 }

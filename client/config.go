@@ -40,7 +40,7 @@ func init() {
 func getDefaults() *configuration {
 	return &configuration{
 		wcm.MiddlewareSettings{
-			Driver: wcm.DRIVER_NATS,
+			Driver: wcm.DriverNats,
 			Config: "",
 		},
 	}

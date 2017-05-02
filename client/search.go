@@ -38,7 +38,7 @@ func (i *search) ready() error {
 	return nil
 }
 
-func (i *search) Collections() ([]*Collection, error) {
+func (i *search) FindCollections() ([]*Collection, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (i *search) Collections() ([]*Collection, error) {
 	return ret, nil
 }
 
-func (i *search) Items() ([]*Item, error) {
+func (i *search) FindItems() ([]*Item, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (i *search) Items() ([]*Item, error) {
 	return ret, nil
 }
 
-func (i *search) Versions() ([]*Version, error) {
+func (i *search) FindVersions() ([]*Version, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (i *search) Versions() ([]*Version, error) {
 	return ret, nil
 }
 
-func (i *search) Resources() ([]*Resource, error) {
+func (i *search) FindResources() ([]*Resource, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (i *search) Resources() ([]*Resource, error) {
 	return ret, nil
 }
 
-func (i *search) Links() ([]*Link, error) {
+func (i *search) FindLinks() ([]*Link, error) {
 	err := i.ready()
 	if err != nil {
 		return nil, err
@@ -161,13 +161,13 @@ func (i *search) ChildOf(s string) *search {
 	return i
 }
 
-func (i *search) Src(s string) *search {
+func (i *search) LinkSource(s string) *search {
 	i.nextQValid = true
 	i.nextQuery.LinkSrc = s
 	return i
 }
 
-func (i *search) Dst(s string) *search {
+func (i *search) LinkDestination(s string) *search {
 	i.nextQValid = true
 	i.nextQuery.LinkDst = s
 	return i
@@ -185,7 +185,7 @@ func (i *search) ItemVariant(s string) *search {
 	return i
 }
 
-func (i *search) Version(n int32) *search {
+func (i *search) VersionNumber(n int32) *search {
 	i.nextQValid = true
 	i.nextQuery.VersionNumber = n
 	return i
@@ -203,7 +203,7 @@ func (i *search) Name(s string) *search {
 	return i
 }
 
-func (i *search) Location(s string) *search {
+func (i *search) ResourceLocation(s string) *search {
 	i.nextQValid = true
 	i.nextQuery.Location = s
 	return i

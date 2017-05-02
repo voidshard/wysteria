@@ -24,7 +24,7 @@ func (c *Collection) Delete() error {
 }
 
 func (c *Collection) GetItems() ([]*Item, error) {
-	return c.conn.Search().ChildOf(c.data.Id).Items()
+	return c.conn.Search().ChildOf(c.data.Id).FindItems()
 }
 
 func (c *Collection) CreateItem(itemtype, variant string, facets map[string]string) (*Item, error) {
@@ -72,7 +72,7 @@ func (w *wysteriaClient) CreateCollection(name string) (*Collection, error) {
 }
 
 func (w *wysteriaClient) GetCollection(identifier string) (*Collection, error) {
-	results, err := w.Search().Id(identifier).Or().Name(identifier).Collections()
+	results, err := w.Search().Id(identifier).Or().Name(identifier).FindCollections()
 	if err != nil {
 		return nil, err
 	}

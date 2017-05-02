@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// Look up our forest map item
-	items, err := client.Search().ItemType("map").ItemVariant("forest").Items()
+	items, err := client.Search().ItemType("map").ItemVariant("forest").FindItems()
 	if err != nil {
 		panic(err)
 	}
@@ -38,20 +38,23 @@ func main() {
 		panic(err)
 	}
 
-	for _, version := range linked_versions {
-		fmt.Println(version.Link().Name(), version.Version())
+	for link_name, found_versions := range linked_versions {
+		for _, version := range found_versions {
+			fmt.Println(link_name, version.Version())
+		}
 	}
 	//elm 1
 	//pine 1
 	//oak 2
 
 	// We can also grab links with a specific name
-	linked_elms, err := forest_01.GetLinkedByName("elm")
+	desired_linked_versions := "elm"
+	linked_elms, err := forest_01.GetLinkedByName(desired_linked_versions)
 	if err != nil {
 		panic(err)
 	}
 	for _, version := range linked_elms {
-		fmt.Println(version.Link().Name(), version.Version())
+		fmt.Println(desired_linked_versions, version.Version())
 	}
 	//elm 1
 }

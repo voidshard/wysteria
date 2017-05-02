@@ -8,16 +8,16 @@ import (
 
 func TestMultiOr(t *testing.T) {
 	// Arrange
-	testSearch := newQuery()
+	testSearch := newTestQuery()
 	funcs := []func(string) *search{
 		testSearch.Id,
 		testSearch.ChildOf,
-		testSearch.Src,
-		testSearch.Dst,
+		testSearch.LinkSource,
+		testSearch.LinkDestination,
 		testSearch.ItemType,
 		testSearch.ItemVariant,
 		testSearch.Name,
-		testSearch.Location,
+		testSearch.ResourceLocation,
 	}
 
 	cases := []struct {
@@ -67,16 +67,16 @@ func TestMultiOr(t *testing.T) {
 
 func TestSingleOr(t *testing.T) {
 	// Arrange
-	testSearch := newQuery()
+	testSearch := newTestQuery()
 	funcs := []func(string) *search{
 		testSearch.Id,
 		testSearch.ChildOf,
-		testSearch.Src,
-		testSearch.Dst,
+		testSearch.LinkSource,
+		testSearch.LinkDestination,
 		testSearch.ItemType,
 		testSearch.ItemVariant,
 		testSearch.Name,
-		testSearch.Location,
+		testSearch.ResourceLocation,
 	}
 
 	cases := []struct {
@@ -126,7 +126,7 @@ func TestSingleOr(t *testing.T) {
 
 func TestHasFacets(t *testing.T) {
 	// Arrange
-	testSearch := newQuery()
+	testSearch := newTestQuery()
 	cases := []struct {
 		Facets map[string]string
 	}{
@@ -156,7 +156,7 @@ func TestHasFacets(t *testing.T) {
 
 func TestIntTerms(t *testing.T) {
 	// Arrange
-	testSearch := newQuery()
+	testSearch := newTestQuery()
 	terms := []int32{
 		-1,
 		0,
@@ -169,7 +169,7 @@ func TestIntTerms(t *testing.T) {
 		CheckFunc func() int32
 		Name      string
 	}{
-		{testSearch.Version, testSearch.nqVersion, "VersionNumber"},
+		{testSearch.VersionNumber, testSearch.nqVersion, "VersionNumber"},
 	}
 
 	for _, tst := range cases {
@@ -193,7 +193,7 @@ func TestIntTerms(t *testing.T) {
 
 func TestStringTerms(t *testing.T) {
 	// Arrange
-	testSearch := newQuery()
+	testSearch := newTestQuery()
 	terms := []string{
 		"abc",
 		"(*&",
@@ -208,12 +208,12 @@ func TestStringTerms(t *testing.T) {
 	}{
 		{testSearch.Id, testSearch.nqId, "Id"},
 		{testSearch.ChildOf, testSearch.nqChildOf, "ChildOf"},
-		{testSearch.Src, testSearch.nqSrc, "Src"},
-		{testSearch.Dst, testSearch.nqDst, "Dst"},
+		{testSearch.LinkSource, testSearch.nqSrc, "Src"},
+		{testSearch.LinkDestination, testSearch.nqDst, "Dst"},
 		{testSearch.ItemType, testSearch.nqIType, "ItemType"},
 		{testSearch.ItemVariant, testSearch.nqIVariant, "ItemVariant"},
 		{testSearch.Name, testSearch.nqName, "Name"},
-		{testSearch.Location, testSearch.nqLocation, "Location"},
+		{testSearch.ResourceLocation, testSearch.nqLocation, "Location"},
 	}
 
 	for _, tst := range cases {
@@ -268,7 +268,7 @@ func (i *search) nqLocation() string {
 	return i.nextQuery.Location
 }
 
-func newQuery() *search {
+func newTestQuery() *search {
 	return &search{
 		query:     []*wyc.QueryDesc{},
 		nextQuery: &wyc.QueryDesc{},

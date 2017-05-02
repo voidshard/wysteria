@@ -5,6 +5,12 @@ import (
 	wcm "github.com/voidshard/wysteria/common/middleware"
 )
 
+const (
+	FACET_COLLECTION = "collection"
+	FACET_ITEM_TYPE = "itemtype"
+	FACET_ITEM_VARIANT = "variant"
+)
+
 type wysteriaClient struct {
 	settings   *configuration
 	middleware wcm.EndpointClient

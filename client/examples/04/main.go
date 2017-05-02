@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// Let's find the latest published version for our oak tile, lookup the parent Item first
-	items, err := client.Search().ItemType("tree").ItemVariant("oak").Items()
+	items, err := client.Search().ItemType("tree").ItemVariant("oak").FindItems()
 	if err != nil {
 		panic(err)
 	}

@@ -9,15 +9,10 @@ import (
 type Version struct {
 	conn     *wysteriaClient
 	data     *wyc.Version
-	fromLink *Link
 }
 
 func (i *Version) Version() int32 {
 	return i.data.Number
-}
-
-func (i *Version) Link() *Link {
-	return i.fromLink
 }
 
 func (i *Version) Delete() error {
@@ -37,7 +32,7 @@ func (i *Version) SetFacets(in map[string]string) error {
 	return i.conn.middleware.UpdateVersionFacets(i.data.Id, in)
 }
 
-func (i *Version) getLinkedVersions(name string) ([]*Version, error) {
+func (i *Version) getLinkedVersions(name string) (map[string][]*Version, error) {
 	links, err := i.conn.middleware.FindLinks(
 		[]*wyc.QueryDesc{
 			{LinkSrc: i.data.Id, Name: name},
@@ -65,27 +60,38 @@ func (i *Version) getLinkedVersions(name string) ([]*Version, error) {
 		return nil, err
 	}
 
-	result := []*Version{}
+	result := map[string][]*Version{}
 	for _, ver := range items {
+		lnk, ok := version_id_to_link[ver.Id]
+		if !ok {
+			continue
+		}
+
+		result_list, ok := result[lnk.Name]
+		if result_list == nil {
+			result_list = []*Version{}
+		}
+
 		wrapped_item := &Version{
 			conn: i.conn,
 			data: ver,
 		}
 
-		lnk, ok := version_id_to_link[ver.Id]
-		if ok {
-			wrapped_item.fromLink = &Link{conn: i.conn, data: lnk}
-		}
-		result = append(result, wrapped_item)
+		result_list = append(result_list, wrapped_item)
+		result[lnk.Name] = result_list
 	}
 	return result, nil
 }
 
 func (i *Version) GetLinkedByName(name string) ([]*Version, error) {
-	return i.getLinkedVersions(name)
+	found, err := i.getLinkedVersions(name)
+	if err != nil {
+		return nil, err
+	}
+	return found[name], nil
 }
 
-func (i *Version) GetLinked() ([]*Version, error) {
+func (i *Version) GetLinked() (map[string][]*Version, error) {
 	return i.getLinkedVersions("")
 }
 
@@ -96,8 +102,8 @@ func (i *Version) LinkTo(name string, other *Version) error {
 
 	lnk := &wyc.Link{
 		Name: name,
-		Src:  i.data.Id,
-		Dst:  other.data.Id,
+		Src:  i.Id(),
+		Dst:  other.Id(),
 	}
 	_, err := i.conn.middleware.CreateLink(lnk)
 	return err

@@ -47,45 +47,66 @@ func (i *Item) LinkTo(name string, other *Item) error {
 	return err
 }
 
-func (i *Item) getLinkedItems(name string) ([]*Item, error) {
-	links, err := i.conn.Search().Src(i.data.Id).Name(name).Links()
+func (i *Item) getLinkedItems(name string) (map[string][]*Item, error) {
+	links, err := i.conn.middleware.FindLinks(
+		[]*wyc.QueryDesc{
+			{LinkSrc: i.data.Id, Name: name},
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	item_id_to_link := map[string]*Link{}
-	search := i.conn.Search()
+	item_id_to_link := map[string]*wyc.Link{}
+	ids := []*wyc.QueryDesc{}
 	for _, link := range links {
-		id := link.SourceId()
+		id := link.Src
 
-		if link.SourceId() == i.data.Id {
-			id = link.DestinationId()
+		if link.Src == i.data.Id {
+			id = link.Dst
 		}
 
 		item_id_to_link[id] = link
-		search.Id(id).Or()
+		ids = append(ids, &wyc.QueryDesc{Id: id})
 	}
 
-	items, err := search.Items()
+	items, err := i.conn.middleware.FindItems(ids)
 	if err != nil {
 		return nil, err
 	}
 
-	result := []*Item{}
-	for _, itm := range items {
-		lnk, ok := item_id_to_link[itm.Id()]
-		if ok {
-			itm.fromLink = lnk
+	result := map[string][]*Item{}
+	for _, ver := range items {
+		lnk, ok := item_id_to_link[ver.Id]
+		if !ok {
+			continue
 		}
+
+		result_list, ok := result[lnk.Name]
+		if result_list == nil {
+			result_list = []*Item{}
+		}
+
+		wrapped_item := &Item{
+			conn: i.conn,
+			data: ver,
+		}
+
+		result_list = append(result_list, wrapped_item)
+		result[lnk.Name] = result_list
 	}
 	return result, nil
 }
 
 func (i *Item) GetLinkedByName(name string) ([]*Item, error) {
-	return i.getLinkedItems(name)
+	found, err := i.getLinkedItems(name)
+	if err != nil {
+		return nil, err
+	}
+	return found[name], nil
 }
 
-func (i *Item) GetLinked() ([]*Item, error) {
+func (i *Item) GetLinked() (map[string][]*Item, error) {
 	return i.getLinkedItems("")
 }
 

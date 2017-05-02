@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	FACET_COLLECTION = "collection"
-	FACET_ITEM_TYPE = "itemtype"
-	FACET_ITEM_VARIANT = "variant"
+	FacetCollection = "collection"
+	FacetItemType = "itemtype"
+	FacetItemVariant = "variant"
 )
 
 type wysteriaClient struct {

@@ -44,8 +44,8 @@ type WysteriaServer struct {
 }
 
 var (
-	reserved_item_facets = []string{"collection"}
-	reserved_ver_facets = []string{"collection", "itemtype", "variant"}
+	reservedItemFacets = []string{"collection"}
+	reservedVerFacets = []string{"collection", "itemtype", "variant"}
 )
 
 // Update facets on the version with the given ID
@@ -61,7 +61,7 @@ func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string
 
 	version := vers[0]
 	for key, value := range update {
-		if ListContains(strings.ToLower(key), reserved_ver_facets) {
+		if ListContains(strings.ToLower(key), reservedVerFacets) {
 			continue
 		}
 		version.Facets[key] = value
@@ -87,7 +87,7 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 
 	item := vers[0]
 	for key, value := range update {
-		if ListContains(strings.ToLower(key), reserved_item_facets) {
+		if ListContains(strings.ToLower(key), reservedItemFacets) {
 			continue
 		}
 		item.Facets[key] = value
@@ -290,6 +290,7 @@ func (s *WysteriaServer) DeleteVersion(id string) error {
 	go func() {
 		// kick off a routine to kill links that mention this
 		linked, err := s.searchbase.QueryLink(0, 0, linkedTo(id)...)
+		log.Println("Delete version", id, linked)
 		if err == nil {
 			s.searchbase.DeleteLink(linked...)
 			s.database.DeleteLink(linked...)

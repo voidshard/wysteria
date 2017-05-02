@@ -290,7 +290,6 @@ func (s *WysteriaServer) DeleteVersion(id string) error {
 	go func() {
 		// kick off a routine to kill links that mention this
 		linked, err := s.searchbase.QueryLink(0, 0, linkedTo(id)...)
-		log.Println("Delete version", id, linked)
 		if err == nil {
 			s.searchbase.DeleteLink(linked...)
 			s.database.DeleteLink(linked...)

@@ -8,23 +8,23 @@ import (
 )
 
 const (
-	default_server_config = "wysteria-server.ini"
-	default_client_config = "wysteria-client.ini"
-	default_server_envvar = "WYSTERIA_SERVER_INI"
-	default_client_envvar = "WYSTERIA_CLIENT_INI"
+	defaultServerConfig = "wysteria-server.ini"
+	defaultClientConfig = "wysteria-client.ini"
+	defaultServerEnvvar = "WYSTERIA_SERVER_INI"
+	defaultClientEnvvar = "WYSTERIA_CLIENT_INI"
 )
 
 func ChooseServerConfig() (string, error) {
 	return chooseConfig(
-		default_server_config,
-		os.Getenv(default_server_envvar),
+		defaultServerConfig,
+		os.Getenv(defaultServerEnvvar),
 	)
 }
 
 func ChooseClientConfig() (string, error) {
 	return chooseConfig(
-		default_client_config,
-		os.Getenv(default_client_envvar),
+		defaultClientConfig,
+		os.Getenv(defaultClientEnvvar),
 	)
 }
 

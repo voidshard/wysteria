@@ -330,10 +330,35 @@ func (b *boltDb) generic_delete(bucket []byte, ids ...string) error {
 }
 
 func (b *boltDb) DeleteCollection(ids ...string) error {
+	collections, err := b.RetrieveCollection(ids...)
+	if err != nil {
+		return  err
+	}
+
+	for _, collection := range collections {
+		collision_key := []byte(fmt.Sprintf("collection:%s", collection.Name))
+		return b.db.Update(func(tx *bolt.Tx) error {
+			return tx.Bucket(bucket_collisions).Delete(collision_key)
+		})
+	}
+
 	return b.generic_delete(bucket_collection, ids...)
 }
 
 func (b *boltDb) DeleteItem(ids ...string) error {
+	items, err := b.RetrieveItem(ids...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		collision_key := []byte(fmt.Sprintf("item:%s:%s:%s", item.Parent, item.ItemType, item.Variant))
+
+		return b.db.Update(func(tx *bolt.Tx) error {
+			return tx.Bucket(bucket_collisions).Delete(collision_key)
+		})
+	}
+
 	return b.generic_delete(bucket_item, ids...)
 }
 

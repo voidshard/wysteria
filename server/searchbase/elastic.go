@@ -218,7 +218,7 @@ func elasticTermsLink(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 		q = append(q, termQuery("Src", qd.LinkSrc))
 	}
 	if qd.LinkDst != "" {
-		q = append(q, termQuery("Dest", qd.LinkDst))
+		q = append(q, termQuery("Dst", qd.LinkDst))
 	}
 	return q
 }

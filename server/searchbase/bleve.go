@@ -208,13 +208,17 @@ func toLinkQueryString(desc *wyc.QueryDesc) string {
 		sq = append(sq, fmt.Sprintf("+Src:%s", desc.LinkSrc))
 	}
 	if desc.LinkDst != "" {
-		sq = append(sq, fmt.Sprintf("+Dest:%s", desc.LinkDst))
+		sq = append(sq, fmt.Sprintf("+Dst:%s", desc.LinkDst))
 	}
 	return strings.Join(sq, " ")
 }
 
 func genericQuery(limit, from int, index bleve.Index, convert func(desc *wyc.QueryDesc) string, queries ...*wyc.QueryDesc) ([]string, error) {
 	// ToDo: There is probably a smarter way to do this as a single query with limit / page
+
+	if len(queries) < 1 {
+		return nil, nil
+	}
 
 	var result *bleve.SearchResult
 	for _, query := range queries {

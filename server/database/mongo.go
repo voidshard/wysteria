@@ -256,6 +256,21 @@ func (e *mongoEndpoint) DeleteCollection(ids ...string) error {
 }
 
 func (e *mongoEndpoint) DeleteItem(ids ...string) error {
+	items, err := e.RetrieveItem(ids...)
+	if err != nil {
+		return err
+	}
+
+	counter_col := e.getCollection(counters_collection)
+	publish_col := e.getCollection(published_collection)
+	for _, item := range items {
+		key := fmt.Sprintf("%s:%s:%s:%s", table_item, item.Parent, item.ItemType, item.Variant)
+
+		counter_col.RemoveAll(bson.M{"CounterFor": key})
+		counter_col.RemoveAll(bson.M{"CounterFor": item.Id})
+		publish_col.RemoveAll(bson.M{"Item": item.Id})
+	}
+
 	return e.delete_by_id(table_item, ids...)
 }
 
@@ -305,11 +320,12 @@ func (e *mongoEndpoint) delete_by_id(col string, sids ...string) (err error) {
 	}
 
 	collection := e.getCollection(col)
-	return collection.Remove(bson.M{
+	_, err = collection.RemoveAll(bson.M{
 		"_id": bson.M{
 			"$in": ids,
 		},
 	})
+	return err
 }
 
 func (e *mongoEndpoint) update(col, sid string, data interface{}) (err error) {

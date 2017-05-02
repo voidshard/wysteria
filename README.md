@@ -167,6 +167,12 @@ That is, this search will return all items from any collection(s) that have eith
 - item type of "b"
 
 
+## Clients
+
+Python 2.7
+    https://github.com/voidshard/pywysteria (implements nats.io middleware)
+
+
 ## Notes
 
 - There will be a delay between when something is created in wysteria, and when it is returnable via a search. This delay should be measured in seconds at most, depending on the 'searchbase' being used. It's possible that different searchbase implementations will overcome this in the future

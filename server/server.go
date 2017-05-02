@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"strings"
 )
 
 // Our main server struct
@@ -42,6 +43,11 @@ type WysteriaServer struct {
 	middleware_server wcm.EndpointServer
 }
 
+var (
+	reserved_item_facets = []string{"collection"}
+	reserved_ver_facets = []string{"collection", "itemtype", "variant"}
+)
+
 // Update facets on the version with the given ID
 //
 func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string) error {
@@ -55,6 +61,9 @@ func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string
 
 	version := vers[0]
 	for key, value := range update {
+		if ListContains(strings.ToLower(key), reserved_ver_facets) {
+			continue
+		}
 		version.Facets[key] = value
 	}
 
@@ -78,6 +87,9 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 
 	item := vers[0]
 	for key, value := range update {
+		if ListContains(strings.ToLower(key), reserved_item_facets) {
+			continue
+		}
 		item.Facets[key] = value
 	}
 
@@ -250,7 +262,6 @@ func (s *WysteriaServer) DeleteItem(id string) error {
 			s.searchbase.DeleteLink(linked...)
 			s.database.DeleteLink(linked...)
 		}
-
 	}()
 
 	go func() {
@@ -283,7 +294,6 @@ func (s *WysteriaServer) DeleteVersion(id string) error {
 			s.searchbase.DeleteLink(linked...)
 			s.database.DeleteLink(linked...)
 		}
-
 	}()
 
 	go func() {

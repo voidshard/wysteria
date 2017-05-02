@@ -149,18 +149,18 @@ searchObj.ItemType("forest").ItemVariant("yew01").HasFacets(map[string]string{"f
 ```
 When you're ready to actually get the results you can call
 ```
-items, _ := search.Items()  # return all matching 'item' objects
+items, _ := search.FindItems()  # return all matching 'item' objects
 ```
 Equally, you can request any of the other wysteria types we've mentioned above, 
 ```
-versions, _ := search.Versions()         # return all matching 'version' objects
-resources, _ := search.Resources()   # return all matching 'resource' objects
+versions, _ := search.FindVersions()         # return all matching 'version' objects
+resources, _ := search.FindResources()   # return all matching 'resource' objects
 ```
 .. etc. Note that each of the terms added this way are joined as if by a logical "and". Also note that if the object you request doesn't have a specified search field then that field is ignored for the purposes of considering whether to return the given object. For example the 'location' field exists only on resources, but you could specify a location search parameter and then request all matching 'version' objects.
 
 Now we have the ability to search via arbitrary "I'd like an item(s) with X and Y and Z" but what about an or statement? Wysteria supports this too and it's pretty similar to the above,
 ```Go
-a_or_b_items, _ := client.Search().ItemType("a").Id("abc123").Or().ItemType("b").Items()
+a_or_b_items, _ := client.Search().ItemType("a").Id("abc123").Or().ItemType("b").FindItems()
 ```
 That is, this search will return all items from any collection(s) that have either
 - id of "abc123" and item type of "a"

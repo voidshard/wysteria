@@ -12,7 +12,7 @@ type configuration struct { // forms a universal config
 	Middleware wcm.MiddlewareSettings
 }
 
-// Key tasks of config init();
+// Takes care of loading the client config.
 //  (1) Load some form of config
 //   Load order:
 //    - local .ini file(s) if they are in the cwd

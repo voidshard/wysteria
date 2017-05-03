@@ -4,12 +4,14 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 )
 
+// Wrapper around wysteria/common Item object
 type Item struct {
 	conn     *wysteriaClient
 	data     *wyc.Item
-	fromLink *Link
 }
 
+// Get which ever Version object is considered the "published" version of this Item
+//  Note that this may not be the latest, or even be set, even if child versions exist.
 func (i *Item) GetPublished() (*Version, error) {
 	ver, err := i.conn.middleware.GetPublishedVersion(i.data.Id)
 	if err != nil {
@@ -21,18 +23,17 @@ func (i *Item) GetPublished() (*Version, error) {
 	}, nil
 }
 
-func (i *Item) Link() *Link {
-	return i.fromLink
-}
-
+// Return the ItemType of this item
 func (i *Item) Type() string {
 	return i.data.ItemType
 }
 
+// Delete this Item. Note all child Versions & their children will be deleted too.
 func (i *Item) Delete() error {
 	return i.conn.middleware.DeleteItem(i.data.Id)
 }
 
+// Link this item with a link described by 'name' to some other item.
 func (i *Item) LinkTo(name string, other *Item) error {
 	if i.Id() == other.Id() { // Prevent linking to oneself
 		return nil
@@ -47,6 +48,10 @@ func (i *Item) LinkTo(name string, other *Item) error {
 	return err
 }
 
+// Find and return all linked items for which links exist that name this as the source.
+// That is, this first finds all links for which the source Id is this Item's Id, then
+// gets all matching Items.
+// Since this would cause us to lose the link 'name' we return a map of link name -> []*Item
 func (i *Item) getLinkedItems(name string) (map[string][]*Item, error) {
 	links, err := i.conn.middleware.FindLinks(
 		[]*wyc.QueryDesc{
@@ -98,6 +103,8 @@ func (i *Item) getLinkedItems(name string) (map[string][]*Item, error) {
 	return result, nil
 }
 
+// Get all linked items (items where links exist that mention this as the source and them as the destination)
+// where the link name is the given 'name'.
 func (i *Item) GetLinkedByName(name string) ([]*Item, error) {
 	found, err := i.getLinkedItems(name)
 	if err != nil {
@@ -106,27 +113,41 @@ func (i *Item) GetLinkedByName(name string) ([]*Item, error) {
 	return found[name], nil
 }
 
+// Find and return all linked items for which links exist that name this as the source.
+// That is, this first finds all links for which the source Id is this Item's Id, then
+// gets all matching Items.
+// Since this would cause us to lose the link 'name' we return a map of link name -> []*Item
 func (i *Item) GetLinked() (map[string][]*Item, error) {
 	return i.getLinkedItems("")
 }
 
+// Return the variant string associated with this Item
 func (i *Item) Variant() string {
 	return i.data.Variant
 }
 
+// Get the facet value and a bool indicating if the value exists for the given key.
 func (i *Item) Facet(key string) (string, bool) {
 	val, ok := i.data.Facets[key]
 	return val, ok
 }
 
+// Get the Id for this Item
 func (i *Item) Id() string {
 	return i.data.Id
 }
 
+// Set all the key:value pairs given on this Item's facets.
+// Note that the server will ignore the setting of reserved facets.
 func (i *Item) SetFacets(in map[string]string) error {
 	return i.conn.middleware.UpdateItemFacets(i.data.Id, in)
 }
 
+// Create the next child version of this item, with the given facets (if any).
+// That is,
+//  - create a version whose parent is this item's id
+//  - set the reserved Facets for Collection, ItemType and ItemVariant accordingly
+//  - the server will allocate us a Version number
 func (i *Item) CreateVersion(facets map[string]string) (*Version, error) {
 	all_facets := map[string]string{}
 	if all_facets != nil {
@@ -135,12 +156,12 @@ func (i *Item) CreateVersion(facets map[string]string) (*Version, error) {
 		}
 	}
 
-	parentCol, ok := i.data.Facets["collection"]
+	parentCol, ok := i.data.Facets[FacetCollection]
 	if ok {
-		all_facets["collection"] = parentCol
+		all_facets[FacetCollection] = parentCol
 	}
-	all_facets["itemtype"] = i.data.ItemType
-	all_facets["variant"] = i.data.Variant
+	all_facets[FacetItemType] = i.data.ItemType
+	all_facets[FacetItemVariant] = i.data.Variant
 
 	ver := &wyc.Version{
 		Parent: i.data.Id,
@@ -159,10 +180,12 @@ func (i *Item) CreateVersion(facets map[string]string) (*Version, error) {
 	}, nil
 }
 
+// Return the Id of the parent of this Item
 func (i *Item) Parent() string {
 	return i.data.Parent
 }
 
+// Lookup and return the parent Collection of this Item
 func (i *Item) GetParent() (*Collection, error) {
 	return i.conn.GetCollection(i.data.Parent)
 }

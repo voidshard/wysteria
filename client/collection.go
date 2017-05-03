@@ -6,27 +6,36 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 )
 
+// Wrapper class for wysteria/common Collection
 type Collection struct {
 	conn *wysteriaClient
 	data *wyc.Collection
 }
 
+// Return the name of this collection
 func (c *Collection) Name() string {
 	return c.data.Name
 }
 
+// Return the Id of this collection
 func (c *Collection) Id() string {
 	return c.data.Id
 }
 
+// Delete this collection.
+// Warning: Any & all child Items and their children will be deleted too.
 func (c *Collection) Delete() error {
 	return c.conn.middleware.DeleteCollection(c.data.Id)
 }
 
+// Get all Item objects that name this collection as "parent"
 func (c *Collection) GetItems() ([]*Item, error) {
 	return c.conn.Search().ChildOf(c.data.Id).FindItems()
 }
 
+// Create a new Item with the given fields & return it.
+//  - The item type & variant fields must be unique within a given collection.
+//  - The reserved facet FacetCollection is set as a facet automatically.
 func (c *Collection) CreateItem(itemtype, variant string, facets map[string]string) (*Item, error) {
 	all_facets := map[string]string{}
 	if facets != nil {
@@ -35,7 +44,7 @@ func (c *Collection) CreateItem(itemtype, variant string, facets map[string]stri
 		}
 	}
 
-	all_facets["collection"] = c.data.Name
+	all_facets[FacetCollection] = c.data.Name
 
 	cmn_item := &wyc.Item{
 		Parent:   c.data.Id,
@@ -56,6 +65,8 @@ func (c *Collection) CreateItem(itemtype, variant string, facets map[string]stri
 	}, nil
 }
 
+// Create a new collection & return it
+//  - The collection name is required to be unique among collections
 func (w *wysteriaClient) CreateCollection(name string) (*Collection, error) {
 	collection_id, err := w.middleware.CreateCollection(name)
 	if err != nil {
@@ -71,6 +82,8 @@ func (w *wysteriaClient) CreateCollection(name string) (*Collection, error) {
 	}, nil
 }
 
+// GetCollection is a helpful wrapper that looks for a single collection
+// with either the name or Id of the given 'identifier' and returns it if found
 func (w *wysteriaClient) GetCollection(identifier string) (*Collection, error) {
 	results, err := w.Search().Id(identifier).Or().Name(identifier).FindCollections()
 	if err != nil {

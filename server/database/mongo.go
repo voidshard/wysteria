@@ -29,7 +29,7 @@ type mongoEndpoint struct {
 	settings *DatabaseSettings
 }
 
-// Connection funcs
+// Connect to mongo db via an ssl connection
 func mongoSslConnect(settings *DatabaseSettings) (*mgo.Session, error) {
 	url := formMongoUrl(settings)
 
@@ -42,6 +42,7 @@ func mongoSslConnect(settings *DatabaseSettings) (*mgo.Session, error) {
 
 	roots.AppendCertsFromPEM(ca)
 	tlsConfig := &tls.Config{
+		// ToDo: Fix .. once I get a verifiable cert
 		InsecureSkipVerify: true,
 	}
 	tlsConfig.RootCAs = roots
@@ -55,8 +56,7 @@ func mongoSslConnect(settings *DatabaseSettings) (*mgo.Session, error) {
 	return mgo.DialWithInfo(dialInfo)
 }
 
-// Connect function to be used in func Connect (database.go)
-//
+// Create and return db wrapper & call connect
 func mongoConnect(settings *DatabaseSettings) (Database, error) {
 	sess := &mgo.Session{}
 	var err error
@@ -82,7 +82,6 @@ func mongoConnect(settings *DatabaseSettings) (Database, error) {
 }
 
 // Kill connection to db
-//
 func (e *mongoEndpoint) Close() error {
 	e.session.Close()
 	return nil
@@ -98,6 +97,7 @@ type counter struct {
 	Count      int32  `json:"Count"`
 }
 
+// Set the version with the given Id as published
 func (e *mongoEndpoint) SetPublished(version_id string) error {
 	// First, look up the version obj, because we need the parent Item ID
 	vers, err := e.RetrieveVersion(version_id)
@@ -127,6 +127,7 @@ func (e *mongoEndpoint) SetPublished(version_id string) error {
 	return err
 }
 
+// Get the published versino for the given item Id
 func (e *mongoEndpoint) GetPublished(item_id string) (*wyc.Version, error) {
 	// Look up the published version id for the given item
 	var doc bson.M
@@ -153,6 +154,7 @@ func (e *mongoEndpoint) GetPublished(item_id string) (*wyc.Version, error) {
 	return vers[0], nil
 }
 
+// Insert a collection into the db with the given Id
 func (e *mongoEndpoint) InsertCollection(id string, d *wyc.Collection) error {
 	collection := e.getCollection(tableCollection)
 
@@ -168,6 +170,7 @@ func (e *mongoEndpoint) InsertCollection(id string, d *wyc.Collection) error {
 	return e.insert(tableCollection, id, d)
 }
 
+// Insert a item into the db with the given Id
 func (e *mongoEndpoint) InsertItem(id string, d *wyc.Item) error {
 	key := fmt.Sprintf("%s:%s:%s:%s", tableItem, d.Parent, d.ItemType, d.Variant)
 
@@ -191,6 +194,7 @@ func (e *mongoEndpoint) InsertItem(id string, d *wyc.Item) error {
 	return e.insert(tableItem, id, d)
 }
 
+// Insert a version into the db with the given Id & set version number
 func (e *mongoEndpoint) InsertNextVersion(id string, d *wyc.Version) (int32, error) {
 	change := mgo.Change{
 		Update:    bson.M{"$inc": bson.M{"Count": 1}, "$set": bson.M{"CounterFor": d.Parent}},
@@ -212,49 +216,67 @@ func (e *mongoEndpoint) InsertNextVersion(id string, d *wyc.Version) (int32, err
 	d.Number = int32(doc["Count"].(int))
 	return d.Number, e.insert(tableVersion, id, d)
 }
+
+// Insert a resource into the db with the given Id
 func (e *mongoEndpoint) InsertResource(id string, d *wyc.Resource) error {
 	return e.insert(tableFileresource, id, d)
 }
 
+// Insert a link into the db with the given Id
 func (e *mongoEndpoint) InsertLink(id string, d *wyc.Link) error {
 	return e.insert(tableLink, id, d)
 }
 
-// Retrieve impl
+
+// Retrieve the collections indicated by the given Id(s)
 func (e *mongoEndpoint) RetrieveCollection(ids ...string) (res []*wyc.Collection, err error) {
 	err = e.retrieve(tableCollection, &res, ids...)
 	return
 }
 
+// Retrieve the items indicated by the given Id(s)
 func (e *mongoEndpoint) RetrieveItem(ids ...string) (res []*wyc.Item, err error) {
 	err = e.retrieve(tableItem, &res, ids...)
 	return
 }
+
+// Retrieve the versions indicated by the given Id(s)
 func (e *mongoEndpoint) RetrieveVersion(ids ...string) (res []*wyc.Version, err error) {
 	err = e.retrieve(tableVersion, &res, ids...)
 	return
 }
+
+// Retrieve the resources indicated by the given Id(s)
 func (e *mongoEndpoint) RetrieveResource(ids ...string) (res []*wyc.Resource, err error) {
 	err = e.retrieve(tableFileresource, &res, ids...)
 	return
 }
+
+// Retrieve the links indicated by the given Id(s)
 func (e *mongoEndpoint) RetrieveLink(ids ...string) (res []*wyc.Link, err error) {
 	err = e.retrieve(tableLink, &res, ids...)
 	return
 }
 
-// Update impl
+
+// Update the facets of the item with the given Id
 func (e *mongoEndpoint) UpdateItem(id string, d *wyc.Item) error {
 	return e.update(tableItem, id, d)
 }
+
+// Update the facets of the version with the given Id
 func (e *mongoEndpoint) UpdateVersion(id string, d *wyc.Version) error {
 	return e.update(tableVersion, id, d)
 }
 
+
+// Delete collections matching given Id(s)
 func (e *mongoEndpoint) DeleteCollection(ids ...string) error {
 	return e.deleteById(tableCollection, ids...)
 }
 
+// Delete items matching given Id(s)
+//  Also delete unique constraint & publish data
 func (e *mongoEndpoint) DeleteItem(ids ...string) error {
 	items, err := e.RetrieveItem(ids...)
 	if err != nil {
@@ -274,30 +296,40 @@ func (e *mongoEndpoint) DeleteItem(ids ...string) error {
 	return e.deleteById(tableItem, ids...)
 }
 
+// Delete versions matching given Id(s)
 func (e *mongoEndpoint) DeleteVersion(ids ...string) error {
 	return e.deleteById(tableVersion, ids...)
 }
 
+// Delete resources matching given Id(s)
 func (e *mongoEndpoint) DeleteResource(ids ...string) error {
 	return e.deleteById(tableFileresource, ids...)
 }
 
+// Delete links matching given Id(s)
 func (e *mongoEndpoint) DeleteLink(ids ...string) error {
 	return e.deleteById(tableLink, ids...)
 }
 
-// Util funcs
+
+// Generic insert of some document into a named column with the given id
 func (e *mongoEndpoint) insert(col string, sid string, data interface{}) error {
+	// First, we need to format the Id as a bson
+	// ToDo: Look at generic-izing the setting / creation of Ids
 	err := bsonIdCheck(sid)
 	if err != nil {
 		return err
 	}
 
+	// get the given collection
 	collection := e.getCollection(col)
+
+	// upsert our document into mongo, setting the id as desired
 	_, err = collection.Upsert(bson.M{"_id": bson.ObjectIdHex(sid)}, data)
 	return err
 }
 
+// Generic retrieve doc(s) by Id(s) from the named database collection
 func (e *mongoEndpoint) retrieve(col string, out interface{}, sids ...string) (err error) {
 	ids, err := toBsonIds(sids...)
 	if err != nil {
@@ -313,6 +345,7 @@ func (e *mongoEndpoint) retrieve(col string, out interface{}, sids ...string) (e
 	return
 }
 
+// Generic delete all from the named collection by Id(s)
 func (e *mongoEndpoint) deleteById(col string, sids ...string) (err error) {
 	ids, err := toBsonIds(sids...)
 	if err != nil {
@@ -328,6 +361,7 @@ func (e *mongoEndpoint) deleteById(col string, sids ...string) (err error) {
 	return err
 }
 
+// Generic update document from the named collection with the given Id
 func (e *mongoEndpoint) update(col, sid string, data interface{}) (err error) {
 	err = bsonIdCheck(sid)
 	if err != nil {
@@ -338,6 +372,7 @@ func (e *mongoEndpoint) update(col, sid string, data interface{}) (err error) {
 	return collection.UpdateId(bson.ObjectIdHex(sid), data)
 }
 
+// Convert Ids of type string (default) into our mongo format (bson.ObjectId)
 func toBsonIds(sids ...string) ([]bson.ObjectId, error) {
 	ids := []bson.ObjectId{}
 	for _, sid := range sids {
@@ -350,6 +385,7 @@ func toBsonIds(sids ...string) ([]bson.ObjectId, error) {
 	return ids, nil
 }
 
+// Form the mongo connection url given the database settings
 func formMongoUrl(settings *DatabaseSettings) string {
 	url := fmt.Sprintf("%s://", urlPrefix)
 	if settings.User != "" {
@@ -362,6 +398,7 @@ func formMongoUrl(settings *DatabaseSettings) string {
 	return url + settings.Host + ":" + strconv.Itoa(settings.Port) + "/" + settings.Database
 }
 
+// Check if a given Id in it's default string format is a valid mongo bson.ObjectId
 func bsonIdCheck(sid string) error {
 	if bson.IsObjectIdHex(sid) {
 		return nil
@@ -370,6 +407,7 @@ func bsonIdCheck(sid string) error {
 	return errors.New(fmt.Sprintf("Invalid ID: %s", sid))
 }
 
+// Get named collection from the mongo database
 func (e *mongoEndpoint) getCollection(name string) *mgo.Collection {
 	return e.db.C(name)
 }

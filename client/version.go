@@ -130,7 +130,7 @@ func (i *Version) LinkTo(name string, other *Version) error {
 }
 
 // Mark this Version as the published version.
-// An item can only have one 'publised' version at a time.
+// An item can only have one 'published' version at a time.
 func (i *Version) Publish() error {
 	return i.conn.middleware.PublishVersion(i.data.Id)
 }

@@ -4213,23 +4213,8 @@ func (mj *UpdateFacetsReply) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{"Id":`)
-	fflib.WriteJsonString(buf, string(mj.Id))
-	buf.WriteString(`,"Error":`)
+	buf.WriteString(`{"Error":`)
 	fflib.WriteJsonString(buf, string(mj.Error))
-	if mj.Facets == nil {
-		buf.WriteString(`,"Facets":null`)
-	} else {
-		buf.WriteString(`,"Facets":{ `)
-		for key, value := range mj.Facets {
-			fflib.WriteJsonString(buf, key)
-			buf.WriteString(`:`)
-			fflib.WriteJsonString(buf, string(value))
-			buf.WriteByte(',')
-		}
-		buf.Rewind(1)
-		buf.WriteByte('}')
-	}
 	buf.WriteByte('}')
 	return nil
 }
@@ -4238,18 +4223,10 @@ const (
 	ffj_t_UpdateFacetsReplybase = iota
 	ffj_t_UpdateFacetsReplyno_such_key
 
-	ffj_t_UpdateFacetsReply_Id
-
 	ffj_t_UpdateFacetsReply_Error
-
-	ffj_t_UpdateFacetsReply_Facets
 )
 
-var ffj_key_UpdateFacetsReply_Id = []byte("Id")
-
 var ffj_key_UpdateFacetsReply_Error = []byte("Error")
-
-var ffj_key_UpdateFacetsReply_Facets = []byte("Facets")
 
 func (uj *UpdateFacetsReply) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -4318,38 +4295,10 @@ mainparse:
 						goto mainparse
 					}
 
-				case 'F':
-
-					if bytes.Equal(ffj_key_UpdateFacetsReply_Facets, kn) {
-						currentKey = ffj_t_UpdateFacetsReply_Facets
-						state = fflib.FFParse_want_colon
-						goto mainparse
-					}
-
-				case 'I':
-
-					if bytes.Equal(ffj_key_UpdateFacetsReply_Id, kn) {
-						currentKey = ffj_t_UpdateFacetsReply_Id
-						state = fflib.FFParse_want_colon
-						goto mainparse
-					}
-
-				}
-
-				if fflib.EqualFoldRight(ffj_key_UpdateFacetsReply_Facets, kn) {
-					currentKey = ffj_t_UpdateFacetsReply_Facets
-					state = fflib.FFParse_want_colon
-					goto mainparse
 				}
 
 				if fflib.SimpleLetterEqualFold(ffj_key_UpdateFacetsReply_Error, kn) {
 					currentKey = ffj_t_UpdateFacetsReply_Error
-					state = fflib.FFParse_want_colon
-					goto mainparse
-				}
-
-				if fflib.SimpleLetterEqualFold(ffj_key_UpdateFacetsReply_Id, kn) {
-					currentKey = ffj_t_UpdateFacetsReply_Id
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -4371,14 +4320,8 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_UpdateFacetsReply_Id:
-					goto handle_Id
-
 				case ffj_t_UpdateFacetsReply_Error:
 					goto handle_Error
-
-				case ffj_t_UpdateFacetsReply_Facets:
-					goto handle_Facets
 
 				case ffj_t_UpdateFacetsReplyno_such_key:
 					err = fs.SkipField(tok)
@@ -4393,32 +4336,6 @@ mainparse:
 			}
 		}
 	}
-
-handle_Id:
-
-	/* handler: uj.Id type=string kind=string quoted=false*/
-
-	{
-
-		{
-			if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
-				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
-			}
-		}
-
-		if tok == fflib.FFTok_null {
-
-		} else {
-
-			outBuf := fs.Output.Bytes()
-
-			uj.Id = string(string(outBuf))
-
-		}
-	}
-
-	state = fflib.FFParse_after_value
-	goto mainparse
 
 handle_Error:
 
@@ -4439,111 +4356,6 @@ handle_Error:
 			outBuf := fs.Output.Bytes()
 
 			uj.Error = string(string(outBuf))
-
-		}
-	}
-
-	state = fflib.FFParse_after_value
-	goto mainparse
-
-handle_Facets:
-
-	/* handler: uj.Facets type=map[string]string kind=map quoted=false*/
-
-	{
-
-		{
-			if tok != fflib.FFTok_left_bracket && tok != fflib.FFTok_null {
-				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
-			}
-		}
-
-		if tok == fflib.FFTok_null {
-			uj.Facets = nil
-		} else {
-
-			uj.Facets = make(map[string]string, 0)
-
-			wantVal := true
-
-			for {
-
-				var k string
-
-				var tmp_uj__Facets string
-
-				tok = fs.Scan()
-				if tok == fflib.FFTok_error {
-					goto tokerror
-				}
-				if tok == fflib.FFTok_right_bracket {
-					break
-				}
-
-				if tok == fflib.FFTok_comma {
-					if wantVal == true {
-						// TODO(pquerna): this isn't an ideal error message, this handles
-						// things like [,,,] as an array value.
-						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
-					}
-					continue
-				} else {
-					wantVal = true
-				}
-
-				/* handler: k type=string kind=string quoted=false*/
-
-				{
-
-					{
-						if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
-							return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
-						}
-					}
-
-					if tok == fflib.FFTok_null {
-
-					} else {
-
-						outBuf := fs.Output.Bytes()
-
-						k = string(string(outBuf))
-
-					}
-				}
-
-				// Expect ':' after key
-				tok = fs.Scan()
-				if tok != fflib.FFTok_colon {
-					return fs.WrapErr(fmt.Errorf("wanted colon token, but got token: %v", tok))
-				}
-
-				tok = fs.Scan()
-				/* handler: tmp_uj__Facets type=string kind=string quoted=false*/
-
-				{
-
-					{
-						if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
-							return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
-						}
-					}
-
-					if tok == fflib.FFTok_null {
-
-					} else {
-
-						outBuf := fs.Output.Bytes()
-
-						tmp_uj__Facets = string(string(outBuf))
-
-					}
-				}
-
-				uj.Facets[k] = tmp_uj__Facets
-
-				wantVal = false
-			}
 
 		}
 	}

@@ -1,3 +1,10 @@
+/*
+The gRPC protocol here is implemented mostly for local tests and as an example of implementing custom middleware(s)
+into Wysteria. It's my suspicion that Nats.io is better in every way :P
+
+Still, this does have the benefit of protobuf writing most of the code for us ..
+*/
+
 package middleware
 
 import (
@@ -11,17 +18,20 @@ import (
 )
 
 var (
+	// These are 'Null' answers used when we're send an error message and shouldn't be written to ..
 	nullWrpcId       = &wrpc.Id{Id: ""}
 	nullWrpcIdAndNum = &wrpc.IdAndNum{Id: "", Version: 0}
 	nullWrpcText     = &wrpc.Text{Text: ""}
 )
 
+// Our wrapper client around the auto generated protobuf client to provide nicer interaction
 type grpcClient struct {
 	config string
 	conn   *grpc.ClientConn
 	client wrpc.WysteriaGrpcClient
 }
 
+// Create a new client & connect to the remote RPC server
 func (c *grpcClient) Connect(config string) error {
 	if config == "" {
 		config = "localhost:50051"
@@ -36,6 +46,7 @@ func (c *grpcClient) Connect(config string) error {
 	return nil
 }
 
+// Close connection(s) to the server
 func (c *grpcClient) Close() error {
 	if c.conn == nil {
 		return nil
@@ -43,6 +54,8 @@ func (c *grpcClient) Close() error {
 	return c.conn.Close()
 }
 
+// Call the server side CreateCollection func with the given 'name'
+// That is, create a new Collection with the name given
 func (c *grpcClient) CreateCollection(name string) (string, error) {
 	result, err := c.client.CreateCollection(
 		context.Background(),
@@ -57,6 +70,7 @@ func (c *grpcClient) CreateCollection(name string) (string, error) {
 	return result.Id, nil
 }
 
+// util func to convert a wysteria.Item (native) into a wrpc.Item (middleware)
 func convWItem(in *wyc.Item) *wrpc.Item {
 	return &wrpc.Item{
 		Id:       in.Id,
@@ -67,6 +81,7 @@ func convWItem(in *wyc.Item) *wrpc.Item {
 	}
 }
 
+// Create a new Item, based on the given Item
 func (c *grpcClient) CreateItem(in *wyc.Item) (string, error) {
 	result, err := c.client.CreateItem(
 		context.Background(),
@@ -82,6 +97,7 @@ func (c *grpcClient) CreateItem(in *wyc.Item) (string, error) {
 	return result.Id, nil
 }
 
+// Util func to convert wysteria native Version obj to an rpc Version
 func convWVersion(in *wyc.Version) *wrpc.Version {
 	return &wrpc.Version{
 		Id:     in.Id,
@@ -91,6 +107,7 @@ func convWVersion(in *wyc.Version) *wrpc.Version {
 	}
 }
 
+// Create a new Version based on the given input
 func (c *grpcClient) CreateVersion(in *wyc.Version) (string, int32, error) {
 	result, err := c.client.CreateVersion(
 		context.Background(),
@@ -106,6 +123,7 @@ func (c *grpcClient) CreateVersion(in *wyc.Version) (string, int32, error) {
 	return result.Id, result.Version, nil
 }
 
+// Util func to convert wysteria native Resource obj into an rpc Resource obj
 func convWResource(in *wyc.Resource) *wrpc.Resource {
 	return &wrpc.Resource{
 		Id:           in.Id,
@@ -116,6 +134,7 @@ func convWResource(in *wyc.Resource) *wrpc.Resource {
 	}
 }
 
+// Create a new Resource based on the given input
 func (c *grpcClient) CreateResource(in *wyc.Resource) (string, error) {
 	result, err := c.client.CreateResource(
 		context.Background(),
@@ -131,6 +150,7 @@ func (c *grpcClient) CreateResource(in *wyc.Resource) (string, error) {
 	return result.Id, nil
 }
 
+// Util to convert wysteria native Link obj to rpc Link obj
 func convWLink(in *wyc.Link) *wrpc.Link {
 	return &wrpc.Link{
 		Id:   in.Id,
@@ -140,6 +160,7 @@ func convWLink(in *wyc.Link) *wrpc.Link {
 	}
 }
 
+// Create a new Link based on the given input
 func (c *grpcClient) CreateLink(in *wyc.Link) (string, error) {
 	result, err := c.client.CreateLink(
 		context.Background(),
@@ -155,6 +176,7 @@ func (c *grpcClient) CreateLink(in *wyc.Link) (string, error) {
 	return result.Id, nil
 }
 
+// Util func that calls some server side delete function, passing in the Id and returning the error
 func clientCallDelete(delete_id string, call func(ctx context.Context, in *wrpc.Id, opts ...grpc.CallOption) (*wrpc.Text, error)) error {
 	result, err := call(context.Background(), &wrpc.Id{Id: delete_id})
 	if err != nil {
@@ -166,22 +188,27 @@ func clientCallDelete(delete_id string, call func(ctx context.Context, in *wrpc.
 	return nil
 }
 
+// Delete a Collection, given it's Id
 func (c *grpcClient) DeleteCollection(in string) error {
 	return clientCallDelete(in, c.client.DeleteCollection)
 }
 
+// Delete a Item, given it's Id
 func (c *grpcClient) DeleteItem(in string) error {
 	return clientCallDelete(in, c.client.DeleteItem)
 }
 
+// Delete a Version, given it's Id
 func (c *grpcClient) DeleteVersion(in string) error {
 	return clientCallDelete(in, c.client.DeleteVersion)
 }
 
+// Delete a Resource, given it's Id
 func (c *grpcClient) DeleteResource(in string) error {
 	return clientCallDelete(in, c.client.DeleteResource)
 }
 
+// Util func to convert wysteria native QueryDesc objects to rpc QueryDesc objects
 func convWQueryDescs(in ...*wyc.QueryDesc) *wrpc.QueryDescs {
 	result := []*wrpc.QueryDesc{}
 	for _, q := range in {
@@ -205,6 +232,7 @@ func convWQueryDescs(in ...*wyc.QueryDesc) *wrpc.QueryDescs {
 	return &wrpc.QueryDescs{All: result}
 }
 
+// Util func to convert rpc Collection objs to native wysteria Collection objects
 func convRCollections(in ...*wrpc.Collection) []*wyc.Collection {
 	result := []*wyc.Collection{}
 	for _, i := range in {
@@ -216,6 +244,7 @@ func convRCollections(in ...*wrpc.Collection) []*wyc.Collection {
 	return result
 }
 
+// Given the input queries, find & return all matching Collections
 func (c *grpcClient) FindCollections(in []*wyc.QueryDesc) ([]*wyc.Collection, error) {
 	result, err := c.client.FindCollections(context.Background(), convWQueryDescs(in...))
 	if err != nil {
@@ -228,6 +257,7 @@ func (c *grpcClient) FindCollections(in []*wyc.QueryDesc) ([]*wyc.Collection, er
 	return convRCollections(result.All...), nil
 }
 
+// Util func to convert rpc Item objs to native wysteria Item objects
 func convRItems(in ...*wrpc.Item) []*wyc.Item {
 	result := []*wyc.Item{}
 	for _, i := range in {
@@ -242,6 +272,7 @@ func convRItems(in ...*wrpc.Item) []*wyc.Item {
 	return result
 }
 
+// Given the input queries, find & return all matching Items
 func (c *grpcClient) FindItems(in []*wyc.QueryDesc) ([]*wyc.Item, error) {
 	result, err := c.client.FindItems(context.Background(), convWQueryDescs(in...))
 	if err != nil {
@@ -254,6 +285,7 @@ func (c *grpcClient) FindItems(in []*wyc.QueryDesc) ([]*wyc.Item, error) {
 	return convRItems(result.All...), nil
 }
 
+// Util func to convert rpc Version objs to native wysteria Version objects
 func convRVersions(in ...*wrpc.Version) []*wyc.Version {
 	result := []*wyc.Version{}
 	for _, i := range in {
@@ -267,6 +299,7 @@ func convRVersions(in ...*wrpc.Version) []*wyc.Version {
 	return result
 }
 
+// Given the input queries, find & return all matching Versions
 func (c *grpcClient) FindVersions(in []*wyc.QueryDesc) ([]*wyc.Version, error) {
 	result, err := c.client.FindVersions(context.Background(), convWQueryDescs(in...))
 	if err != nil {
@@ -279,6 +312,7 @@ func (c *grpcClient) FindVersions(in []*wyc.QueryDesc) ([]*wyc.Version, error) {
 	return convRVersions(result.All...), nil
 }
 
+// Util func to convert rpc Resource objs to native wysteria Resource objects
 func convRResources(in ...*wrpc.Resource) []*wyc.Resource {
 	result := []*wyc.Resource{}
 	for _, i := range in {
@@ -293,6 +327,7 @@ func convRResources(in ...*wrpc.Resource) []*wyc.Resource {
 	return result
 }
 
+// Given the input queries, find & return all matching Resource
 func (c *grpcClient) FindResources(in []*wyc.QueryDesc) ([]*wyc.Resource, error) {
 	result, err := c.client.FindResources(context.Background(), convWQueryDescs(in...))
 	if err != nil {
@@ -305,6 +340,7 @@ func (c *grpcClient) FindResources(in []*wyc.QueryDesc) ([]*wyc.Resource, error)
 	return convRResources(result.All...), nil
 }
 
+// Util func to convert rpc Link objs to native wysteria Link objects
 func convRLinks(in ...*wrpc.Link) []*wyc.Link {
 	result := []*wyc.Link{}
 	for _, i := range in {
@@ -318,6 +354,7 @@ func convRLinks(in ...*wrpc.Link) []*wyc.Link {
 	return result
 }
 
+// Given the input queries, find & return all matching Link
 func (c *grpcClient) FindLinks(in []*wyc.QueryDesc) ([]*wyc.Link, error) {
 	result, err := c.client.FindLinks(context.Background(), convWQueryDescs(in...))
 	if err != nil {
@@ -330,6 +367,7 @@ func (c *grpcClient) FindLinks(in []*wyc.QueryDesc) ([]*wyc.Link, error) {
 	return convRLinks(result.All...), nil
 }
 
+// Util func to convert rpc Version objs to native wysteria Version objects
 func convRVersion(in *wrpc.Version) *wyc.Version {
 	return &wyc.Version{
 		Id:     in.Id,
@@ -339,6 +377,7 @@ func convRVersion(in *wrpc.Version) *wyc.Version {
 	}
 }
 
+// Given the Id of the parent Item, return the published Version
 func (c *grpcClient) GetPublishedVersion(in string) (*wyc.Version, error) {
 	result, err := c.client.GetPublishedVersion(context.Background(), &wrpc.Id{Id: in})
 	if err != nil {
@@ -351,6 +390,7 @@ func (c *grpcClient) GetPublishedVersion(in string) (*wyc.Version, error) {
 	return convRVersion(result), nil
 }
 
+// Mark the Version with the given Id as the current 'published' one
 func (c *grpcClient) PublishVersion(in string) error {
 	result, err := c.client.PublishVersion(context.Background(), &wrpc.Id{Id: in})
 	if err != nil {
@@ -363,6 +403,7 @@ func (c *grpcClient) PublishVersion(in string) error {
 	return nil
 }
 
+// Util func to call some update facets function and return the error
 func callUpdate(id string, facets map[string]string, call func(context.Context, *wrpc.IdAndDict, ...grpc.CallOption) (*wrpc.Text, error)) error {
 	result, err := call(context.Background(), &wrpc.IdAndDict{Id: id, Facets: facets})
 	if err != nil {
@@ -374,18 +415,22 @@ func callUpdate(id string, facets map[string]string, call func(context.Context, 
 	return nil
 }
 
+// Update the facets of the Version with the given Id with the given facets
 func (c *grpcClient) UpdateVersionFacets(id string, to_update map[string]string) error {
 	return callUpdate(id, to_update, c.client.UpdateVersionFacets)
 }
 
+// Update the facets of the Item with the given Id with the given facets
 func (c *grpcClient) UpdateItemFacets(id string, to_update map[string]string) error {
 	return callUpdate(id, to_update, c.client.UpdateItemFacets)
 }
 
+// Create a new gRPC client and return it
 func newGrpcClient() EndpointClient {
 	return &grpcClient{}
 }
 
+// Wrapper around the raw machine generated protobuf rpc server
 type grpcServer struct {
 	conn    net.Listener
 	config  string
@@ -393,6 +438,7 @@ type grpcServer struct {
 	handler ServerHandler
 }
 
+// Create a new gRPC server
 func newGrpcServer() EndpointServer {
 	return &grpcServer{}
 }
@@ -446,6 +492,7 @@ func (s *grpcServer) ListenAndServe(config string, handler ServerHandler) error 
 	return rpc_server.Serve(s.conn)
 }
 
+// Close any and all connections
 func (s *grpcServer) Shutdown() error {
 	if s.server == nil {
 		return nil
@@ -453,6 +500,7 @@ func (s *grpcServer) Shutdown() error {
 	return s.conn.Close()
 }
 
+// Given the Id and Facets to update, call the server side UpdateVersionFacets func, return result
 func (s *grpcServer) UpdateVersionFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
 	err := s.handler.UpdateVersionFacets(in.Id, in.Facets)
 	if err != nil {
@@ -461,6 +509,7 @@ func (s *grpcServer) UpdateVersionFacets(_ context.Context, in *wrpc.IdAndDict) 
 	return nullWrpcText, nil
 }
 
+// Given the Id and Facets to update, call the server side UpdateItemFacets func, return result
 func (s *grpcServer) UpdateItemFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
 	err := s.handler.UpdateItemFacets(in.Id, in.Facets)
 	if err != nil {
@@ -469,6 +518,7 @@ func (s *grpcServer) UpdateItemFacets(_ context.Context, in *wrpc.IdAndDict) (*w
 	return nullWrpcText, nil
 }
 
+// Given the name of the collection to create, call server side CreateCollection, return result
 func (s *grpcServer) CreateCollection(_ context.Context, in *wrpc.Text) (*wrpc.Id, error) {
 	created_id, err := s.handler.CreateCollection(in.Text)
 	if err != nil {
@@ -477,6 +527,7 @@ func (s *grpcServer) CreateCollection(_ context.Context, in *wrpc.Text) (*wrpc.I
 	return &wrpc.Id{Id: created_id}, err
 }
 
+// Given base obj, call server side CreateItem, return result
 func (s *grpcServer) CreateItem(_ context.Context, in *wrpc.Item) (*wrpc.Id, error) {
 	created_id, err := s.handler.CreateItem(convRItems(in)[0])
 	if err != nil {
@@ -485,6 +536,7 @@ func (s *grpcServer) CreateItem(_ context.Context, in *wrpc.Item) (*wrpc.Id, err
 	return &wrpc.Id{Id: created_id}, err
 }
 
+// Given base obj, call server side CreateVersion, return result
 func (s *grpcServer) CreateVersion(_ context.Context, in *wrpc.Version) (*wrpc.IdAndNum, error) {
 	created_id, number, err := s.handler.CreateVersion(convRVersion(in))
 	if err != nil {
@@ -493,6 +545,7 @@ func (s *grpcServer) CreateVersion(_ context.Context, in *wrpc.Version) (*wrpc.I
 	return &wrpc.IdAndNum{Id: created_id, Version: number}, err
 }
 
+// Given base obj, call server side CreateResource, return result
 func (s *grpcServer) CreateResource(_ context.Context, in *wrpc.Resource) (*wrpc.Id, error) {
 	created_id, err := s.handler.CreateResource(convRResources(in)[0])
 	if err != nil {
@@ -501,6 +554,7 @@ func (s *grpcServer) CreateResource(_ context.Context, in *wrpc.Resource) (*wrpc
 	return &wrpc.Id{Id: created_id}, err
 }
 
+// Given base obj, call server side CreateLink, return result
 func (s *grpcServer) CreateLink(_ context.Context, in *wrpc.Link) (*wrpc.Id, error) {
 	created_id, err := s.handler.CreateLink(convRLinks(in)[0])
 	if err != nil {
@@ -509,6 +563,7 @@ func (s *grpcServer) CreateLink(_ context.Context, in *wrpc.Link) (*wrpc.Id, err
 	return &wrpc.Id{Id: created_id}, err
 }
 
+// Util func to call server side delete func passing in Id and returning error, if any
 func serverCallDelete(in string, call func(string) error) (*wrpc.Text, error) {
 	err := call(in)
 	if err != nil {
@@ -517,21 +572,27 @@ func serverCallDelete(in string, call func(string) error) (*wrpc.Text, error) {
 	return nullWrpcText, err
 }
 
+// Call server side DeleteCollection
 func (s *grpcServer) DeleteCollection(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
 	return serverCallDelete(in.Id, s.handler.DeleteCollection)
 }
 
+// Call server side DeleteItem
 func (s *grpcServer) DeleteItem(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
 	return serverCallDelete(in.Id, s.handler.DeleteItem)
 }
+
+// Call server side DeleteVersion
 func (s *grpcServer) DeleteVersion(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
 	return serverCallDelete(in.Id, s.handler.DeleteVersion)
 }
 
+// Call server side DeleteResource
 func (s *grpcServer) DeleteResource(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
 	return serverCallDelete(in.Id, s.handler.DeleteResource)
 }
 
+// Util func to convert rpc QueryDesc objects to wysteria native QueryDesc objects
 func convRQueryDescs(in ...*wrpc.QueryDesc) []*wyc.QueryDesc {
 	result := []*wyc.QueryDesc{}
 	for _, q := range in {
@@ -555,6 +616,7 @@ func convRQueryDescs(in ...*wrpc.QueryDesc) []*wyc.QueryDesc {
 	return result
 }
 
+// Util func to convert wysteria native Collection objects to rpc Collection objects
 func convWCollections(in ...*wyc.Collection) *wrpc.Collections {
 	result := []*wrpc.Collection{}
 	for _, i := range in {
@@ -571,6 +633,7 @@ func convWCollections(in ...*wyc.Collection) *wrpc.Collections {
 	}
 }
 
+// Call server side FindCollections passing in given query, return results
 func (s *grpcServer) FindCollections(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Collections, error) {
 	results, err := s.handler.FindCollections(convRQueryDescs(in.All...))
 	if err != nil {
@@ -579,6 +642,7 @@ func (s *grpcServer) FindCollections(_ context.Context, in *wrpc.QueryDescs) (*w
 	return convWCollections(results...), nil
 }
 
+// Call server side FindItems passing in given query, return results
 func (s *grpcServer) FindItems(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Items, error) {
 	results, err := s.handler.FindItems(convRQueryDescs(in.All...))
 	if err != nil {
@@ -591,6 +655,8 @@ func (s *grpcServer) FindItems(_ context.Context, in *wrpc.QueryDescs) (*wrpc.It
 	}
 	return res, nil
 }
+
+// Call server side FindVersions passing in given query, return results
 func (s *grpcServer) FindVersions(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Versions, error) {
 	results, err := s.handler.FindVersions(convRQueryDescs(in.All...))
 	if err != nil {
@@ -604,6 +670,7 @@ func (s *grpcServer) FindVersions(_ context.Context, in *wrpc.QueryDescs) (*wrpc
 	return res, nil
 }
 
+// Call server side FindResources passing in given query, return results
 func (s *grpcServer) FindResources(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Resources, error) {
 	results, err := s.handler.FindResources(convRQueryDescs(in.All...))
 	if err != nil {
@@ -617,6 +684,7 @@ func (s *grpcServer) FindResources(_ context.Context, in *wrpc.QueryDescs) (*wrp
 	return res, nil
 }
 
+// Call server side FindLinks passing in given query, return results
 func (s *grpcServer) FindLinks(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Links, error) {
 	results, err := s.handler.FindLinks(convRQueryDescs(in.All...))
 	if err != nil {
@@ -630,6 +698,7 @@ func (s *grpcServer) FindLinks(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Li
 	return res, nil
 }
 
+// Call server side GetPublishedVersion, pass in given Item Id and return results
 func (s *grpcServer) GetPublishedVersion(_ context.Context, in *wrpc.Id) (*wrpc.Version, error) {
 	version, err := s.handler.GetPublishedVersion(in.Id)
 	if err != nil {
@@ -638,6 +707,7 @@ func (s *grpcServer) GetPublishedVersion(_ context.Context, in *wrpc.Id) (*wrpc.
 	return convWVersion(version), err
 }
 
+// Call server side PublishVersion passing in Version id, return results
 func (s *grpcServer) PublishVersion(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
 	err := s.handler.PublishVersion(in.Id)
 	if err != nil {

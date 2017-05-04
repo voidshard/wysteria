@@ -1,3 +1,7 @@
+/*
+Provides some basic functions find & load config files.
+*/
+
 package wysteria_common
 
 import (

@@ -26,9 +26,9 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
-	"strings"
 )
 
 // Main server struct
@@ -36,6 +36,8 @@ import (
 //  middleware layer so the appropriate function calls can be routed through the logic here.
 type WysteriaServer struct {
 	GracefulShutdownTime time.Duration
+	refuseClientRequests bool
+	refustClientReason   string
 
 	settings *configuration
 
@@ -46,12 +48,17 @@ type WysteriaServer struct {
 
 var (
 	reservedItemFacets = []string{wyc.FacetCollection}
-	reservedVerFacets = []string{wyc.FacetCollection, wyc.FacetItemType, wyc.FacetItemVariant}
+	reservedVerFacets  = []string{wyc.FacetCollection, wyc.FacetItemType, wyc.FacetItemVariant}
 )
 
 // Update facets on the version with the given ID
 //
 func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string) error {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
+
 	vers, err := s.database.RetrieveVersion(id)
 	if err != nil {
 		return err
@@ -79,6 +86,11 @@ func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string
 // Update facets on the item with the given ID
 //
 func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) error {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
+
 	vers, err := s.database.RetrieveItem(id)
 	if err != nil {
 		return err
@@ -107,6 +119,11 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 //   Any ID set by the client is ignored.
 //   Will fail if name is empty or a collection with the given name already exists
 func (s *WysteriaServer) CreateCollection(name string) (string, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return "", err
+	}
+
 	if name == "" { // Check required field
 		return "", errors.New("Name required for Collection")
 	}
@@ -114,7 +131,7 @@ func (s *WysteriaServer) CreateCollection(name string) (string, error) {
 	id := NewId()
 	obj := &wyc.Collection{Name: name, Id: id}
 
-	err := s.database.InsertCollection(id, obj)
+	err = s.database.InsertCollection(id, obj)
 	if err != nil {
 		return "", err
 	}
@@ -127,6 +144,11 @@ func (s *WysteriaServer) CreateCollection(name string) (string, error) {
 //   Will fail if the parent collection already has a item with the given type & variant.
 //   Will fail is parent id, type or variant are empty.
 func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return "", err
+	}
+
 	if in.Parent == "" || in.ItemType == "" || in.Variant == "" {
 		return "", errors.New("Require Parent, ItemType, Variant to be set")
 	}
@@ -140,7 +162,7 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	in.Facets[wyc.FacetItemVariant] = in.Variant
 
 	in.Id = NewId()
-	err := s.database.InsertItem(in.Id, in)
+	err = s.database.InsertItem(in.Id, in)
 	if err != nil {
 		return "", err
 	}
@@ -152,6 +174,11 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 //   Any ID set by the client is ignored.
 //   Will fail if one of our required facets (collection, item type, item variant) isn't set.
 func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return "", 0, err
+	}
+
 	if in.Parent == "" {
 		return "", 0, errors.New("Require Parent to be set")
 	}
@@ -178,12 +205,17 @@ func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 // Will fail if the parent or location values aren't set.
 // Note we don't enforce the use of a name or resource type .. but it's recommended to use them.
 func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return "", err
+	}
+
 	if in.Parent == "" || in.Location == "" {
 		return "", errors.New("Require Parent, Location to be set")
 	}
 
 	in.Id = NewId()
-	err := s.database.InsertResource(in.Id, in)
+	err = s.database.InsertResource(in.Id, in)
 	if err != nil {
 		return "", err
 	}
@@ -195,6 +227,11 @@ func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {
 // Will fail if the source or destination fields aren't set, or if they're the same.
 // Note we don't enforce the use of a link name, but it's recommended to use one.
 func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return "", err
+	}
+
 	if in.Src == "" || in.Dst == "" {
 		return "", errors.New("Require Src, Dst to be set")
 	}
@@ -207,7 +244,7 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 
 	// We're good to create our link
 	in.Id = NewId()
-	err := s.database.InsertLink(in.Id, in)
+	err = s.database.InsertLink(in.Id, in)
 	if err != nil {
 		return "", err
 	}
@@ -228,7 +265,12 @@ func childrenOf(ids ...string) []*wyc.QueryDesc {
 // Please be aware that delete operations, especially of collections, are heavy operations that introduce a number
 // of race conditions for people still using the collection (or children of it).
 func (s *WysteriaServer) DeleteCollection(id string) error {
-	err := s.searchbase.DeleteCollection(id)
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
+
+	err = s.searchbase.DeleteCollection(id)
 	if err != nil {
 		return err
 	}
@@ -266,7 +308,12 @@ func linkedTo(ids ...string) []*wyc.QueryDesc {
 // Delete some item from the system.
 // Assuming this works, we kick off a routine to kill all of the children.
 func (s *WysteriaServer) DeleteItem(id string) error {
-	err := s.searchbase.DeleteItem(id)
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
+
+	err = s.searchbase.DeleteItem(id)
 	if err != nil {
 		return err
 	}
@@ -300,7 +347,12 @@ func (s *WysteriaServer) DeleteItem(id string) error {
 // Delete some version from the system.
 // Assuming this works, we kick off a routine to kill all of the children.
 func (s *WysteriaServer) DeleteVersion(id string) error {
-	err := s.searchbase.DeleteVersion(id)
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
+
+	err = s.searchbase.DeleteVersion(id)
 	if err != nil {
 		return err
 	}
@@ -333,7 +385,12 @@ func (s *WysteriaServer) DeleteVersion(id string) error {
 
 // Delete some resource from the system.
 func (s *WysteriaServer) DeleteResource(id string) error {
-	err := s.searchbase.DeleteResource(id)
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
+
+	err = s.searchbase.DeleteResource(id)
 	if err != nil {
 		return err
 	}
@@ -341,83 +398,157 @@ func (s *WysteriaServer) DeleteResource(id string) error {
 	return s.database.DeleteResource(id)
 }
 
+// Use searchbase to perform search, return any matching collections from database
 func (s *WysteriaServer) FindCollections(qs []*wyc.QueryDesc) ([]*wyc.Collection, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return nil, err
+	}
+
 	ids, err := s.searchbase.QueryCollection(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
+	if len(ids) < 1 {
+		return []*wyc.Collection{}, nil
+	}
 	return s.database.RetrieveCollection(ids...)
 }
 
+// Use searchbase to perform search, return any matching items from database
 func (s *WysteriaServer) FindItems(qs []*wyc.QueryDesc) ([]*wyc.Item, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return nil, err
+	}
+
 	ids, err := s.searchbase.QueryItem(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
+	if len(ids) < 1 {
+		return []*wyc.Item{}, nil
+	}
 	return s.database.RetrieveItem(ids...)
 }
 
+// Use searchbase to perform search, return any matching versions from database
 func (s *WysteriaServer) FindVersions(qs []*wyc.QueryDesc) ([]*wyc.Version, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return nil, err
+	}
+
 	ids, err := s.searchbase.QueryVersion(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
+	if len(ids) < 1 {
+		return []*wyc.Version{}, nil
+	}
 	return s.database.RetrieveVersion(ids...)
 }
 
+// Use searchbase to perform search, return any matching resources from database
 func (s *WysteriaServer) FindResources(qs []*wyc.QueryDesc) ([]*wyc.Resource, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return nil, err
+	}
+
 	ids, err := s.searchbase.QueryResource(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
+	if len(ids) < 1 {
+		return []*wyc.Resource{}, nil
+	}
 	return s.database.RetrieveResource(ids...)
 }
 
+// Use searchbase to perform search, return any matching links from database
 func (s *WysteriaServer) FindLinks(qs []*wyc.QueryDesc) ([]*wyc.Link, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return nil, err
+	}
+
 	ids, err := s.searchbase.QueryLink(0, 0, qs...)
 	if err != nil {
 		return nil, err
 	}
+	if len(ids) < 1 {
+		return []*wyc.Link{}, nil
+	}
 	return s.database.RetrieveLink(ids...)
 }
 
+// Get the published version whose parent item's id is the given item id
 func (s *WysteriaServer) PublishedVersion(item_id string) (*wyc.Version, error) {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return nil, err
+	}
 	return s.database.Published(item_id)
 }
 
+// Get the version with the given id as published
 func (s *WysteriaServer) SetPublishedVersion(version_id string) error {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
 	return s.database.SetPublished(version_id)
 }
 
+// Shutdown the main server
 func (s *WysteriaServer) Shutdown() {
-	go s.closeConnection() // send a routine to kill off connections nicely
-
-	ch := make(chan os.Signal, 2)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-
-	msg := "Shutdown request recieved, giving %s for connections to close gracefully"
-	log.Println(fmt.Sprintf(msg, s.GracefulShutdownTime))
-
-	select {
-	case <-time.After(s.GracefulShutdownTime * 2):
-		return
-	case s := <-ch:
-		log.Fatalf("Received signal %s: terminating immediately", s)
-	}
-}
-
-func (s *WysteriaServer) closeConnection() {
-	go s.middleware_server.Shutdown()
-
-	select {
-	case <-time.After(s.GracefulShutdownTime):
-		break
-	}
+	s.middleware_server.Shutdown()
 	s.database.Close()
 	s.searchbase.Close()
 }
 
+// Set if the server should serve a client request.
+func (s *WysteriaServer) setRefuseClientRequests(value bool, reason string) {
+	s.refuseClientRequests = value
+	s.refustClientReason = reason
+}
+
+// Returns an error if the server is set to not serve a request, and returns the set reason as an error.
+func (s *WysteriaServer) shouldServeRequest() error {
+	if s.refuseClientRequests {
+		return errors.New(s.refustClientReason)
+	}
+	return nil
+}
+
+// Func to handle setting up of signal catcher
+func (s *WysteriaServer) awaitSignal() {
+	// ToDo: This func doesn't seem to always catch the signal, or perhaps the OS kills it before it can run?
+	ch := make(chan os.Signal, 2)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP, syscall.SIGABRT)
+
+	sig := <-ch
+
+	msg := fmt.Sprintf("Recieved signal: %s initiating shutdown", sig.String())
+	log.Println(msg)
+	s.setRefuseClientRequests(true, msg)
+
+	select {
+	case <-time.After(s.GracefulShutdownTime):
+		break
+	case sig := <-ch:
+		log.Println("Recieved signal:", sig.String(), "shutting down")
+		break
+	}
+
+	s.Shutdown()
+	os.Exit(0)
+}
+
+// Start up the server, connect to any require remote service(s)
 func (s *WysteriaServer) Run() error {
+	go s.awaitSignal()
 	msg := "Opening %s %s %s:%d"
 
 	// [1] Connect / spin up the database

@@ -2,9 +2,12 @@ package main
 
 import (
 	"time"
+	"runtime"
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	server := WysteriaServer{
 		// Allocate 3 seconds for the server connections to be severed when shutting down
 		GracefulShutdownTime: time.Second * 3,

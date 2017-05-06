@@ -528,7 +528,7 @@ func (s *WysteriaServer) awaitSignal() {
 	ch := make(chan os.Signal, 2)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP, syscall.SIGABRT)
 
-	sig := <-ch
+	sig := <-ch // Wait for signal to be received from OS
 
 	msg := fmt.Sprintf("Recieved signal: %s initiating shutdown", sig.String())
 	log.Println(msg)

@@ -44,7 +44,7 @@ func (c *Collection) CreateItem(itemtype, variant string, facets map[string]stri
 		}
 	}
 
-	all_facets[FacetCollection] = c.data.Name
+	all_facets[wyc.FacetCollection] = c.data.Name
 
 	cmn_item := &wyc.Item{
 		Parent:   c.data.Id,

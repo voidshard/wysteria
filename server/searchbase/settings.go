@@ -8,7 +8,7 @@ const (
 	tableLink         = "link"
 )
 
-type SearchbaseSettings struct {
+type Settings struct {
 	Driver   string
 	Host     string
 	Port     int

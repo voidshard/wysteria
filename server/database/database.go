@@ -25,7 +25,7 @@ const (
 
 var (
 	// List of known drivers & the functions to start up a connection
-	connectors = map[string]func(*DatabaseSettings) (Database, error){
+	connectors = map[string]func(*Settings) (Database, error){
 		DriverMongo: mongoConnect,
 		DriverBolt:  boltConnect,
 	}
@@ -33,7 +33,7 @@ var (
 
 // Return a connect function for the given settings, or err if it can't be found
 //
-func Connect(settings *DatabaseSettings) (Database, error) {
+func Connect(settings *Settings) (Database, error) {
 	connector, ok := connectors[settings.Driver]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("Connector not found for %s", settings.Driver))
@@ -49,8 +49,8 @@ type Database interface {
 	//  - Must: Ensure at most one Version of a given Item is marked as published
 	SetPublished(string) error
 
-	// Given an Item ID, return the ID of the current Published version (if any)
-	GetPublished(string) (*wyc.Version, error)
+	// Given an Item ID, return the ID of the current PublishedVersion version (if any)
+	Published(string) (*wyc.Version, error)
 
 
 	// Insert a collection into the db with the given Id

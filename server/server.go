@@ -1,3 +1,19 @@
+/*
+'main' server module.
+
+The role of the server is simple really, we provide functions to the middleware to call when client requests arrive.
+Our functions perform some sanity checks on given data we've got from the client, then we call the correct
+searchbase / database functions and return what ever result we got, including errors.
+
+We don't bother to encode or decode data here, that's the job of the layer above us.
+
+Goals:
+- Only objects with all required fields set may be created
+- The database is the canonical source and should be updated / inserted into first, that way by the time things
+  are searchable, they are already retrievable.
+- The searchbase is where things around found in order to be retrieved, we should delete things from here first.
+*/
+
 package main
 
 import (
@@ -15,24 +31,9 @@ import (
 	"strings"
 )
 
-// Our main server struct
+// Main server struct
 //  Here we implement the middleware/ServerHandler interface so we can hand a pointer to our server to the
 //  middleware layer so the appropriate function calls can be routed through the logic here.
-//
-//  Our concerns in this layer are updating the search & database(s) and performing searches given a list
-//  of query descriptions.
-//
-//  Goals,
-//   - Only objects with valid fields may be created
-//   - The database is the canonical source and should be updated / inserted into first
-//   - The searchbase is where things around found, we should remove things from here first
-//     (if things can't be found we decrease the chance of creating dangling links).
-//   - If we're creating things, we should ensure anything they link to exists at the time as far as possible.
-//   - We can't really avoid race conditions if mass deletes are occurring, especially if someone is removing an
-//     entire collection or a large Item & children, this means we'll probably always have at least some dangling
-//     links. Probably this isn't a huge deal and can be cleaned with further scripts / tools, but we'll try as far
-//     as possible to keep things tidy.
-//
 type WysteriaServer struct {
 	GracefulShutdownTime time.Duration
 
@@ -44,8 +45,8 @@ type WysteriaServer struct {
 }
 
 var (
-	reservedItemFacets = []string{"collection"}
-	reservedVerFacets = []string{"collection", "itemtype", "variant"}
+	reservedItemFacets = []string{wyc.FacetCollection}
+	reservedVerFacets = []string{wyc.FacetCollection, wyc.FacetItemType, wyc.FacetItemVariant}
 )
 
 // Update facets on the version with the given ID
@@ -61,6 +62,7 @@ func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string
 
 	version := vers[0]
 	for key, value := range update {
+		// prevent the updating of reserved keys
 		if ListContains(strings.ToLower(key), reservedVerFacets) {
 			continue
 		}
@@ -87,6 +89,7 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 
 	item := vers[0]
 	for key, value := range update {
+		// prevent the updating of reserved keys
 		if ListContains(strings.ToLower(key), reservedItemFacets) {
 			continue
 		}
@@ -100,6 +103,9 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 	return s.searchbase.UpdateItem(id, item)
 }
 
+// Create a collection with the given name.
+//   Any ID set by the client is ignored.
+//   Will fail if name is empty or a collection with the given name already exists
 func (s *WysteriaServer) CreateCollection(name string) (string, error) {
 	if name == "" { // Check required field
 		return "", errors.New("Name required for Collection")
@@ -115,18 +121,23 @@ func (s *WysteriaServer) CreateCollection(name string) (string, error) {
 	return id, s.searchbase.InsertCollection(id, obj)
 }
 
+// Create a item based on the given item.
+//   We use the given item type, variant & facets.
+//   Any ID set by the client is ignored.
+//   Will fail if the parent collection already has a item with the given type & variant.
+//   Will fail is parent id, type or variant are empty.
 func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	if in.Parent == "" || in.ItemType == "" || in.Variant == "" {
 		return "", errors.New("Require Parent, ItemType, Variant to be set")
 	}
 
-	_, ok := in.Facets["collection"]
+	_, ok := in.Facets[wyc.FacetCollection]
 	if !ok {
-		return "", errors.New("Required facet 'collection' not set")
+		return "", errors.New(fmt.Sprintf("Required facet %s not set", wyc.FacetCollection))
 	}
 
-	in.Facets["itemtype"] = in.ItemType
-	in.Facets["variant"] = in.Variant
+	in.Facets[wyc.FacetItemType] = in.ItemType
+	in.Facets[wyc.FacetItemVariant] = in.Variant
 
 	in.Id = NewId()
 	err := s.database.InsertItem(in.Id, in)
@@ -136,22 +147,20 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	return in.Id, s.searchbase.InsertItem(in.Id, in)
 }
 
+// Create a version based on the given item.
+//   We use the given parent value.
+//   Any ID set by the client is ignored.
+//   Will fail if one of our required facets (collection, item type, item variant) isn't set.
 func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 	if in.Parent == "" {
 		return "", 0, errors.New("Require Parent to be set")
 	}
 
-	_, ok := in.Facets["collection"]
-	if !ok {
-		return "", 0, errors.New("Required facet 'collection' not set")
-	}
-	_, ok = in.Facets["itemtype"]
-	if !ok {
-		return "", 0, errors.New("Required facet 'itemtype' not set")
-	}
-	_, ok = in.Facets["variant"]
-	if !ok {
-		return "", 0, errors.New("Required facet 'variant' not set")
+	for _, facet_key := range reservedVerFacets {
+		_, ok := in.Facets[facet_key]
+		if !ok {
+			return "", 0, errors.New(fmt.Sprintf("Required facet '%s' not set", facet_key))
+		}
 	}
 
 	in.Id = NewId()
@@ -164,6 +173,10 @@ func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 	return in.Id, in.Number, s.searchbase.InsertVersion(in.Id, in)
 }
 
+// Create resource with the given base settings.
+// Any ID set by client will be ignored.
+// Will fail if the parent or location values aren't set.
+// Note we don't enforce the use of a name or resource type .. but it's recommended to use them.
 func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {
 	if in.Parent == "" || in.Location == "" {
 		return "", errors.New("Require Parent, Location to be set")
@@ -177,6 +190,10 @@ func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {
 	return in.Id, s.searchbase.InsertResource(in.Id, in)
 }
 
+// Create link with the given base settings.
+// Any ID set by client will be ignored.
+// Will fail if the source or destination fields aren't set, or if they're the same.
+// Note we don't enforce the use of a link name, but it's recommended to use one.
 func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 	if in.Src == "" || in.Dst == "" {
 		return "", errors.New("Require Src, Dst to be set")
@@ -197,8 +214,7 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 	return in.Id, s.searchbase.InsertLink(in.Id, in)
 }
 
-// Given some ids, build the query to return all of their children (where they exist still)
-//
+// Given some ids, build the appropriate query to return all of their children
 func childrenOf(ids ...string) []*wyc.QueryDesc {
 	result := []*wyc.QueryDesc{}
 	for _, id := range ids {
@@ -207,6 +223,10 @@ func childrenOf(ids ...string) []*wyc.QueryDesc {
 	return result
 }
 
+// Delete some collection from the system.
+// Assuming this works, we kick off a routine to kill all of the children.
+// Please be aware that delete operations, especially of collections, are heavy operations that introduce a number
+// of race conditions for people still using the collection (or children of it).
 func (s *WysteriaServer) DeleteCollection(id string) error {
 	err := s.searchbase.DeleteCollection(id)
 	if err != nil {
@@ -230,8 +250,7 @@ func (s *WysteriaServer) DeleteCollection(id string) error {
 	return nil
 }
 
-// Given some ids, build query to find all links mentioning those ids (either src or dst)
-//
+// Given some ids, build query to find all links mentioning those ids (as either src or dst)
 func linkedTo(ids ...string) []*wyc.QueryDesc {
 	result := []*wyc.QueryDesc{}
 	for _, id := range ids {
@@ -244,6 +263,8 @@ func linkedTo(ids ...string) []*wyc.QueryDesc {
 	return result
 }
 
+// Delete some item from the system.
+// Assuming this works, we kick off a routine to kill all of the children.
 func (s *WysteriaServer) DeleteItem(id string) error {
 	err := s.searchbase.DeleteItem(id)
 	if err != nil {
@@ -276,6 +297,8 @@ func (s *WysteriaServer) DeleteItem(id string) error {
 	return nil
 }
 
+// Delete some version from the system.
+// Assuming this works, we kick off a routine to kill all of the children.
 func (s *WysteriaServer) DeleteVersion(id string) error {
 	err := s.searchbase.DeleteVersion(id)
 	if err != nil {
@@ -308,6 +331,7 @@ func (s *WysteriaServer) DeleteVersion(id string) error {
 	return nil
 }
 
+// Delete some resource from the system.
 func (s *WysteriaServer) DeleteResource(id string) error {
 	err := s.searchbase.DeleteResource(id)
 	if err != nil {
@@ -357,11 +381,11 @@ func (s *WysteriaServer) FindLinks(qs []*wyc.QueryDesc) ([]*wyc.Link, error) {
 	return s.database.RetrieveLink(ids...)
 }
 
-func (s *WysteriaServer) GetPublishedVersion(item_id string) (*wyc.Version, error) {
-	return s.database.GetPublished(item_id)
+func (s *WysteriaServer) PublishedVersion(item_id string) (*wyc.Version, error) {
+	return s.database.Published(item_id)
 }
 
-func (s *WysteriaServer) PublishVersion(version_id string) error {
+func (s *WysteriaServer) SetPublishedVersion(version_id string) error {
 	return s.database.SetPublished(version_id)
 }
 

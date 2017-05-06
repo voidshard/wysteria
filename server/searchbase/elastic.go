@@ -14,7 +14,7 @@ const (
 	errDeleteBackoff = time.Second * 5
 )
 
-func elasticConnect(settings *SearchbaseSettings) (Searchbase, error) {
+func elasticConnect(settings *Settings) (Searchbase, error) {
 	client, err := elastic.NewClient(
 		elastic.SetURL(fmt.Sprintf("http://%s:%d", settings.Host, settings.Port)),
 		elastic.SetSniff(false),
@@ -37,29 +37,44 @@ func elasticConnect(settings *SearchbaseSettings) (Searchbase, error) {
 }
 
 type elasticSearch struct {
-	Settings *SearchbaseSettings
+	Settings *Settings
 	client   *elastic.Client
 }
 
 func (e *elasticSearch) InsertCollection(id string, doc *wyc.Collection) error {
+	doc.Name = b64encode(doc.Name)
 	return e.insert(tableCollection, id, doc)
 }
 
 func (e *elasticSearch) InsertItem(id string, doc *wyc.Item) error {
+	doc.ItemType = b64encode(doc.ItemType)
+	doc.Variant = b64encode(doc.Variant)
+	encoded_facets := map[string]string{}
+	for k, v := range doc.Facets {
+		encoded_facets[b64encode(k)] = b64encode(v)
+	}
+	doc.Facets = encoded_facets
 	return e.insert(tableItem, id, doc)
 }
 
 func (e *elasticSearch) InsertVersion(id string, doc *wyc.Version) error {
+	encoded_facets := map[string]string{}
+	for k, v := range doc.Facets {
+		encoded_facets[b64encode(k)] = b64encode(v)
+	}
+	doc.Facets = encoded_facets
 	return e.insert(tableVersion, id, doc)
 }
 
 func (e *elasticSearch) InsertResource(id string, doc *wyc.Resource) error {
-	// Hash path to nullify tokenizing on '/' or '\' symbols
+	doc.Name = b64encode(doc.Name)
+	doc.ResourceType = b64encode(doc.ResourceType)
 	doc.Location = b64encode(doc.Location)
 	return e.insert(tableFileresource, id, doc)
 }
 
 func (e *elasticSearch) InsertLink(id string, doc *wyc.Link) error {
+	doc.Name = b64encode(doc.Name)
 	return e.insert(tableLink, id, doc)
 }
 
@@ -191,17 +206,16 @@ func elasticTermsResource(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 		q = append(q, elastic.NewTermQuery("Id", qd.Id))
 	}
 	if qd.Name != "" {
-		q = append(q, termQuery("Name", qd.Name))
+		q = append(q, termQuery("Name", b64encode(qd.Name)))
 	}
 	if qd.ResourceType != "" {
-		q = append(q, termQuery("ResourceType", qd.ResourceType))
+		q = append(q, termQuery("ResourceType", b64encode(qd.ResourceType)))
 	}
 	if qd.Parent != "" {
 		q = append(q, termQuery("Parent", qd.Parent))
 	}
 	if qd.Location != "" {
-		hsh := b64encode(qd.Location)
-		q = append(q, termQuery("Location", hsh))
+		q = append(q, termQuery("Location", b64encode(qd.Location)))
 	}
 
 	return q
@@ -212,7 +226,7 @@ func elasticTermsLink(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 		q = append(q, elastic.NewTermQuery("Id", qd.Id))
 	}
 	if qd.Name != "" {
-		q = append(q, termQuery("Name", qd.Name))
+		q = append(q, termQuery("Name", b64encode(qd.Name)))
 	}
 	if qd.LinkSrc != "" {
 		q = append(q, termQuery("Src", qd.LinkSrc))
@@ -228,7 +242,7 @@ func elasticTermsCollection(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 		q = append(q, elastic.NewTermQuery("Id", qd.Id))
 	}
 	if qd.Name != "" {
-		q = append(q, termQuery("Name", qd.Name))
+		q = append(q, termQuery("Name", b64encode(qd.Name)))
 	}
 	return q
 }
@@ -238,13 +252,15 @@ func elasticTermsItem(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 		q = append(q, elastic.NewTermQuery("Id", qd.Id))
 	}
 	if qd.ItemType != "" {
-		q = append(q, termQuery("ItemType", qd.ItemType))
+		q = append(q, termQuery("ItemType", b64encode(qd.ItemType)))
 	}
 	if qd.Variant != "" {
-		q = append(q, termQuery("Variant", qd.Variant))
+		q = append(q, termQuery("Variant", b64encode(qd.Variant)))
 	}
 	for k, v := range qd.Facets {
-		q = append(q, termQuery(fmt.Sprintf("Facets.%s", k), v))
+		key_encoded := b64encode(k)
+		val_encoded := b64encode(v)
+		q = append(q, termQuery(fmt.Sprintf("Facets.%s", key_encoded), val_encoded))
 	}
 	if qd.Parent != "" {
 		q = append(q, termQuery("Parent", qd.Parent))
@@ -260,7 +276,9 @@ func elasticTermsVersion(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 		q = append(q, elastic.NewTermQuery("Number", qd.VersionNumber))
 	}
 	for k, v := range qd.Facets {
-		q = append(q, termQuery(fmt.Sprintf("Facets.%s", k), v))
+		key_encoded := b64encode(k)
+		val_encoded := b64encode(v)
+		q = append(q, termQuery(fmt.Sprintf("Facets.%s", key_encoded), val_encoded))
 	}
 	if qd.Parent != "" {
 		q = append(q, termQuery("Parent", qd.Parent))

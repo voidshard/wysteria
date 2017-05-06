@@ -40,9 +40,9 @@ func main() {
 	//tree pine
 
 	// Look up all published versions of our items
-	fmt.Println("-- Published Versions --")
+	fmt.Println("-- PublishedVersion Versions --")
 	for _, i := range items {
-		published, err := i.GetPublished()
+		published, err := i.PublishedVersion()
 		if err != nil {
 			panic(err)
 		}
@@ -58,7 +58,7 @@ func main() {
 		}
 	}
 
-	//-- Published Versions --
+	//-- PublishedVersion Versions --
 	//2
 	//  [resource] default png /other/images/oak02.png
 	//1

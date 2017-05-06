@@ -122,12 +122,12 @@ type EndpointClient interface {
 	FindLinks([]*wyc.QueryDesc) ([]*wyc.Link, error)
 
 
-	// Given Id of some Item, return version marked as published
-	GetPublishedVersion(string) (*wyc.Version, error)
+	// Given Id of some Item, return version marked as publish
+	PublishedVersion(string) (*wyc.Version, error)
 
-	// Given Id of some Version, mark version as published
-	//  - Only one version of a given Item is considered published at a time
-	PublishVersion(string) error
+	// Given Id of some Version, mark version as publish
+	//  - Only one version of a given Item is considered publish at a time
+	SetPublishedVersion(string) error
 
 
 	// Given Version Id update version facets with given facets
@@ -171,8 +171,8 @@ type ServerHandler interface {
 	FindResources([]*wyc.QueryDesc) ([]*wyc.Resource, error)
 	FindLinks([]*wyc.QueryDesc) ([]*wyc.Link, error)
 
-	GetPublishedVersion(string) (*wyc.Version, error)
-	PublishVersion(string) error
+	PublishedVersion(string) (*wyc.Version, error)
+	SetPublishedVersion(string) error
 
 	UpdateVersionFacets(string, map[string]string) error
 	UpdateItemFacets(string, map[string]string) error
@@ -180,7 +180,7 @@ type ServerHandler interface {
 
 // Generic middleware settings struct, holding the diver name and the config string.
 // Each driver will expect it's own kind of config string, depending on the driver.
-type MiddlewareSettings struct {
+type Settings struct {
 	Driver string
 	Config string
 }

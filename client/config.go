@@ -8,19 +8,18 @@ import (
 
 var Config *configuration
 
-type configuration struct { // forms a universal config
-	Middleware wcm.MiddlewareSettings
+type configuration struct {
+	Middleware wcm.Settings
 }
 
 // Takes care of loading the client config.
-//  (1) Load some form of config
 //   Load order:
 //    - local .ini file(s) if they are in the cwd
 //    - .ini filepath given by wysteria os.Env variable
 //    - default values
 //
 func init() {
-	Config = getDefaults()
+	Config = makeDefaults()
 
 	config_filepath, err := common.ChooseClientConfig()
 	if err == nil {
@@ -37,9 +36,9 @@ func init() {
 // Get the default settings.
 // This naively assumes that all our required services are running on the localhost.
 //
-func getDefaults() *configuration {
+func makeDefaults() *configuration {
 	return &configuration{
-		wcm.MiddlewareSettings{
+		wcm.Settings{
 			Driver: wcm.DriverNats,
 			Config: "",
 		},

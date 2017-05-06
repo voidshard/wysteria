@@ -27,7 +27,7 @@ func createBleveIndex(name string, documentMapping *mapping.IndexMappingImpl) (b
 	return bleve.New(name, documentMapping)
 }
 
-func bleveConnect(settings *SearchbaseSettings) (Searchbase, error) {
+func bleveConnect(settings *Settings) (Searchbase, error) {
 	sb := &bleveSearchbase{}
 	imapping := bleve.NewIndexMapping()
 
@@ -69,32 +69,48 @@ func (b *bleveSearchbase) Close() error {
 }
 
 func (b *bleveSearchbase) InsertCollection(id string, in *wyc.Collection) error {
+	in.Name = b64encode(in.Name)	
 	return b.collections.Index(id, in)
 }
 
 func (b *bleveSearchbase) InsertItem(id string, in *wyc.Item) error {
+	in.ItemType = b64encode(in.ItemType)
+	in.Variant = b64encode(in.Variant)
+	encoded_facets := map[string]string{}
+	for k, v := range in.Facets {
+		encoded_facets[b64encode(k)] = b64encode(v)
+	}
+	in.Facets = encoded_facets	
 	return b.items.Index(id, in)
 }
 
 func (b *bleveSearchbase) InsertVersion(id string, in *wyc.Version) error {
+	encoded_facets := map[string]string{}
+	for k, v := range in.Facets {
+		encoded_facets[b64encode(k)] = b64encode(v)
+	}
+	in.Facets = encoded_facets	
 	return b.versions.Index(id, in)
 }
 
 func (b *bleveSearchbase) InsertResource(id string, in *wyc.Resource) error {
+	in.Name = b64encode(in.Name)
+	in.ResourceType = b64encode(in.ResourceType)
 	in.Location = b64encode(in.Location)
 	return b.resources.Index(id, in)
 }
 
 func (b *bleveSearchbase) InsertLink(id string, in *wyc.Link) error {
+	in.Name = b64encode(in.Name)
 	return b.links.Index(id, in)
 }
 
 func (b *bleveSearchbase) UpdateItem(id string, in *wyc.Item) error {
-	return b.items.Index(id, in)
+	return b.InsertItem(id, in)
 }
 
 func (b *bleveSearchbase) UpdateVersion(id string, in *wyc.Version) error {
-	return b.versions.Index(id, in)
+	return b.InsertVersion(id, in)
 }
 
 func genericDelete(index bleve.Index, ids ...string) error {
@@ -133,7 +149,7 @@ func toCollectionQueryString(desc *wyc.QueryDesc) string {
 		sq = append(sq, fmt.Sprintf("+Id:%s", desc.Id))
 	}
 	if desc.Name != "" {
-		sq = append(sq, fmt.Sprintf("+Name:%s", desc.Name))
+		sq = append(sq, fmt.Sprintf("+Name:%s", b64encode(desc.Name)))
 	}
 	return strings.Join(sq, " ")
 }
@@ -144,16 +160,16 @@ func toItemQueryString(desc *wyc.QueryDesc) string {
 		sq = append(sq, fmt.Sprintf("+Id:%s", desc.Id))
 	}
 	if desc.ItemType != "" {
-		sq = append(sq, fmt.Sprintf("+ItemType:%s", desc.ItemType))
+		sq = append(sq, fmt.Sprintf("+ItemType:%s", b64encode(desc.ItemType)))
 	}
 	if desc.Variant != "" {
-		sq = append(sq, fmt.Sprintf("+Variant:%s", desc.Variant))
+		sq = append(sq, fmt.Sprintf("+Variant:%s", b64encode(desc.Variant)))
 	}
 	if desc.Parent != "" {
 		sq = append(sq, fmt.Sprintf("+Parent:%s", desc.Parent))
 	}
 	for k, v := range desc.Facets {
-		sq = append(sq, fmt.Sprintf("%s", k), v)
+		sq = append(sq, fmt.Sprintf("+Facets.%s:%s", b64encode(k), b64encode(v)))
 	}
 	return strings.Join(sq, " ")
 }
@@ -167,7 +183,7 @@ func toVersionQueryString(desc *wyc.QueryDesc) string {
 		sq = append(sq, fmt.Sprintf("+Parent:%s", desc.Parent))
 	}
 	for k, v := range desc.Facets {
-		sq = append(sq, fmt.Sprintf("%s", k), v)
+		sq = append(sq, fmt.Sprintf("+Facets.%s:%s", b64encode(k), b64encode(v)))
 	}
 	if desc.VersionNumber > 0 {
 		sq = append(sq, fmt.Sprintf("+Number:%d", desc.VersionNumber))
@@ -184,14 +200,13 @@ func toResourceQueryString(desc *wyc.QueryDesc) string {
 		sq = append(sq, fmt.Sprintf("+Parent:%s", desc.Parent))
 	}
 	if desc.ResourceType != "" {
-		sq = append(sq, fmt.Sprintf("+ResourceType:%s", desc.ResourceType))
+		sq = append(sq, fmt.Sprintf("+ResourceType:%s", b64encode(desc.ResourceType)))
 	}
 	if desc.Name != "" {
-		sq = append(sq, fmt.Sprintf("+Name:%s", desc.Name))
+		sq = append(sq, fmt.Sprintf("+Name:%s", b64encode(desc.Name)))
 	}
 	if desc.Location != "" {
-		hsh := b64encode(desc.Location)
-		sq = append(sq, fmt.Sprintf("+Location:%s", hsh))
+		sq = append(sq, fmt.Sprintf("+Location:%s", b64encode(desc.Location)))
 	}
 	return strings.Join(sq, " ")
 }
@@ -202,7 +217,7 @@ func toLinkQueryString(desc *wyc.QueryDesc) string {
 		sq = append(sq, fmt.Sprintf("+Id:%s", desc.Id))
 	}
 	if desc.Name != "" {
-		sq = append(sq, fmt.Sprintf("+Name:%s", desc.Name))
+		sq = append(sq, fmt.Sprintf("+Name:%s", b64encode(desc.Name)))
 	}
 	if desc.LinkSrc != "" {
 		sq = append(sq, fmt.Sprintf("+Src:%s", desc.LinkSrc))

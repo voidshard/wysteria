@@ -7,7 +7,7 @@ import (
 
 func TestGetDefaults(t *testing.T) {
 	// act
-	settings := getDefaults()
+	settings := makeDefaults()
 	cases := []struct {
 		Key      string
 		Required string

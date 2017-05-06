@@ -15,7 +15,7 @@ func main() {
 
 	// Let's get our published pine
 	items, _ := client.Search().ItemType("tree").ItemVariant("pine").FindItems()
-	published_version, _ := items[0].GetPublished()
+	published_version, _ := items[0].PublishedVersion()
 
 	// We can grab resources by Name
 	default_resources, err := published_version.GetResourcesByName("default")

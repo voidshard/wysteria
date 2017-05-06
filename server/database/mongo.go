@@ -26,11 +26,11 @@ const (
 type mongoEndpoint struct {
 	session  *mgo.Session
 	db       *mgo.Database
-	settings *DatabaseSettings
+	settings *Settings
 }
 
 // Connect to mongo db via an ssl connection
-func mongoSslConnect(settings *DatabaseSettings) (*mgo.Session, error) {
+func mongoSslConnect(settings *Settings) (*mgo.Session, error) {
 	url := formMongoUrl(settings)
 
 	roots := x509.NewCertPool()
@@ -57,7 +57,7 @@ func mongoSslConnect(settings *DatabaseSettings) (*mgo.Session, error) {
 }
 
 // Create and return db wrapper & call connect
-func mongoConnect(settings *DatabaseSettings) (Database, error) {
+func mongoConnect(settings *Settings) (Database, error) {
 	sess := &mgo.Session{}
 	var err error
 
@@ -111,10 +111,10 @@ func (e *mongoEndpoint) SetPublished(version_id string) error {
 	}
 
 	// We use a document with two values, the Item Id we're talking about and the ID of the current
-	// version marked as Published (where the Version is a child of the given Item)
+	// version marked as PublishedVersion (where the Version is a child of the given Item)
 	version_obj := vers[0]
 	change := mgo.Change{
-		Update:    bson.M{"$set": bson.M{"Item": version_obj.Parent, "Published": version_id}},
+		Update:    bson.M{"$set": bson.M{"Item": version_obj.Parent, "PublishedVersion": version_id}},
 		ReturnNew: true,
 		Upsert:    true,
 	}
@@ -128,7 +128,7 @@ func (e *mongoEndpoint) SetPublished(version_id string) error {
 }
 
 // Get the published versino for the given item Id
-func (e *mongoEndpoint) GetPublished(item_id string) (*wyc.Version, error) {
+func (e *mongoEndpoint) Published(item_id string) (*wyc.Version, error) {
 	// Look up the published version id for the given item
 	var doc bson.M
 	col := e.getCollection(publishedCollection)
@@ -137,8 +137,8 @@ func (e *mongoEndpoint) GetPublished(item_id string) (*wyc.Version, error) {
 		return nil, err
 	}
 
-	// Assuming we got one, pull out the Published version id
-	version_id := doc["Published"].(string)
+	// Assuming we got one, pull out the PublishedVersion version id
+	version_id := doc["PublishedVersion"].(string)
 
 	// Retrieve said version
 	vers, err := e.RetrieveVersion(version_id)
@@ -386,7 +386,7 @@ func toBsonIds(sids ...string) ([]bson.ObjectId, error) {
 }
 
 // Form the mongo connection url given the database settings
-func formMongoUrl(settings *DatabaseSettings) string {
+func formMongoUrl(settings *Settings) string {
 	url := fmt.Sprintf("%s://", urlPrefix)
 	if settings.User != "" {
 		url += settings.User

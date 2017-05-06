@@ -46,7 +46,7 @@ func (b *boltDb) createBuckets() error {
 
 // Standard function to kick off a new boltdb 'connection'
 // It's a bit of misnomer since we don't really talk to another host, but still.
-func boltConnect(settings *DatabaseSettings) (Database, error) {
+func boltConnect(settings *Settings) (Database, error) {
 	db, err := bolt.Open(settings.Database, 0600, nil)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (b *boltDb) SetPublished(in string) error {
 }
 
 // Given the Id of some item, return the version we've got marked as published (if any)
-func (b *boltDb) GetPublished(in string) (*wyc.Version, error) {
+func (b *boltDb) Published(in string) (*wyc.Version, error) {
 	collision_key := []byte(fmt.Sprintf("published:%s", in))
 
 	val := &wyc.Version{}

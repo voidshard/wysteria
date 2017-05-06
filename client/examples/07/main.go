@@ -27,7 +27,7 @@ func main() {
 
 	// Retrieve the current published version (we linked the Version, but we could have linked
 	// items in the same manner
-	forest_01, err := items[0].GetPublished()
+	forest_01, err := items[0].PublishedVersion()
 	if err != nil {
 		panic(err)
 	}

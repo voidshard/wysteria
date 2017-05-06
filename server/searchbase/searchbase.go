@@ -1,3 +1,18 @@
+/*
+Searchbase module
+
+Provides interface and util functions for a 'searchbase' - a database whose main concern is the searching of given
+data for quick retrieval of matching IDs. Since we need to support the updating of searchable facets we also
+include 'update' functions for Items & Versions.
+
+Note that we never return fields from here *except* for Id(s), so internally implementations are free to store the given
+documents in whatever way makes them most efficient for searching.
+
+Due to the nature of us having disjointed search & data stores the data held in a searchbase should not be considered
+completely in-sync with the database (canonical) version. But this replication lag between when something is created
+in the database and is searchable via the searchbase should be minimal when everything is running sweetly.
+*/
+
 package searchends
 
 import (
@@ -12,15 +27,14 @@ const (
 )
 
 var (
-	connectors = map[string]func(*SearchbaseSettings) (Searchbase, error){
+	connectors = map[string]func(*Settings) (Searchbase, error){
 		DriverElastic: elasticConnect,
 		DriverBleve:   bleveConnect,
 	}
 )
 
 // Return a connect function for the given settings, or err if it can't be found
-//
-func Connect(settings *SearchbaseSettings) (Searchbase, error) {
+func Connect(settings *Settings) (Searchbase, error) {
 	connector, ok := connectors[settings.Driver]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("Connector not found for %s", settings.Driver))
@@ -28,7 +42,7 @@ func Connect(settings *SearchbaseSettings) (Searchbase, error) {
 	return connector(settings)
 }
 
-// a datastore whose primary goal is running search queries rather than long term storage
+// Interface to a data store whose primary goal is running search queries rather than storage.
 type Searchbase interface {
 	Close() error
 
@@ -41,19 +55,32 @@ type Searchbase interface {
 	UpdateItem(string, *wyc.Item) error
 	UpdateVersion(string, *wyc.Version) error
 
-	// delete data in table/collection with ids
+
+	// Delete collection search data by Id(s)
+	//  Note that deleting something and making it unavailable to search for effectively means
+	//  that wysteria will never return the data for it, even if it still existed in the database.
 	DeleteCollection(...string) error
+
+	// Delete item search data by Id(s)
 	DeleteItem(...string) error
+
+	// Delete version search data by Id(s)
 	DeleteVersion(...string) error
+
+	// Delete resource search data by Id(s)
 	DeleteResource(...string) error
+
+	// Delete link search data by Id(s)
 	DeleteLink(...string) error
 
-	// we only ever get IDs back from our search - the DB holds the canonical data
+
+	// Query functions
+	// we only ever get IDs back from our search - the db holds the canonical data
 	// Where each takes:
-	//  (optional) int - limit results to at most int
-	//  (optional) int - from (results page)
-	//  ...QueryDesc - description(s) of thing(s) to search for.
-	//     results will be returned for any doc matching any QueryDesc
+	//  int - limit results to at most int (where 0 indicates there is no limit)
+	//  int - from (results page)
+	//  ...QueryDesc - description(s) of thing(s) to search for (required)
+	//     Ids will be returned for any doc matching all of the fields of any of the given QueryDesc
 	QueryCollection(int, int, ...*wyc.QueryDesc) ([]string, error)
 	QueryItem(int, int, ...*wyc.QueryDesc) ([]string, error)
 	QueryVersion(int, int, ...*wyc.QueryDesc) ([]string, error)

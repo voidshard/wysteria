@@ -12,13 +12,6 @@ import (
 	wcm "github.com/voidshard/wysteria/common/middleware"
 )
 
-const (
-	// Facet names the server expects us to populate on item & version creation requests
-	FacetCollection = "collection"
-	FacetItemType = "itemtype"
-	FacetItemVariant = "variant"
-)
-
 // Client wraps the desired middleware and supplies a more user friendly interface to users
 type wysteriaClient struct {
 	settings   *configuration

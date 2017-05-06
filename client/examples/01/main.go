@@ -2,6 +2,7 @@ package main
 
 import (
 	wysteria "github.com/voidshard/wysteria/client"
+	"fmt"
 )
 
 func main() {
@@ -86,4 +87,6 @@ func main() {
 	oak02.LinkTo("usedby", forest_map_01)
 	elm01.LinkTo("usedby", forest_map_01)
 	pine01.LinkTo("usedby", forest_map_01)
+
+	fmt.Println("Done creating example objects.")
 }

@@ -377,9 +377,9 @@ func convRVersion(in *wrpc.Version) *wyc.Version {
 	}
 }
 
-// Given the Id of the parent Item, return the published Version
-func (c *grpcClient) GetPublishedVersion(in string) (*wyc.Version, error) {
-	result, err := c.client.GetPublishedVersion(context.Background(), &wrpc.Id{Id: in})
+// Given the Id of the parent Item, return the publish Version
+func (c *grpcClient) PublishedVersion(in string) (*wyc.Version, error) {
+	result, err := c.client.PublishedVersion(context.Background(), &wrpc.Id{Id: in})
 	if err != nil {
 		return nil, err
 	}
@@ -390,9 +390,9 @@ func (c *grpcClient) GetPublishedVersion(in string) (*wyc.Version, error) {
 	return convRVersion(result), nil
 }
 
-// Mark the Version with the given Id as the current 'published' one
-func (c *grpcClient) PublishVersion(in string) error {
-	result, err := c.client.PublishVersion(context.Background(), &wrpc.Id{Id: in})
+// Mark the Version with the given Id as the current 'publish' one
+func (c *grpcClient) SetPublishedVersion(in string) error {
+	result, err := c.client.SetPublishedVersion(context.Background(), &wrpc.Id{Id: in})
 	if err != nil {
 		return err
 	}
@@ -698,18 +698,18 @@ func (s *grpcServer) FindLinks(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Li
 	return res, nil
 }
 
-// Call server side GetPublishedVersion, pass in given Item Id and return results
-func (s *grpcServer) GetPublishedVersion(_ context.Context, in *wrpc.Id) (*wrpc.Version, error) {
-	version, err := s.handler.GetPublishedVersion(in.Id)
+// Call server side PublishedVersion, pass in given Item Id and return results
+func (s *grpcServer) PublishedVersion(_ context.Context, in *wrpc.Id) (*wrpc.Version, error) {
+	version, err := s.handler.PublishedVersion(in.Id)
 	if err != nil {
 		return nil, err
 	}
 	return convWVersion(version), err
 }
 
-// Call server side PublishVersion passing in Version id, return results
-func (s *grpcServer) PublishVersion(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
-	err := s.handler.PublishVersion(in.Id)
+// Call server side SetPublishVersion passing in Version id, return results
+func (s *grpcServer) SetPublishedVersion(_ context.Context, in *wrpc.Id) (*wrpc.Text, error) {
+	err := s.handler.SetPublishedVersion(in.Id)
 	if err != nil {
 		return &wrpc.Text{Text: err.Error()}, err
 	}

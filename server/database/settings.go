@@ -11,7 +11,7 @@ const (
 	tableLink         = "link"
 )
 
-type DatabaseSettings struct {
+type Settings struct {
 	// The name of the driver (will be used to load via Connect in database.go)
 	Driver   string
 

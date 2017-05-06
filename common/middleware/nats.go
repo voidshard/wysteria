@@ -416,8 +416,8 @@ func (c *natsClient) FindLinks(query []*wyc.QueryDesc) (result []*wyc.Link, err 
 	return result, stringError(rep.Error)
 }
 
-// Given Id of some Item, return version marked as published
-func (c *natsClient) GetPublishedVersion(id string) (*wyc.Version, error) {
+// Given Id of some Item, return version marked as publish
+func (c *natsClient) PublishedVersion(id string) (*wyc.Version, error) {
 	req := &codec.PublishedReq{Id: id}
 	data, err := req.MarshalJSON()
 	if err != nil {
@@ -438,9 +438,9 @@ func (c *natsClient) GetPublishedVersion(id string) (*wyc.Version, error) {
 	return &rep.Version, stringError(rep.Error)
 }
 
-// Given Id of some Version, mark version as published
-//  - Only one version of a given Item is considered published at a time
-func (c *natsClient) PublishVersion(id string) error {
+// Given Id of some Version, mark version as publish
+//  - Only one version of a given Item is considered publish at a time
+func (c *natsClient) SetPublishedVersion(id string) error {
 	req := &codec.PublishedReq{Id: id}
 	data, err := req.MarshalJSON()
 	if err != nil {
@@ -896,11 +896,11 @@ func (s *natsServer) findLink(msg *nats.Msg) wyc.Marshalable {
 	return rep
 }
 
-// Assume we've got a request to get a published version
+// Assume we've got a request to get a publish version
 //  - unmarshal request
 //  - call server handler func
 //  - marshal & return result
-func (s *natsServer) getPublished(msg *nats.Msg) wyc.Marshalable {
+func (s *natsServer) publishedVersion(msg *nats.Msg) wyc.Marshalable {
 	req := &codec.PublishedReq{}
 	rep := &codec.GetPublishedReply{}
 
@@ -910,7 +910,7 @@ func (s *natsServer) getPublished(msg *nats.Msg) wyc.Marshalable {
 		return rep
 	}
 
-	version, err := s.handler.GetPublishedVersion(req.Id)
+	version, err := s.handler.PublishedVersion(req.Id)
 	if err != nil {
 		rep.Error = err.Error()
 		return rep
@@ -920,7 +920,7 @@ func (s *natsServer) getPublished(msg *nats.Msg) wyc.Marshalable {
 	return rep
 }
 
-// Assume we've got a request to set a version as published
+// Assume we've got a request to set a version as publish
 //  - unmarshal request
 //  - call server handler func
 //  - marshal & return result
@@ -934,7 +934,7 @@ func (s *natsServer) setPublished(msg *nats.Msg) wyc.Marshalable {
 		return rep
 	}
 
-	rep.Error = errorString(s.handler.PublishVersion(req.Id))
+	rep.Error = errorString(s.handler.SetPublishedVersion(req.Id))
 	return rep
 }
 
@@ -979,15 +979,15 @@ func (s *natsServer) sendReply(to string, m wyc.Marshalable) {
 	data, err := m.MarshalJSON()
 	if err != nil {
 		log.Println("error in sendReply [MarshalJSON]", err, "given", m)
-		s.publish(to, []byte(err.Error()))
+		s.natsPublish(to, []byte(err.Error()))
 		return
 	}
 
 	// Send reply
-	err = s.publish(to, data)
+	err = s.natsPublish(to, data)
 	if err != nil {
 		log.Println("error in sendReply [publish]", err, "given", m)
-		s.publish(to, []byte(err.Error()))
+		s.natsPublish(to, []byte(err.Error()))
 		return
 	}
 }
@@ -1030,7 +1030,7 @@ func (s *natsServer) chooseClientHandler(subject string) func(*nats.Msg) wyc.Mar
 		handler = s.findLink
 
 	case callGetPublished:
-		handler = s.getPublished
+		handler = s.publishedVersion
 	case callSetPublished:
 		handler = s.setPublished
 	case callUpdateItem:
@@ -1101,7 +1101,7 @@ func newNatsServer() EndpointServer {
 
 // Publish
 //   Send message over nats and don't wait for a reply
-func (s *natsServer) publish(subject string, data []byte) error {
+func (s *natsServer) natsPublish(subject string, data []byte) error {
 	return s.conn.Publish(subject, data)
 }
 

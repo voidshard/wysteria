@@ -26,7 +26,7 @@ func main() {
 	}
 
 	// Ok cool, now we can grab the latest published version
-	version, err := items[0].GetPublished()
+	version, err := items[0].PublishedVersion()
 	if err != nil {
 		panic(err)
 	}

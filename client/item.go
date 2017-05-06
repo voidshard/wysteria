@@ -12,8 +12,8 @@ type Item struct {
 
 // Get which ever Version object is considered the "published" version of this Item
 //  Note that this may not be the latest, or even be set, even if child versions exist.
-func (i *Item) GetPublished() (*Version, error) {
-	ver, err := i.conn.middleware.GetPublishedVersion(i.data.Id)
+func (i *Item) PublishedVersion() (*Version, error) {
+	ver, err := i.conn.middleware.PublishedVersion(i.data.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -156,12 +156,12 @@ func (i *Item) CreateVersion(facets map[string]string) (*Version, error) {
 		}
 	}
 
-	parentCol, ok := i.data.Facets[FacetCollection]
+	parentCol, ok := i.data.Facets[wyc.FacetCollection]
 	if ok {
-		all_facets[FacetCollection] = parentCol
+		all_facets[wyc.FacetCollection] = parentCol
 	}
-	all_facets[FacetItemType] = i.data.ItemType
-	all_facets[FacetItemVariant] = i.data.Variant
+	all_facets[wyc.FacetItemType] = i.data.ItemType
+	all_facets[wyc.FacetItemVariant] = i.data.Variant
 
 	ver := &wyc.Version{
 		Parent: i.data.Id,

@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Wrapper struct around bleve search indexes
 type bleveSearchbase struct {
 	collections bleve.Index
 	items       bleve.Index
@@ -17,7 +18,8 @@ type bleveSearchbase struct {
 	links       bleve.Index
 }
 
-func createBleveIndex(name string, documentMapping *mapping.IndexMappingImpl) (bleve.Index, error) {
+// Return a new bleve index given a path on disk, either by creating if it doesn't exist or opening it if it does.
+func newBleveIndex(name string, documentMapping *mapping.IndexMappingImpl) (bleve.Index, error) {
 	_, err := os.Stat(name)
 	if err == nil {
 		// Open existing index
@@ -27,35 +29,36 @@ func createBleveIndex(name string, documentMapping *mapping.IndexMappingImpl) (b
 	return bleve.New(name, documentMapping)
 }
 
+// 'connect' to bleve by opening/creating all of our indexes
 func bleveConnect(settings *Settings) (Searchbase, error) {
 	sb := &bleveSearchbase{}
 	imapping := bleve.NewIndexMapping()
 
-	idx, err := createBleveIndex(settings.Database+tableCollection, imapping)
+	idx, err := newBleveIndex(settings.Database+tableCollection, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.collections = idx
 
-	idx, err = createBleveIndex(settings.Database+tableItem, imapping)
+	idx, err = newBleveIndex(settings.Database+tableItem, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.items = idx
 
-	idx, err = createBleveIndex(settings.Database+tableVersion, imapping)
+	idx, err = newBleveIndex(settings.Database+tableVersion, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.versions = idx
 
-	idx, err = createBleveIndex(settings.Database+tableFileresource, imapping)
+	idx, err = newBleveIndex(settings.Database+tableResource, imapping)
 	if err != nil {
 		return nil, err
 	}
 	sb.resources = idx
 
-	idx, err = createBleveIndex(settings.Database+tableLink, imapping)
+	idx, err = newBleveIndex(settings.Database+tableLink, imapping)
 	if err != nil {
 		return nil, err
 	}
@@ -64,21 +67,30 @@ func bleveConnect(settings *Settings) (Searchbase, error) {
 	return sb, nil
 }
 
+// close bleve connections (or more accurately, close open filehandlers I guess)
 func (b *bleveSearchbase) Close() error {
+	b.collections.Close()
+	b.items.Close()
+	b.versions.Close()
+	b.resources.Close()
+	b.links.Close()
 	return nil
 }
 
+// Insert collection using the given id
 func (b *bleveSearchbase) InsertCollection(id string, doc *wyc.Collection) error {
-	in := copyCollection(doc)
-	in.Name = b64encode(in.Name)	
+	in := copyCollection(doc) // create copy so we don't modify the original
+	in.Name = b64encode(in.Name) // encode name so we aren't tripped up by spaces / bleve control chars
 	return b.collections.Index(id, in)
 }
 
+// Insert collection using the given id
 func (b *bleveSearchbase) InsertItem(id string, doc *wyc.Item) error {
-	in := copyItem(doc)
+	in := copyItem(doc) // create copy so we don't modify the original
+
+	// mutate values of our copy so we don't have to worry about weird chars
 	in.ItemType = b64encode(in.ItemType)
 	in.Variant = b64encode(in.Variant)
-
 	for k, v := range doc.Facets {
 		in.Facets[b64encode(k)] = b64encode(v)
 	}
@@ -86,14 +98,18 @@ func (b *bleveSearchbase) InsertItem(id string, doc *wyc.Item) error {
 	return b.items.Index(id, in)
 }
 
+// Insert version using the given id
 func (b *bleveSearchbase) InsertVersion(id string, doc *wyc.Version) error {
-	in := copyVersion(doc)
+	in := copyVersion(doc)// create copy so we don't modify the original
+
+	// mutate values of our copy so we don't have to worry about weird chars
 	for k, v := range doc.Facets {
 		in.Facets[b64encode(k)] = b64encode(v)
 	}
 	return b.versions.Index(id, in)
 }
 
+// Insert resource using the given id
 func (b *bleveSearchbase) InsertResource(id string, doc *wyc.Resource) error {
 	in := copyResource(doc)
 	in.Name = b64encode(in.Name)
@@ -102,20 +118,27 @@ func (b *bleveSearchbase) InsertResource(id string, doc *wyc.Resource) error {
 	return b.resources.Index(id, in)
 }
 
+// Insert link using the given id
 func (b *bleveSearchbase) InsertLink(id string, doc *wyc.Link) error {
 	in := copyLink(doc)
 	in.Name = b64encode(in.Name)
 	return b.links.Index(id, in)
 }
 
+// Update item with given id
 func (b *bleveSearchbase) UpdateItem(id string, in *wyc.Item) error {
+	// For bleve, updating and inserting are the same thing
 	return b.InsertItem(id, in)
 }
 
+// Update item with given id
 func (b *bleveSearchbase) UpdateVersion(id string, in *wyc.Version) error {
+	// For bleve, updating and inserting are the same thing
 	return b.InsertVersion(id, in)
 }
 
+
+// Iterate over given IDs and delete from given index
 func genericDelete(index bleve.Index, ids ...string) error {
 	for _, id := range ids {
 		err := index.Delete(id)
@@ -126,26 +149,32 @@ func genericDelete(index bleve.Index, ids ...string) error {
 	return nil
 }
 
+// Delete collections by ID(s)
 func (b *bleveSearchbase) DeleteCollection(ids ...string) error {
 	return genericDelete(b.collections, ids...)
 }
 
+// Delete items by ID(s)
 func (b *bleveSearchbase) DeleteItem(ids ...string) error {
 	return genericDelete(b.items, ids...)
 }
 
+// Delete versions by ID(s)
 func (b *bleveSearchbase) DeleteVersion(ids ...string) error {
 	return genericDelete(b.versions, ids...)
 }
 
+// Delete resources by ID(s)
 func (b *bleveSearchbase) DeleteResource(ids ...string) error {
 	return genericDelete(b.resources, ids...)
 }
 
+// Delete links by ID(s)
 func (b *bleveSearchbase) DeleteLink(ids ...string) error {
 	return genericDelete(b.links, ids...)
 }
 
+// Transform a QueryDesc into a bleve compatible search string for a collection
 func toCollectionQueryString(desc *wyc.QueryDesc) string {
 	sq := []string{}
 	if desc.Id != "" {
@@ -157,6 +186,7 @@ func toCollectionQueryString(desc *wyc.QueryDesc) string {
 	return strings.Join(sq, " ")
 }
 
+// Transform a QueryDesc into a bleve compatible search string for a item
 func toItemQueryString(desc *wyc.QueryDesc) string {
 	sq := []string{}
 	if desc.Id != "" {
@@ -177,6 +207,7 @@ func toItemQueryString(desc *wyc.QueryDesc) string {
 	return strings.Join(sq, " ")
 }
 
+// Transform a QueryDesc into a bleve compatible search string for a version
 func toVersionQueryString(desc *wyc.QueryDesc) string {
 	sq := []string{}
 	if desc.Id != "" {
@@ -194,6 +225,7 @@ func toVersionQueryString(desc *wyc.QueryDesc) string {
 	return strings.Join(sq, " ")
 }
 
+// Transform a QueryDesc into a bleve compatible search string for a resource
 func toResourceQueryString(desc *wyc.QueryDesc) string {
 	sq := []string{}
 	if desc.Id != "" {
@@ -214,6 +246,7 @@ func toResourceQueryString(desc *wyc.QueryDesc) string {
 	return strings.Join(sq, " ")
 }
 
+// Transform a QueryDesc into a bleve compatible search string for a link
 func toLinkQueryString(desc *wyc.QueryDesc) string {
 	sq := []string{}
 	if desc.Id != "" {
@@ -231,6 +264,12 @@ func toLinkQueryString(desc *wyc.QueryDesc) string {
 	return strings.Join(sq, " ")
 }
 
+// A generic query function that handles grabbing IDs from a bleve index given
+//  - limit: max number of entries to return
+//  - from: return only entries after this number
+//  - index: a bleve index to search
+//  - convert: a function to take a QueryDesc and turn it into a bleve query string
+//  - queries: the search QueryDesc objects
 func genericQuery(limit, from int, index bleve.Index, convert func(desc *wyc.QueryDesc) string, queries ...*wyc.QueryDesc) ([]string, error) {
 	// ToDo: There is probably a smarter way to do this as a single query with limit / page
 
@@ -280,22 +319,27 @@ func genericQuery(limit, from int, index bleve.Index, convert func(desc *wyc.Que
 	return ids[from : limit+from], nil
 }
 
+// Search for collections matching the given query descriptions
 func (b *bleveSearchbase) QueryCollection(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.collections, toCollectionQueryString, query...)
 }
 
+// Search for items matching the given query descriptions
 func (b *bleveSearchbase) QueryItem(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.items, toItemQueryString, query...)
 }
 
+// Search for versions matching the given query descriptions
 func (b *bleveSearchbase) QueryVersion(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.versions, toVersionQueryString, query...)
 }
 
+// Search for resources matching the given query descriptions
 func (b *bleveSearchbase) QueryResource(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.resources, toResourceQueryString, query...)
 }
 
+// Search for links matching the given query descriptions
 func (b *bleveSearchbase) QueryLink(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	return genericQuery(limit, from, b.links, toLinkQueryString, query...)
 }

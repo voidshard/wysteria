@@ -22,11 +22,13 @@ import (
 )
 
 const (
+	// Driver name strings
 	DriverElastic = "elastic"
 	DriverBleve   = "bleve"
 )
 
 var (
+	// All of the divers we know how to connect to
 	connectors = map[string]func(*Settings) (Searchbase, error){
 		DriverElastic: elasticConnect,
 		DriverBleve:   bleveConnect,
@@ -47,19 +49,33 @@ type Searchbase interface {
 	// Kill connection to remote host(s)
 	Close() error
 
+
+	// Insert collection into the sb with the given Id
 	InsertCollection(string, *wyc.Collection) error
+
+	// Insert item into the sb with the given Id
 	InsertItem(string, *wyc.Item) error
+
+	// Insert version into the sb with the given Id
 	InsertVersion(string, *wyc.Version) error
+
+	// Insert resource into the sb with the given Id
 	InsertResource(string, *wyc.Resource) error
+
+	// Insert link into the sb with the given Id
 	InsertLink(string, *wyc.Link) error
 
+
+	// Update the facets of the item with the given id with the facets of the given item
 	UpdateItem(string, *wyc.Item) error
+
+	// Update the facets of the version with the given id with the facets of the given version
 	UpdateVersion(string, *wyc.Version) error
 
 
 	// Delete collection search data by Id(s)
 	//  Note that deleting something and making it unavailable to search for effectively means
-	//  that wysteria will never return the data for it, even if it still existed in the database.
+	//  that the server will never return the data for it, even if it still exists in the database.
 	DeleteCollection(...string) error
 
 	// Delete item search data by Id(s)
@@ -75,16 +91,38 @@ type Searchbase interface {
 	DeleteLink(...string) error
 
 
-	// Query functions
-	// we only ever get IDs back from our search - the db holds the canonical data
-	// Where each takes:
-	//  int - limit results to at most int (where 0 indicates there is no limit)
-	//  int - from (results page)
-	//  ...QueryDesc - description(s) of thing(s) to search for (required)
-	//     Ids will be returned for any doc matching all of the fields of any of the given QueryDesc
+	// Query for collections
+	//  int: 'limit' results to at most int (where 0 indicates there is no limit)
+	//  int: 'from' what number to start returning results from
+	//  ...QueryDes: description(s) of what to search for
+	// Ids will be returned for any doc matching all of the fields of any of the given QueryDesc
 	QueryCollection(int, int, ...*wyc.QueryDesc) ([]string, error)
+
+	// Query for items
+	//  int: 'limit' results to at most int (where 0 indicates there is no limit)
+	//  int: 'from' what number to start returning results from
+	//  ...QueryDes: description(s) of what to search for
+	// Ids will be returned for any doc matching all of the fields of any of the given QueryDesc
 	QueryItem(int, int, ...*wyc.QueryDesc) ([]string, error)
+
+	// Query for versions
+	//  int: 'limit' results to at most int (where 0 indicates there is no limit)
+	//  int: 'from' what number to start returning results from
+	//  ...QueryDes: description(s) of what to search for
+	// Ids will be returned for any doc matching all of the fields of any of the given QueryDesc
 	QueryVersion(int, int, ...*wyc.QueryDesc) ([]string, error)
+
+	// Query for resources
+	//  int: 'limit' results to at most int (where 0 indicates there is no limit)
+	//  int: 'from' what number to start returning results from
+	//  ...QueryDes: description(s) of what to search for
+	// Ids will be returned for any doc matching all of the fields of any of the given QueryDesc
 	QueryResource(int, int, ...*wyc.QueryDesc) ([]string, error)
+
+	// Query for links
+	//  int: 'limit' results to at most int (where 0 indicates there is no limit)
+	//  int: 'from' what number to start returning results from
+	//  ...QueryDes: description(s) of what to search for
+	// Ids will be returned for any doc matching all of the fields of any of the given QueryDesc
 	QueryLink(int, int, ...*wyc.QueryDesc) ([]string, error)
 }

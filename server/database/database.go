@@ -1,12 +1,12 @@
 /*
-The Database module provides an interface for the saving, retrieving, deleting & updating of
-wysteria structs by Id(s). It doesn't supply any find or search functions that belongs to the Searchbase module.
+The Database module provides an interface for the saving, retrieving, deleting & updating of wysteria
+structs by their Id(s). It doesn't supply any 'find' or 'search' functions - they belong to the Searchbase module.
 
 The aim here is for a database implementation to supply permanent storage & replication facilities without
-needing to worry about search .. for which a more efficient system may exist.
+needing to worry about search, for which a more efficient system may exist.
 
-Technically, there is nothing preventing something from implementing both the search & database interfaces and doing
-both, but this divide provides us the flexibility to use different systems for what they're good at.
+Technically, there is nothing preventing something from implementing both the search & database interfaces and
+performing both, but this divide provides us the flexibility to use different systems for what they're good at.
 */
 
 package database

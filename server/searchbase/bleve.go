@@ -68,39 +68,42 @@ func (b *bleveSearchbase) Close() error {
 	return nil
 }
 
-func (b *bleveSearchbase) InsertCollection(id string, in *wyc.Collection) error {
+func (b *bleveSearchbase) InsertCollection(id string, doc *wyc.Collection) error {
+	in := copyCollection(doc)
 	in.Name = b64encode(in.Name)	
 	return b.collections.Index(id, in)
 }
 
-func (b *bleveSearchbase) InsertItem(id string, in *wyc.Item) error {
+func (b *bleveSearchbase) InsertItem(id string, doc *wyc.Item) error {
+	in := copyItem(doc)
 	in.ItemType = b64encode(in.ItemType)
 	in.Variant = b64encode(in.Variant)
-	encoded_facets := map[string]string{}
-	for k, v := range in.Facets {
-		encoded_facets[b64encode(k)] = b64encode(v)
+
+	for k, v := range doc.Facets {
+		in.Facets[b64encode(k)] = b64encode(v)
 	}
-	in.Facets = encoded_facets	
+
 	return b.items.Index(id, in)
 }
 
-func (b *bleveSearchbase) InsertVersion(id string, in *wyc.Version) error {
-	encoded_facets := map[string]string{}
-	for k, v := range in.Facets {
-		encoded_facets[b64encode(k)] = b64encode(v)
+func (b *bleveSearchbase) InsertVersion(id string, doc *wyc.Version) error {
+	in := copyVersion(doc)
+	for k, v := range doc.Facets {
+		in.Facets[b64encode(k)] = b64encode(v)
 	}
-	in.Facets = encoded_facets	
 	return b.versions.Index(id, in)
 }
 
-func (b *bleveSearchbase) InsertResource(id string, in *wyc.Resource) error {
+func (b *bleveSearchbase) InsertResource(id string, doc *wyc.Resource) error {
+	in := copyResource(doc)
 	in.Name = b64encode(in.Name)
 	in.ResourceType = b64encode(in.ResourceType)
 	in.Location = b64encode(in.Location)
 	return b.resources.Index(id, in)
 }
 
-func (b *bleveSearchbase) InsertLink(id string, in *wyc.Link) error {
+func (b *bleveSearchbase) InsertLink(id string, doc *wyc.Link) error {
+	in := copyLink(doc)
 	in.Name = b64encode(in.Name)
 	return b.links.Index(id, in)
 }

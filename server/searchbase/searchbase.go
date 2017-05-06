@@ -44,6 +44,7 @@ func Connect(settings *Settings) (Searchbase, error) {
 
 // Interface to a data store whose primary goal is running search queries rather than storage.
 type Searchbase interface {
+	// Kill connection to remote host(s)
 	Close() error
 
 	InsertCollection(string, *wyc.Collection) error

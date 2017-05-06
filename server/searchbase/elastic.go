@@ -14,9 +14,15 @@ const (
 	errDeleteBackoff = time.Second * 5
 )
 
+// Create a new elastic searchbase struct and call connect
 func elasticConnect(settings *Settings) (Searchbase, error) {
 	client, err := elastic.NewClient(
+		// Set elastic url to the given host / port
 		elastic.SetURL(fmt.Sprintf("http://%s:%d", settings.Host, settings.Port)),
+
+		// If enabled there is some race condition in the underlying lib that can cause use to always
+		// attempt to connect to the localhost. Assuming you're not running ES on the localhost you'll be
+		// given a "no available hosts" error or something.
 		elastic.SetSniff(false),
 	)
 	if err != nil {
@@ -41,51 +47,52 @@ type elasticSearch struct {
 	client   *elastic.Client
 }
 
-func (e *elasticSearch) InsertCollection(id string, doc *wyc.Collection) error {
+func (e *elasticSearch) InsertCollection(id string, in *wyc.Collection) error {
+	doc := copyCollection(in)
 	doc.Name = b64encode(doc.Name)
 	return e.insert(tableCollection, id, doc)
 }
 
-func (e *elasticSearch) InsertItem(id string, doc *wyc.Item) error {
+func (e *elasticSearch) InsertItem(id string, in *wyc.Item) error {
+	doc := copyItem(in)
 	doc.ItemType = b64encode(doc.ItemType)
 	doc.Variant = b64encode(doc.Variant)
-	encoded_facets := map[string]string{}
-	for k, v := range doc.Facets {
-		encoded_facets[b64encode(k)] = b64encode(v)
+	for k, v := range in.Facets {
+		doc.Facets[b64encode(k)] = b64encode(v)
 	}
-	doc.Facets = encoded_facets
 	return e.insert(tableItem, id, doc)
 }
 
-func (e *elasticSearch) InsertVersion(id string, doc *wyc.Version) error {
-	encoded_facets := map[string]string{}
-	for k, v := range doc.Facets {
-		encoded_facets[b64encode(k)] = b64encode(v)
+func (e *elasticSearch) InsertVersion(id string, in *wyc.Version) error {
+	doc := copyVersion(in)
+	for k, v := range in.Facets {
+		doc.Facets[b64encode(k)] = b64encode(v)
 	}
-	doc.Facets = encoded_facets
 	return e.insert(tableVersion, id, doc)
 }
 
-func (e *elasticSearch) InsertResource(id string, doc *wyc.Resource) error {
+func (e *elasticSearch) InsertResource(id string, in *wyc.Resource) error {
+	doc := copyResource(in)
 	doc.Name = b64encode(doc.Name)
 	doc.ResourceType = b64encode(doc.ResourceType)
 	doc.Location = b64encode(doc.Location)
 	return e.insert(tableFileresource, id, doc)
 }
 
-func (e *elasticSearch) InsertLink(id string, doc *wyc.Link) error {
+func (e *elasticSearch) InsertLink(id string, in *wyc.Link) error {
+	doc := copyLink(in)
 	doc.Name = b64encode(doc.Name)
 	return e.insert(tableLink, id, doc)
 }
 
 func (e *elasticSearch) UpdateItem(id string, doc *wyc.Item) error {
 	// Explicit insert to ID deletes & replaces doc
-	return e.insert(tableItem, id, doc)
+	return e.InsertItem(id, doc)
 }
 
 func (e *elasticSearch) UpdateVersion(id string, doc *wyc.Version) error {
 	// Explicit insert to ID deletes & replaces doc
-	return e.insert(tableVersion, id, doc)
+	return e.InsertVersion(id, doc)
 }
 
 func (e *elasticSearch) DeleteCollection(ids ...string) error {
@@ -133,10 +140,7 @@ func (e *elasticSearch) Close() error {
 	return nil
 }
 
-// Delete the given IDs.
-//  - If the delete for an ID fails possibly it wasn't found as Elastic is still indexing it
-//  - To overcome this we'll retry the delete once after a small sleep period
-//
+// Delete the given IDs in the given index name
 func (e *elasticSearch) generic_delete(col string, ids ...string) error {
 	wg := sync.WaitGroup{}
 	wg.Add(len(ids))
@@ -156,6 +160,8 @@ func (e *elasticSearch) generic_delete(col string, ids ...string) error {
 		go func() {
 			_, err := e.client.Delete().Index(e.Settings.Database).Type(col).Id(my_id).Do()
 			if err != nil {
+				// If the delete for an ID fails _possibly_ it wasn't found as Elastic is still
+				// indexing it. To overcome this we'll retry the delete once after a small sleep period
 				// Delete called too quickly? Give elastic time to index & retry
 				time.Sleep(errDeleteBackoff)
 				_, err = e.client.Delete().Index(e.Settings.Database).Type(col).Id(my_id).Do()

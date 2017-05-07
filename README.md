@@ -24,6 +24,8 @@ Middleware
  - Gorpc (embedded)
  - Nats.io (either)
 
+You can also start wysteria with no config at all in which case it will spin up it's own embedded Nats server
+and use BoltDB & Bleve to write to an OS temporary folder.
 
 ## Connecting
 Once you're set up, opening a connection to the server is reasonably simple
@@ -51,12 +53,12 @@ client.CreateCollection("spriteSets")
 
 You can easily fetch a collection via either the name or id
 ```Go
-collection, _ := client.GetCollection("spriteSets")
-sameCollection, _ := client.GetCollection(collection.Id())
+collection, _ := client.Collection("spriteSets")
+sameCollection, _ := client.Collection(collection.Id())
 ```
 And all child items of a collection via
 ```Go
-items, _ := collection.GetItems()
+items, _ := collection.Items()
 ```
 
 ## Items
@@ -75,8 +77,8 @@ Wysteria automatically attaches some facets to created items & versions to make 
 
 Part of the usefulness of items is their ability to be linked together, you might say for example
 ```Go
-tilesets, _ := client.GetCollection("tilesets")
-maps, _ := client.GetCollection("maps")
+tilesets, _ := client.Collection("tilesets")
+maps, _ := client.Collection("maps")
 
 yew_tree_tiles, _ := tilesets.CreateItem("forest", "yew01", nil)
 forest_scene, _ := maps.CreateItem("exterior", "sherwoodForest", nil)
@@ -87,14 +89,14 @@ That is, the forest_scene item has a link called "input" that connects to our ye
 
 You can link any number of items in this way, and the names are not required to be unique. You can use these links to walk from one object to another 
 ```Go
-items, _ := forest_scene.GetLinked()
-input_items, _ := forest_scene.GetLinkedByName("input")
+items, _ := forest_scene.Linked()
+input_items, _ := forest_scene.LinkedByName("input")
 ```
 
 You can also traverse 'up' and 'down' via 
 ```Go
-myitem.GetParent()            # fetch the parent of this (a collection)
-myitem.GetPublished()         # fetch the published version for this
+myitem.Parent()            # fetch the parent of this (a collection)
+myitem.Published()         # fetch the published version for this
 ```
 
 Which brings us to ..
@@ -134,10 +136,10 @@ myVersion.AddResource("somethingElse", "other", "/path/to/foo.bar")
 
 As you might expect, you can easily retrieve a versions' resources in multiple ways
 ```Go
-all_resources, err := ver.GetAllResources()
-batman_image_resources, err := ver.GetResources("sprite", "image")
-image_resouces, err = ver.GetResourcesByType("image")
-batman_resources, err = ver.GetResourcesByName("sprite")
+all_resources, err := ver.AllResources()
+batman_image_resources, err := ver.Resources("sprite", "image")
+image_resouces, err = ver.ResourcesByType("image")
+batman_resources, err = ver.ResourcesByName("sprite")
 ```
 
 ## Searching
@@ -200,3 +202,4 @@ Also, if (when) you find bugs, let me know.
 - implement system for deterministic ids
 - ability to write to backup db / sb (might be useful for hot swapping or dev dataset)
 - ability to swap over to backup db without server restart
+- some kind of UI to view / search / explore wysteria data perhaps

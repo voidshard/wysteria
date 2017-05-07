@@ -227,7 +227,6 @@ func (e *mongoEndpoint) InsertLink(id string, d *wyc.Link) error {
 	return e.insert(tableLink, id, d)
 }
 
-
 // Retrieve the collections indicated by the given Id(s)
 func (e *mongoEndpoint) RetrieveCollection(ids ...string) (res []*wyc.Collection, err error) {
 	err = e.retrieve(tableCollection, &res, ids...)
@@ -258,7 +257,6 @@ func (e *mongoEndpoint) RetrieveLink(ids ...string) (res []*wyc.Link, err error)
 	return
 }
 
-
 // Update the facets of the item with the given Id
 func (e *mongoEndpoint) UpdateItem(id string, d *wyc.Item) error {
 	return e.update(tableItem, id, d)
@@ -268,7 +266,6 @@ func (e *mongoEndpoint) UpdateItem(id string, d *wyc.Item) error {
 func (e *mongoEndpoint) UpdateVersion(id string, d *wyc.Version) error {
 	return e.update(tableVersion, id, d)
 }
-
 
 // Delete collections matching given Id(s)
 func (e *mongoEndpoint) DeleteCollection(ids ...string) error {
@@ -310,7 +307,6 @@ func (e *mongoEndpoint) DeleteResource(ids ...string) error {
 func (e *mongoEndpoint) DeleteLink(ids ...string) error {
 	return e.deleteById(tableLink, ids...)
 }
-
 
 // Generic insert of some document into a named column with the given id
 func (e *mongoEndpoint) insert(col string, sid string, data interface{}) error {

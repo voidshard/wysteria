@@ -68,8 +68,8 @@ type DeleteReply struct {
 
 // All find requests are the same, a list of QueryDescription objects
 type FindReq struct {
-	Query []wyc.QueryDesc
-	Limit int32
+	Query  []wyc.QueryDesc
+	Limit  int32
 	Offset int32
 }
 
@@ -130,5 +130,5 @@ type UpdateFacetsReq struct {
 
 // Update facets only returns an error string indicating if it worked or not
 type UpdateFacetsReply struct {
-	Error  string
+	Error string
 }

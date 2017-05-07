@@ -2,8 +2,8 @@ package searchends
 
 import (
 	"encoding/base64"
-	"strings"
 	wyc "github.com/voidshard/wysteria/common"
+	"strings"
 )
 
 // base64 encodes a string, minus the '=' padding chars at the end.
@@ -18,7 +18,7 @@ func b64encode(path string) string {
 // facilitate searching / matching against later. Avoids use of reflection.
 func copyCollection(in *wyc.Collection) *wyc.Collection {
 	return &wyc.Collection{
-		Id: in.Id,
+		Id:   in.Id,
 		Name: in.Name,
 	}
 }
@@ -28,11 +28,11 @@ func copyCollection(in *wyc.Collection) *wyc.Collection {
 // facilitate searching / matching against later. Avoids use of reflection.
 func copyItem(in *wyc.Item) *wyc.Item {
 	return &wyc.Item{
-		Id: in.Id,
-		Parent: in.Parent,
+		Id:       in.Id,
+		Parent:   in.Parent,
 		ItemType: in.ItemType,
-		Variant: in.Variant,
-		Facets: map[string]string{},
+		Variant:  in.Variant,
+		Facets:   map[string]string{},
 	}
 }
 
@@ -41,7 +41,7 @@ func copyItem(in *wyc.Item) *wyc.Item {
 // facilitate searching / matching against later. Avoids use of reflection.
 func copyVersion(in *wyc.Version) *wyc.Version {
 	return &wyc.Version{
-		Id: in.Id,
+		Id:     in.Id,
 		Parent: in.Parent,
 		Number: in.Number,
 		Facets: map[string]string{},
@@ -53,11 +53,11 @@ func copyVersion(in *wyc.Version) *wyc.Version {
 // facilitate searching / matching against later. Avoids use of reflection.
 func copyResource(in *wyc.Resource) *wyc.Resource {
 	return &wyc.Resource{
-		Id: in.Id,
-		Parent: in.Parent,
-		Name: in.Name,
+		Id:           in.Id,
+		Parent:       in.Parent,
+		Name:         in.Name,
 		ResourceType: in.ResourceType,
-		Location: in.Location,
+		Location:     in.Location,
 	}
 }
 
@@ -66,9 +66,9 @@ func copyResource(in *wyc.Resource) *wyc.Resource {
 // facilitate searching / matching against later. Avoids use of reflection.
 func copyLink(in *wyc.Link) *wyc.Link {
 	return &wyc.Link{
-		Id: in.Id,
+		Id:   in.Id,
 		Name: in.Name,
-		Src: in.Src,
-		Dst: in.Dst,
+		Src:  in.Src,
+		Dst:  in.Dst,
 	}
 }

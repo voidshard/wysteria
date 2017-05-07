@@ -418,7 +418,7 @@ func (b *boltDb) DeleteCollection(ids ...string) error {
 	// Retrieve the collections (we need the name fields to remove collisions)
 	collections, err := b.RetrieveCollection(ids...)
 	if err != nil {
-		return  err
+		return err
 	}
 
 	// Remove any recorded collisions for these collections

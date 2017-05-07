@@ -50,7 +50,7 @@ type elasticSearch struct {
 
 // Insert collection using the given id
 func (e *elasticSearch) InsertCollection(id string, in *wyc.Collection) error {
-	doc := copyCollection(in) // make copy so we don't modify the original
+	doc := copyCollection(in)      // make copy so we don't modify the original
 	doc.Name = b64encode(doc.Name) // mutate string so we aren't thrown by special chars
 	return e.insert(tableCollection, id, doc)
 }

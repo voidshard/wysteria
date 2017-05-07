@@ -1,8 +1,8 @@
 package main
 
 import (
-	"time"
 	"runtime"
+	"time"
 )
 
 func main() {

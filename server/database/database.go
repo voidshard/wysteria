@@ -52,7 +52,6 @@ type Database interface {
 	// Given an Item ID, return the ID of the current PublishedVersion version (if any)
 	Published(string) (*wyc.Version, error)
 
-
 	// Insert a collection into the db with the given Id
 	//  - Must: Ensure only one collection with given Name
 	InsertCollection(string, *wyc.Collection) error
@@ -73,7 +72,6 @@ type Database interface {
 	// Insert link into the db with the given Id
 	InsertLink(string, *wyc.Link) error
 
-
 	// Retrieve collections indicated by the given Id(s) from the db
 	RetrieveCollection(...string) ([]*wyc.Collection, error)
 
@@ -89,13 +87,11 @@ type Database interface {
 	// Retrieve links indicated by the given Id(s) from the db
 	RetrieveLink(...string) ([]*wyc.Link, error)
 
-
 	// Save the updated facets on the given version
 	UpdateItem(string, *wyc.Item) error
 
 	// Save the updated facets on the given item
 	UpdateVersion(string, *wyc.Version) error
-
 
 	// Delete collection(s) with the given Id(s)
 	DeleteCollection(...string) error
@@ -111,7 +107,6 @@ type Database interface {
 
 	// Delete link(s) with the given Id(s)
 	DeleteLink(...string) error
-
 
 	// kill connection to db
 	Close() error

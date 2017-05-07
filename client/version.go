@@ -8,8 +8,8 @@ import (
 
 // Wrapper around wysteria/common Version object
 type Version struct {
-	conn     *wysteriaClient
-	data     *wyc.Version
+	conn *wysteriaClient
+	data *wyc.Version
 }
 
 // Return the version number associated with this version.
@@ -106,7 +106,6 @@ func (i *Version) GetLinkedByName(name string) ([]*Version, error) {
 	}
 	return found[name], nil
 }
-
 
 // Find and return all linked Versions for which links exist that name this as the source.
 // That is, this first finds all links for which the source Id is this Version's Id, then

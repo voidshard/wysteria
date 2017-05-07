@@ -230,8 +230,8 @@ func convWQueryDescs(limit, offset int32, in ...*wyc.QueryDesc) *wrpc.QueryDescs
 		)
 	}
 	return &wrpc.QueryDescs{
-		All: result,
-		Limit: limit,
+		All:    result,
+		Limit:  limit,
 		Offset: offset,
 	}
 }

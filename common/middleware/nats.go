@@ -53,7 +53,7 @@ const (
 
 	// The server carves this number of chars off the end of the route
 	// message to determine which func is being called by the suffix (above)
-	callSuffixLength     = 2
+	callSuffixLength = 2
 )
 
 var (
@@ -283,8 +283,8 @@ func (c *natsClient) DeleteResource(id string) error {
 // will send over the wire.
 func toFindReq(limit, offset int32, query []*wyc.QueryDesc) *codec.FindReq {
 	req := &codec.FindReq{
-		Query: []wyc.QueryDesc{},
-		Limit: limit,
+		Query:  []wyc.QueryDesc{},
+		Limit:  limit,
 		Offset: offset,
 	}
 	for _, q := range query {
@@ -320,7 +320,7 @@ func (c *natsClient) FindCollections(limit, offset int32, query []*wyc.QueryDesc
 
 // Given some list of QueryDescriptions, return matching items
 func (c *natsClient) FindItems(limit, offset int32, query []*wyc.QueryDesc) (result []*wyc.Item, err error) {
-	data, err := toFindReq(limit, offset , query).MarshalJSON()
+	data, err := toFindReq(limit, offset, query).MarshalJSON()
 	if err != nil {
 		return
 	}

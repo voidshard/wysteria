@@ -6,8 +6,8 @@ import (
 
 // Wrapper around wysteria/common Item object
 type Item struct {
-	conn     *wysteriaClient
-	data     *wyc.Item
+	conn *wysteriaClient
+	data *wyc.Item
 }
 
 // Get which ever Version object is considered the "published" version of this Item

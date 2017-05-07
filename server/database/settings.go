@@ -13,7 +13,7 @@ const (
 
 type Settings struct {
 	// The name of the driver (will be used to load via Connect in database.go)
-	Driver   string
+	Driver string
 
 	// Database settings to use in the connection
 	Host     string

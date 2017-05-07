@@ -58,7 +58,6 @@ type EndpointClient interface {
 	// Close connection(s) to the server
 	Close() error
 
-
 	// Send collection creation request, return new Id
 	//   - Collection name is required to be unique among collections
 	CreateCollection(string) (string, error)
@@ -92,7 +91,6 @@ type EndpointClient interface {
 	//   - destination Id
 	CreateLink(*wyc.Link) (string, error)
 
-
 	// Given the Id, delete some collection
 	DeleteCollection(string) error
 
@@ -104,7 +102,6 @@ type EndpointClient interface {
 
 	// Given the Id, delete some resource
 	DeleteResource(string) error
-
 
 	// Given some list of QueryDescriptions, return matching collections
 	FindCollections(int32, int32, []*wyc.QueryDesc) ([]*wyc.Collection, error)
@@ -121,14 +118,12 @@ type EndpointClient interface {
 	// Given some list of QueryDescriptions, return matching links
 	FindLinks(int32, int32, []*wyc.QueryDesc) ([]*wyc.Link, error)
 
-
 	// Given Id of some Item, return version marked as publish
 	PublishedVersion(string) (*wyc.Version, error)
 
 	// Given Id of some Version, mark version as publish
 	//  - Only one version of a given Item is considered publish at a time
 	SetPublishedVersion(string) error
-
 
 	// Given Version Id update version facets with given facets
 	UpdateVersionFacets(string, map[string]string) error

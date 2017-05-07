@@ -49,7 +49,6 @@ type Searchbase interface {
 	// Kill connection to remote host(s)
 	Close() error
 
-
 	// Insert collection into the sb with the given Id
 	InsertCollection(string, *wyc.Collection) error
 
@@ -65,13 +64,11 @@ type Searchbase interface {
 	// Insert link into the sb with the given Id
 	InsertLink(string, *wyc.Link) error
 
-
 	// Update the facets of the item with the given id with the facets of the given item
 	UpdateItem(string, *wyc.Item) error
 
 	// Update the facets of the version with the given id with the facets of the given version
 	UpdateVersion(string, *wyc.Version) error
-
 
 	// Delete collection search data by Id(s)
 	//  Note that deleting something and making it unavailable to search for effectively means
@@ -89,7 +86,6 @@ type Searchbase interface {
 
 	// Delete link search data by Id(s)
 	DeleteLink(...string) error
-
 
 	// Query for collections
 	//  int: 'limit' results to at most int (where 0 indicates there is no limit)

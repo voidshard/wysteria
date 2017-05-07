@@ -79,7 +79,7 @@ func (b *bleveSearchbase) Close() error {
 
 // Insert collection using the given id
 func (b *bleveSearchbase) InsertCollection(id string, doc *wyc.Collection) error {
-	in := copyCollection(doc) // create copy so we don't modify the original
+	in := copyCollection(doc)    // create copy so we don't modify the original
 	in.Name = b64encode(in.Name) // encode name so we aren't tripped up by spaces / bleve control chars
 	return b.collections.Index(id, in)
 }
@@ -100,7 +100,7 @@ func (b *bleveSearchbase) InsertItem(id string, doc *wyc.Item) error {
 
 // Insert version using the given id
 func (b *bleveSearchbase) InsertVersion(id string, doc *wyc.Version) error {
-	in := copyVersion(doc)// create copy so we don't modify the original
+	in := copyVersion(doc) // create copy so we don't modify the original
 
 	// mutate values of our copy so we don't have to worry about weird chars
 	for k, v := range doc.Facets {
@@ -136,7 +136,6 @@ func (b *bleveSearchbase) UpdateVersion(id string, in *wyc.Version) error {
 	// For bleve, updating and inserting are the same thing
 	return b.InsertVersion(id, in)
 }
-
 
 // Iterate over given IDs and delete from given index
 func genericDelete(index bleve.Index, ids ...string) error {

@@ -1,0 +1,57 @@
+package: github.com/voidshard/wysteria
+import:
+- package: bytes
+- package: crypto/tls
+- package: crypto/x509
+- package: encoding/base64
+- package: encoding/json
+- package: errors
+- package: fmt
+- package: github.com/blevesearch/bleve
+  version: ^0.5.0
+  subpackages:
+  - mapping
+- package: github.com/boltdb/bolt
+  version: ^1.3.0
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/nats-io/gnatsd
+  version: ^0.9.6
+  subpackages:
+  - server
+- package: github.com/nats-io/nats
+  version: ^1.2.2
+- package: github.com/pquerna/ffjson
+  subpackages:
+  - fflib/v1
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: google.golang.org/grpc
+  version: ^1.3.0
+  subpackages:
+  - reflection
+- package: gopkg.in/gcfg.v1
+  version: ^1.2.0
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
+- package: gopkg.in/olivere/elastic.v2
+  version: ^5.0.37
+- package: io/ioutil
+- package: log
+- package: math
+- package: net
+- package: os
+- package: os/signal
+- package: path/filepath
+- package: runtime
+- package: strconv
+- package: strings
+- package: sync
+- package: syscall
+- package: time
+testImport:
+- package: reflect
+- package: testing

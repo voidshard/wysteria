@@ -9,8 +9,9 @@ import (
 // base64 encodes a string, minus the '=' padding chars at the end.
 // Util provided for searchbase implementations that may wish to encode strings to avoid weird chars, spaces
 // or other symbols.
+// ToDo: Investigate potential for collisions. Especially since we're lowercasing to avoid case sensitive matches
 func b64encode(path string) string {
-	return strings.TrimRight(base64.StdEncoding.EncodeToString([]byte(path)), "=")
+	return strings.ToLower(strings.TrimRight(base64.StdEncoding.EncodeToString([]byte(path)), "="))
 }
 
 // Return copy of the given collection

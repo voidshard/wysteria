@@ -16,7 +16,7 @@ func main() {
 	}
 
 	// Grab our collection
-	tiles, err := client.GetCollection("tiles")
+	tiles, err := client.Collection("tiles")
 	if err != nil {
 		panic(err)
 	}

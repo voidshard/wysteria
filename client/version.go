@@ -44,7 +44,7 @@ func (i *Version) SetFacets(in map[string]string) error {
 // That is, this first finds all links for which the source Id is this Version's Id, then
 // gets all matching Versions.
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Version
-func (i *Version) getLinkedVersions(name string) (map[string][]*Version, error) {
+func (i *Version) linkedVersions(name string) (map[string][]*Version, error) {
 	links, err := i.conn.middleware.FindLinks(
 		0,
 		0,
@@ -99,8 +99,8 @@ func (i *Version) getLinkedVersions(name string) (map[string][]*Version, error) 
 
 // Get all linked Versions (Versions where links exist that mention this as the source and them as the destination)
 // where the link name is the given 'name'.
-func (i *Version) GetLinkedByName(name string) ([]*Version, error) {
-	found, err := i.getLinkedVersions(name)
+func (i *Version) LinkedByName(name string) ([]*Version, error) {
+	found, err := i.linkedVersions(name)
 	if err != nil {
 		return nil, err
 	}
@@ -111,8 +111,8 @@ func (i *Version) GetLinkedByName(name string) ([]*Version, error) {
 // That is, this first finds all links for which the source Id is this Version's Id, then
 // gets all matching Versions.
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Version
-func (i *Version) GetLinked() (map[string][]*Version, error) {
-	return i.getLinkedVersions("")
+func (i *Version) Linked() (map[string][]*Version, error) {
+	return i.linkedVersions("")
 }
 
 // Link this Version with a link described by 'name' to some other Version.
@@ -154,27 +154,27 @@ func (i *Version) AddResource(name, rtype, location string) error {
 }
 
 // Retrieve all resources whose parent is this Version
-func (i *Version) GetAllResources() ([]*Resource, error) {
-	return i.getResources("", "")
+func (i *Version) AllResources() ([]*Resource, error) {
+	return i.findResources("", "")
 }
 
 // Retrieve all child resources of this Version with the given name & resource type
-func (i *Version) GetResources(name, resource_type string) ([]*Resource, error) {
-	return i.getResources(name, resource_type)
+func (i *Version) Resources(name, resource_type string) ([]*Resource, error) {
+	return i.findResources(name, resource_type)
 }
 
 // Retrieve all child resources of this Version with the given resource type
-func (i *Version) GetResourcesByType(resource_type string) ([]*Resource, error) {
-	return i.getResources("", resource_type)
+func (i *Version) ResourcesByType(resource_type string) ([]*Resource, error) {
+	return i.findResources("", resource_type)
 }
 
 // Retrieve all child resources of this Version with the given name
-func (i *Version) GetResourcesByName(name string) ([]*Resource, error) {
-	return i.getResources(name, "")
+func (i *Version) ResourcesByName(name string) ([]*Resource, error) {
+	return i.findResources(name, "")
 }
 
 // Retrieve all child resources of this Version with the given name & resource type
-func (i *Version) getResources(name, resource_type string) ([]*Resource, error) {
+func (i *Version) findResources(name, resource_type string) ([]*Resource, error) {
 	results, err := i.conn.middleware.FindResources(
 		0,
 		0,
@@ -195,12 +195,12 @@ func (i *Version) getResources(name, resource_type string) ([]*Resource, error) 
 }
 
 // Return the Id of this Version's parent
-func (i *Version) Parent() string {
+func (i *Version) ParentId() string {
 	return i.data.Parent
 }
 
 // Get the parent Item of this Version
-func (i *Version) GetParent() (*Item, error) {
+func (i *Version) Parent() (*Item, error) {
 	items, err := i.conn.middleware.FindItems(
 		1, 0, []*wyc.QueryDesc{{Id: i.data.Parent}},
 	)

@@ -38,12 +38,12 @@ func (i *Resource) Location() string {
 }
 
 // Return the Id of this resources' parent (the Id of a Version object)
-func (i *Resource) Parent() string {
+func (i *Resource) ParentId() string {
 	return i.data.Parent
 }
 
 // Return the parent (Version) of this resource
-func (i *Resource) GetParent() (*Version, error) {
+func (i *Resource) Parent() (*Version, error) {
 	versions, err := i.conn.middleware.FindVersions(
 		1,
 		0,

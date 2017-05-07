@@ -16,7 +16,7 @@ func main() {
 	}
 
 	// Find our collection
-	col, err := client.GetCollection("tiles")
+	col, err := client.Collection("tiles")
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func main() {
 	//tiles
 
 	// Get all child items
-	items, err := col.GetItems()
+	items, err := col.Items()
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 		fmt.Println(published.Version())
 
 		// Get & print attached resources for our version
-		resources, err := published.GetAllResources()
+		resources, err := published.AllResources()
 		if err != nil {
 			panic(err)
 		}

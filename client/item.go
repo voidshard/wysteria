@@ -52,7 +52,7 @@ func (i *Item) LinkTo(name string, other *Item) error {
 // That is, this first finds all links for which the source Id is this Item's Id, then
 // gets all matching Items.
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Item
-func (i *Item) getLinkedItems(name string) (map[string][]*Item, error) {
+func (i *Item) linkedItems(name string) (map[string][]*Item, error) {
 	links, err := i.conn.middleware.FindLinks(
 		0,
 		0,
@@ -107,8 +107,8 @@ func (i *Item) getLinkedItems(name string) (map[string][]*Item, error) {
 
 // Get all linked items (items where links exist that mention this as the source and them as the destination)
 // where the link name is the given 'name'.
-func (i *Item) GetLinkedByName(name string) ([]*Item, error) {
-	found, err := i.getLinkedItems(name)
+func (i *Item) LinkedByName(name string) ([]*Item, error) {
+	found, err := i.linkedItems(name)
 	if err != nil {
 		return nil, err
 	}
@@ -119,8 +119,8 @@ func (i *Item) GetLinkedByName(name string) ([]*Item, error) {
 // That is, this first finds all links for which the source Id is this Item's Id, then
 // gets all matching Items.
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Item
-func (i *Item) GetLinked() (map[string][]*Item, error) {
-	return i.getLinkedItems("")
+func (i *Item) Linked() (map[string][]*Item, error) {
+	return i.linkedItems("")
 }
 
 // Return the variant string associated with this Item
@@ -183,11 +183,11 @@ func (i *Item) CreateVersion(facets map[string]string) (*Version, error) {
 }
 
 // Return the Id of the parent of this Item
-func (i *Item) Parent() string {
+func (i *Item) ParentId() string {
 	return i.data.Parent
 }
 
 // Lookup and return the parent Collection of this Item
-func (i *Item) GetParent() (*Collection, error) {
-	return i.conn.GetCollection(i.data.Parent)
+func (i *Item) Parent() (*Collection, error) {
+	return i.conn.Collection(i.data.Parent)
 }

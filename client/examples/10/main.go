@@ -21,13 +21,13 @@ func main() {
 		panic(err)
 	}
 
-	collection, err := client.GetCollection("maps")
+	collection, err := client.Collection("maps")
 	if err != nil {
 		panic(err)
 	}
 	log.Println("Delete maps:", collection.Delete())
 
-	collection, err = client.GetCollection("tiles")
+	collection, err = client.Collection("tiles")
 	if err != nil {
 		panic(err)
 	}

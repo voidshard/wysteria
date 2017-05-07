@@ -33,7 +33,7 @@ func main() {
 	}
 
 	// Retrieve all linked versions
-	linked_versions, err := forest_01.GetLinked()
+	linked_versions, err := forest_01.Linked()
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 
 	// We can also grab links with a specific name
 	desired_linked_versions := "elm"
-	linked_elms, err := forest_01.GetLinkedByName(desired_linked_versions)
+	linked_elms, err := forest_01.LinkedByName(desired_linked_versions)
 	if err != nil {
 		panic(err)
 	}

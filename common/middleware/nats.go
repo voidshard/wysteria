@@ -281,9 +281,11 @@ func (c *natsClient) DeleteResource(id string) error {
 
 // Util to convert native wysteria QueryDesc list to a 'FindReq' that this protocol
 // will send over the wire.
-func toFindReq(query []*wyc.QueryDesc) *codec.FindReq {
+func toFindReq(limit, offset int32, query []*wyc.QueryDesc) *codec.FindReq {
 	req := &codec.FindReq{
 		Query: []wyc.QueryDesc{},
+		Limit: limit,
+		Offset: offset,
 	}
 	for _, q := range query {
 		req.Query = append(req.Query, *q)
@@ -292,8 +294,8 @@ func toFindReq(query []*wyc.QueryDesc) *codec.FindReq {
 }
 
 // Given some list of QueryDescriptions, return matching collections
-func (c *natsClient) FindCollections(query []*wyc.QueryDesc) (result []*wyc.Collection, err error) {
-	data, err := toFindReq(query).MarshalJSON()
+func (c *natsClient) FindCollections(limit, offset int32, query []*wyc.QueryDesc) (result []*wyc.Collection, err error) {
+	data, err := toFindReq(limit, offset, query).MarshalJSON()
 	if err != nil {
 		return
 	}
@@ -317,8 +319,8 @@ func (c *natsClient) FindCollections(query []*wyc.QueryDesc) (result []*wyc.Coll
 }
 
 // Given some list of QueryDescriptions, return matching items
-func (c *natsClient) FindItems(query []*wyc.QueryDesc) (result []*wyc.Item, err error) {
-	data, err := toFindReq(query).MarshalJSON()
+func (c *natsClient) FindItems(limit, offset int32, query []*wyc.QueryDesc) (result []*wyc.Item, err error) {
+	data, err := toFindReq(limit, offset , query).MarshalJSON()
 	if err != nil {
 		return
 	}
@@ -342,8 +344,8 @@ func (c *natsClient) FindItems(query []*wyc.QueryDesc) (result []*wyc.Item, err 
 }
 
 // Given some list of QueryDescriptions, return matching versions
-func (c *natsClient) FindVersions(query []*wyc.QueryDesc) (result []*wyc.Version, err error) {
-	data, err := toFindReq(query).MarshalJSON()
+func (c *natsClient) FindVersions(limit, offset int32, query []*wyc.QueryDesc) (result []*wyc.Version, err error) {
+	data, err := toFindReq(limit, offset, query).MarshalJSON()
 	if err != nil {
 		return
 	}
@@ -367,8 +369,8 @@ func (c *natsClient) FindVersions(query []*wyc.QueryDesc) (result []*wyc.Version
 }
 
 // Given some list of QueryDescriptions, return matching resources
-func (c *natsClient) FindResources(query []*wyc.QueryDesc) (result []*wyc.Resource, err error) {
-	data, err := toFindReq(query).MarshalJSON()
+func (c *natsClient) FindResources(limit, offset int32, query []*wyc.QueryDesc) (result []*wyc.Resource, err error) {
+	data, err := toFindReq(limit, offset, query).MarshalJSON()
 	if err != nil {
 		return
 	}
@@ -392,8 +394,8 @@ func (c *natsClient) FindResources(query []*wyc.QueryDesc) (result []*wyc.Resour
 }
 
 // Given some list of QueryDescriptions, return matching links
-func (c *natsClient) FindLinks(query []*wyc.QueryDesc) (result []*wyc.Link, err error) {
-	data, err := toFindReq(query).MarshalJSON()
+func (c *natsClient) FindLinks(limit, offset int32, query []*wyc.QueryDesc) (result []*wyc.Link, err error) {
+	data, err := toFindReq(limit, offset, query).MarshalJSON()
 	if err != nil {
 		return
 	}
@@ -752,7 +754,7 @@ func (s *natsServer) findCollection(msg *nats.Msg) wyc.Marshalable {
 		qs = append(qs, &tmp)
 	}
 
-	result, err := s.handler.FindCollections(qs)
+	result, err := s.handler.FindCollections(req.Limit, req.Offset, qs)
 	if err != nil {
 		rep.Error = err.Error()
 		return rep
@@ -785,7 +787,7 @@ func (s *natsServer) findItem(msg *nats.Msg) wyc.Marshalable {
 		qs = append(qs, &tmp)
 	}
 
-	result, err := s.handler.FindItems(qs)
+	result, err := s.handler.FindItems(req.Limit, req.Offset, qs)
 	if err != nil {
 		rep.Error = err.Error()
 		return rep
@@ -818,7 +820,7 @@ func (s *natsServer) findVersion(msg *nats.Msg) wyc.Marshalable {
 		qs = append(qs, &tmp)
 	}
 
-	result, err := s.handler.FindVersions(qs)
+	result, err := s.handler.FindVersions(req.Limit, req.Offset, qs)
 	if err != nil {
 		rep.Error = err.Error()
 		return rep
@@ -851,7 +853,7 @@ func (s *natsServer) findResource(msg *nats.Msg) wyc.Marshalable {
 		qs = append(qs, &tmp)
 	}
 
-	result, err := s.handler.FindResources(qs)
+	result, err := s.handler.FindResources(req.Limit, req.Offset, qs)
 	if err != nil {
 		rep.Error = err.Error()
 		return rep
@@ -884,7 +886,7 @@ func (s *natsServer) findLink(msg *nats.Msg) wyc.Marshalable {
 		qs = append(qs, &tmp)
 	}
 
-	result, err := s.handler.FindLinks(qs)
+	result, err := s.handler.FindLinks(req.Limit, req.Offset, qs)
 	if err != nil {
 		rep.Error = err.Error()
 		return rep

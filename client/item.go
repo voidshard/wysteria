@@ -54,6 +54,8 @@ func (i *Item) LinkTo(name string, other *Item) error {
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Item
 func (i *Item) getLinkedItems(name string) (map[string][]*Item, error) {
 	links, err := i.conn.middleware.FindLinks(
+		0,
+		0,
 		[]*wyc.QueryDesc{
 			{LinkSrc: i.data.Id, Name: name},
 		},
@@ -75,7 +77,7 @@ func (i *Item) getLinkedItems(name string) (map[string][]*Item, error) {
 		ids = append(ids, &wyc.QueryDesc{Id: id})
 	}
 
-	items, err := i.conn.middleware.FindItems(ids)
+	items, err := i.conn.middleware.FindItems(int32(len(ids)), 0, ids)
 	if err != nil {
 		return nil, err
 	}

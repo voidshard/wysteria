@@ -3370,6 +3370,10 @@ func (mj *FindReq) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	} else {
 		buf.WriteString(`null`)
 	}
+	buf.WriteString(`,"Limit":`)
+	fflib.FormatBits2(buf, uint64(mj.Limit), 10, mj.Limit < 0)
+	buf.WriteString(`,"Offset":`)
+	fflib.FormatBits2(buf, uint64(mj.Offset), 10, mj.Offset < 0)
 	buf.WriteByte('}')
 	return nil
 }
@@ -3379,9 +3383,17 @@ const (
 	ffj_t_FindReqno_such_key
 
 	ffj_t_FindReq_Query
+
+	ffj_t_FindReq_Limit
+
+	ffj_t_FindReq_Offset
 )
 
 var ffj_key_FindReq_Query = []byte("Query")
+
+var ffj_key_FindReq_Limit = []byte("Limit")
+
+var ffj_key_FindReq_Offset = []byte("Offset")
 
 func (uj *FindReq) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -3442,6 +3454,22 @@ mainparse:
 			} else {
 				switch kn[0] {
 
+				case 'L':
+
+					if bytes.Equal(ffj_key_FindReq_Limit, kn) {
+						currentKey = ffj_t_FindReq_Limit
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'O':
+
+					if bytes.Equal(ffj_key_FindReq_Offset, kn) {
+						currentKey = ffj_t_FindReq_Offset
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
 				case 'Q':
 
 					if bytes.Equal(ffj_key_FindReq_Query, kn) {
@@ -3450,6 +3478,18 @@ mainparse:
 						goto mainparse
 					}
 
+				}
+
+				if fflib.EqualFoldRight(ffj_key_FindReq_Offset, kn) {
+					currentKey = ffj_t_FindReq_Offset
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.SimpleLetterEqualFold(ffj_key_FindReq_Limit, kn) {
+					currentKey = ffj_t_FindReq_Limit
+					state = fflib.FFParse_want_colon
+					goto mainparse
 				}
 
 				if fflib.SimpleLetterEqualFold(ffj_key_FindReq_Query, kn) {
@@ -3477,6 +3517,12 @@ mainparse:
 
 				case ffj_t_FindReq_Query:
 					goto handle_Query
+
+				case ffj_t_FindReq_Limit:
+					goto handle_Limit
+
+				case ffj_t_FindReq_Offset:
+					goto handle_Offset
 
 				case ffj_t_FindReqno_such_key:
 					err = fs.SkipField(tok)
@@ -3554,6 +3600,66 @@ handle_Query:
 
 				wantVal = false
 			}
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Limit:
+
+	/* handler: uj.Limit type=int32 kind=int32 quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int32", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 32)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			uj.Limit = int32(tval)
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Offset:
+
+	/* handler: uj.Offset type=int32 kind=int32 quoted=false*/
+
+	{
+		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int32", tok))
+		}
+	}
+
+	{
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			tval, err := fflib.ParseInt(fs.Output.Bytes(), 10, 32)
+
+			if err != nil {
+				return fs.WrapErr(err)
+			}
+
+			uj.Offset = int32(tval)
+
 		}
 	}
 

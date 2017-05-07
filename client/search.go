@@ -12,6 +12,26 @@ type search struct {
 	query      []*wyc.QueryDesc
 	nextQuery  *wyc.QueryDesc
 	nextQValid bool
+	limit      int32
+	offset     int32
+}
+
+// Set limit on number of results
+func (i *search) Limit(val int) *search {
+	if val < 1 {
+		return i
+	}
+	i.limit = int32(val)
+	return i
+}
+
+// Get results from the given offset.
+func (i *search) Offset(val int) *search {
+	if val < 0 {
+		return i
+	}
+	i.offset = int32(val)
+	return i
 }
 
 // Create a new query description.
@@ -52,7 +72,7 @@ func (i *search) FindCollections() ([]*Collection, error) {
 		return nil, err
 	}
 
-	results, err := i.conn.middleware.FindCollections(i.query)
+	results, err := i.conn.middleware.FindCollections(i.limit, i.offset, i.query)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +94,7 @@ func (i *search) FindItems() ([]*Item, error) {
 		return nil, err
 	}
 
-	results, err := i.conn.middleware.FindItems(i.query)
+	results, err := i.conn.middleware.FindItems(i.limit, i.offset, i.query)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +116,7 @@ func (i *search) FindVersions() ([]*Version, error) {
 		return nil, err
 	}
 
-	results, err := i.conn.middleware.FindVersions(i.query)
+	results, err := i.conn.middleware.FindVersions(i.limit, i.offset, i.query)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +138,7 @@ func (i *search) FindResources() ([]*Resource, error) {
 		return nil, err
 	}
 
-	results, err := i.conn.middleware.FindResources(i.query)
+	results, err := i.conn.middleware.FindResources(i.limit, i.offset, i.query)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +160,7 @@ func (i *search) FindLinks() ([]*Link, error) {
 		return nil, err
 	}
 
-	results, err := i.conn.middleware.FindLinks(i.query)
+	results, err := i.conn.middleware.FindLinks(i.limit, i.offset, i.query)
 	if err != nil {
 		return nil, err
 	}

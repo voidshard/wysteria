@@ -69,6 +69,8 @@ type DeleteReply struct {
 // All find requests are the same, a list of QueryDescription objects
 type FindReq struct {
 	Query []wyc.QueryDesc
+	Limit int32
+	Offset int32
 }
 
 // Find Collection reply

@@ -12,6 +12,10 @@ import (
 	wcm "github.com/voidshard/wysteria/common/middleware"
 )
 
+const (
+	defaultSearchLimit = 500
+)
+
 // Client wraps the desired middleware and supplies a more user friendly interface to users
 type wysteriaClient struct {
 	settings   *configuration
@@ -27,6 +31,7 @@ type wysteriaClient struct {
 //  ToDo: Implement Limit & Page settings
 func (w *wysteriaClient) Search() *search {
 	return &search{
+		limit:     defaultSearchLimit,
 		conn:      w,
 		query:     []*wyc.QueryDesc{},
 		nextQuery: &wyc.QueryDesc{},

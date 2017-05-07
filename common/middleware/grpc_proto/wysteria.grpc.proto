@@ -121,6 +121,8 @@ message QueryDesc {
 }
 
 message QueryDescs {
+    int32 Limit = 105;
+    int32 Offset = 106;
     repeated QueryDesc all = 75;
 }
 

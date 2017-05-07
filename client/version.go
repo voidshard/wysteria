@@ -46,6 +46,8 @@ func (i *Version) SetFacets(in map[string]string) error {
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Version
 func (i *Version) getLinkedVersions(name string) (map[string][]*Version, error) {
 	links, err := i.conn.middleware.FindLinks(
+		0,
+		0,
 		[]*wyc.QueryDesc{
 			{LinkSrc: i.data.Id, Name: name},
 		},
@@ -67,7 +69,7 @@ func (i *Version) getLinkedVersions(name string) (map[string][]*Version, error) 
 		ids = append(ids, &wyc.QueryDesc{Id: id})
 	}
 
-	items, err := i.conn.middleware.FindVersions(ids)
+	items, err := i.conn.middleware.FindVersions(int32(len(ids)), 0, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -175,6 +177,8 @@ func (i *Version) GetResourcesByName(name string) ([]*Resource, error) {
 // Retrieve all child resources of this Version with the given name & resource type
 func (i *Version) getResources(name, resource_type string) ([]*Resource, error) {
 	results, err := i.conn.middleware.FindResources(
+		0,
+		0,
 		[]*wyc.QueryDesc{{Parent: i.data.Id, Name: name, ResourceType: resource_type}},
 	)
 	if err != nil {
@@ -199,7 +203,7 @@ func (i *Version) Parent() string {
 // Get the parent Item of this Version
 func (i *Version) GetParent() (*Item, error) {
 	items, err := i.conn.middleware.FindItems(
-		[]*wyc.QueryDesc{{Id: i.data.Parent}},
+		1, 0, []*wyc.QueryDesc{{Id: i.data.Parent}},
 	)
 	if err != nil {
 		return nil, err

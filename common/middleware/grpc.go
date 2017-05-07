@@ -209,7 +209,7 @@ func (c *grpcClient) DeleteResource(in string) error {
 }
 
 // Util func to convert wysteria native QueryDesc objects to rpc QueryDesc objects
-func convWQueryDescs(in ...*wyc.QueryDesc) *wrpc.QueryDescs {
+func convWQueryDescs(limit, offset int32, in ...*wyc.QueryDesc) *wrpc.QueryDescs {
 	result := []*wrpc.QueryDesc{}
 	for _, q := range in {
 		result = append(
@@ -229,7 +229,11 @@ func convWQueryDescs(in ...*wyc.QueryDesc) *wrpc.QueryDescs {
 			},
 		)
 	}
-	return &wrpc.QueryDescs{All: result}
+	return &wrpc.QueryDescs{
+		All: result,
+		Limit: limit,
+		Offset: offset,
+	}
 }
 
 // Util func to convert rpc Collection objs to native wysteria Collection objects
@@ -245,8 +249,8 @@ func convRCollections(in ...*wrpc.Collection) []*wyc.Collection {
 }
 
 // Given the input queries, find & return all matching Collections
-func (c *grpcClient) FindCollections(in []*wyc.QueryDesc) ([]*wyc.Collection, error) {
-	result, err := c.client.FindCollections(context.Background(), convWQueryDescs(in...))
+func (c *grpcClient) FindCollections(limit, offset int32, in []*wyc.QueryDesc) ([]*wyc.Collection, error) {
+	result, err := c.client.FindCollections(context.Background(), convWQueryDescs(limit, offset, in...))
 	if err != nil {
 		return nil, err
 	}
@@ -273,8 +277,8 @@ func convRItems(in ...*wrpc.Item) []*wyc.Item {
 }
 
 // Given the input queries, find & return all matching Items
-func (c *grpcClient) FindItems(in []*wyc.QueryDesc) ([]*wyc.Item, error) {
-	result, err := c.client.FindItems(context.Background(), convWQueryDescs(in...))
+func (c *grpcClient) FindItems(limit, offset int32, in []*wyc.QueryDesc) ([]*wyc.Item, error) {
+	result, err := c.client.FindItems(context.Background(), convWQueryDescs(limit, offset, in...))
 	if err != nil {
 		return nil, err
 	}
@@ -300,8 +304,8 @@ func convRVersions(in ...*wrpc.Version) []*wyc.Version {
 }
 
 // Given the input queries, find & return all matching Versions
-func (c *grpcClient) FindVersions(in []*wyc.QueryDesc) ([]*wyc.Version, error) {
-	result, err := c.client.FindVersions(context.Background(), convWQueryDescs(in...))
+func (c *grpcClient) FindVersions(limit, offset int32, in []*wyc.QueryDesc) ([]*wyc.Version, error) {
+	result, err := c.client.FindVersions(context.Background(), convWQueryDescs(limit, offset, in...))
 	if err != nil {
 		return nil, err
 	}
@@ -328,8 +332,8 @@ func convRResources(in ...*wrpc.Resource) []*wyc.Resource {
 }
 
 // Given the input queries, find & return all matching Resource
-func (c *grpcClient) FindResources(in []*wyc.QueryDesc) ([]*wyc.Resource, error) {
-	result, err := c.client.FindResources(context.Background(), convWQueryDescs(in...))
+func (c *grpcClient) FindResources(limit, offset int32, in []*wyc.QueryDesc) ([]*wyc.Resource, error) {
+	result, err := c.client.FindResources(context.Background(), convWQueryDescs(limit, offset, in...))
 	if err != nil {
 		return nil, err
 	}
@@ -355,8 +359,8 @@ func convRLinks(in ...*wrpc.Link) []*wyc.Link {
 }
 
 // Given the input queries, find & return all matching Link
-func (c *grpcClient) FindLinks(in []*wyc.QueryDesc) ([]*wyc.Link, error) {
-	result, err := c.client.FindLinks(context.Background(), convWQueryDescs(in...))
+func (c *grpcClient) FindLinks(limit, offset int32, in []*wyc.QueryDesc) ([]*wyc.Link, error) {
+	result, err := c.client.FindLinks(context.Background(), convWQueryDescs(limit, offset, in...))
 	if err != nil {
 		return nil, err
 	}
@@ -635,7 +639,7 @@ func convWCollections(in ...*wyc.Collection) *wrpc.Collections {
 
 // Call server side FindCollections passing in given query, return results
 func (s *grpcServer) FindCollections(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Collections, error) {
-	results, err := s.handler.FindCollections(convRQueryDescs(in.All...))
+	results, err := s.handler.FindCollections(in.Limit, in.Offset, convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
 	}
@@ -644,7 +648,7 @@ func (s *grpcServer) FindCollections(_ context.Context, in *wrpc.QueryDescs) (*w
 
 // Call server side FindItems passing in given query, return results
 func (s *grpcServer) FindItems(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Items, error) {
-	results, err := s.handler.FindItems(convRQueryDescs(in.All...))
+	results, err := s.handler.FindItems(in.Limit, in.Offset, convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
 	}
@@ -658,7 +662,7 @@ func (s *grpcServer) FindItems(_ context.Context, in *wrpc.QueryDescs) (*wrpc.It
 
 // Call server side FindVersions passing in given query, return results
 func (s *grpcServer) FindVersions(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Versions, error) {
-	results, err := s.handler.FindVersions(convRQueryDescs(in.All...))
+	results, err := s.handler.FindVersions(in.Limit, in.Offset, convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
 	}
@@ -672,7 +676,7 @@ func (s *grpcServer) FindVersions(_ context.Context, in *wrpc.QueryDescs) (*wrpc
 
 // Call server side FindResources passing in given query, return results
 func (s *grpcServer) FindResources(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Resources, error) {
-	results, err := s.handler.FindResources(convRQueryDescs(in.All...))
+	results, err := s.handler.FindResources(in.Limit, in.Offset, convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
 	}
@@ -686,7 +690,7 @@ func (s *grpcServer) FindResources(_ context.Context, in *wrpc.QueryDescs) (*wrp
 
 // Call server side FindLinks passing in given query, return results
 func (s *grpcServer) FindLinks(_ context.Context, in *wrpc.QueryDescs) (*wrpc.Links, error) {
-	results, err := s.handler.FindLinks(convRQueryDescs(in.All...))
+	results, err := s.handler.FindLinks(in.Limit, in.Offset, convRQueryDescs(in.All...))
 	if err != nil {
 		return nil, err
 	}

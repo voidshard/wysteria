@@ -44,9 +44,13 @@ func (i *Resource) Parent() string {
 
 // Return the parent (Version) of this resource
 func (i *Resource) GetParent() (*Version, error) {
-	versions, err := i.conn.middleware.FindVersions([]*wyc.QueryDesc{
-		{Id: i.data.Parent},
-	})
+	versions, err := i.conn.middleware.FindVersions(
+		1,
+		0,
+		[]*wyc.QueryDesc{
+			{Id: i.data.Parent},
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

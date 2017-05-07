@@ -107,19 +107,19 @@ type EndpointClient interface {
 
 
 	// Given some list of QueryDescriptions, return matching collections
-	FindCollections([]*wyc.QueryDesc) ([]*wyc.Collection, error)
+	FindCollections(int32, int32, []*wyc.QueryDesc) ([]*wyc.Collection, error)
 
 	// Given some list of QueryDescriptions, return matching items
-	FindItems([]*wyc.QueryDesc) ([]*wyc.Item, error)
+	FindItems(int32, int32, []*wyc.QueryDesc) ([]*wyc.Item, error)
 
 	// Given some list of QueryDescriptions, return matching versions
-	FindVersions([]*wyc.QueryDesc) ([]*wyc.Version, error)
+	FindVersions(int32, int32, []*wyc.QueryDesc) ([]*wyc.Version, error)
 
 	// Given some list of QueryDescriptions, return matching resources
-	FindResources([]*wyc.QueryDesc) ([]*wyc.Resource, error)
+	FindResources(int32, int32, []*wyc.QueryDesc) ([]*wyc.Resource, error)
 
 	// Given some list of QueryDescriptions, return matching links
-	FindLinks([]*wyc.QueryDesc) ([]*wyc.Link, error)
+	FindLinks(int32, int32, []*wyc.QueryDesc) ([]*wyc.Link, error)
 
 
 	// Given Id of some Item, return version marked as publish
@@ -165,11 +165,11 @@ type ServerHandler interface {
 	DeleteVersion(string) error
 	DeleteResource(string) error
 
-	FindCollections([]*wyc.QueryDesc) ([]*wyc.Collection, error)
-	FindItems([]*wyc.QueryDesc) ([]*wyc.Item, error)
-	FindVersions([]*wyc.QueryDesc) ([]*wyc.Version, error)
-	FindResources([]*wyc.QueryDesc) ([]*wyc.Resource, error)
-	FindLinks([]*wyc.QueryDesc) ([]*wyc.Link, error)
+	FindCollections(int32, int32, []*wyc.QueryDesc) ([]*wyc.Collection, error)
+	FindItems(int32, int32, []*wyc.QueryDesc) ([]*wyc.Item, error)
+	FindVersions(int32, int32, []*wyc.QueryDesc) ([]*wyc.Version, error)
+	FindResources(int32, int32, []*wyc.QueryDesc) ([]*wyc.Resource, error)
+	FindLinks(int32, int32, []*wyc.QueryDesc) ([]*wyc.Link, error)
 
 	PublishedVersion(string) (*wyc.Version, error)
 	SetPublishedVersion(string) error

@@ -399,13 +399,13 @@ func (s *WysteriaServer) DeleteResource(id string) error {
 }
 
 // Use searchbase to perform search, return any matching collections from database
-func (s *WysteriaServer) FindCollections(qs []*wyc.QueryDesc) ([]*wyc.Collection, error) {
+func (s *WysteriaServer) FindCollections(limit, offset int32, qs []*wyc.QueryDesc) ([]*wyc.Collection, error) {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryCollection(0, 0, qs...)
+	ids, err := s.searchbase.QueryCollection(int(limit), int(offset), qs...)
 	if err != nil {
 		return nil, err
 	}
@@ -416,13 +416,13 @@ func (s *WysteriaServer) FindCollections(qs []*wyc.QueryDesc) ([]*wyc.Collection
 }
 
 // Use searchbase to perform search, return any matching items from database
-func (s *WysteriaServer) FindItems(qs []*wyc.QueryDesc) ([]*wyc.Item, error) {
+func (s *WysteriaServer) FindItems(limit, offset int32, qs []*wyc.QueryDesc) ([]*wyc.Item, error) {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryItem(0, 0, qs...)
+	ids, err := s.searchbase.QueryItem(int(limit), int(offset), qs...)
 	if err != nil {
 		return nil, err
 	}
@@ -433,13 +433,13 @@ func (s *WysteriaServer) FindItems(qs []*wyc.QueryDesc) ([]*wyc.Item, error) {
 }
 
 // Use searchbase to perform search, return any matching versions from database
-func (s *WysteriaServer) FindVersions(qs []*wyc.QueryDesc) ([]*wyc.Version, error) {
+func (s *WysteriaServer) FindVersions(limit, offset int32, qs []*wyc.QueryDesc) ([]*wyc.Version, error) {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryVersion(0, 0, qs...)
+	ids, err := s.searchbase.QueryVersion(int(limit), int(offset), qs...)
 	if err != nil {
 		return nil, err
 	}
@@ -450,13 +450,13 @@ func (s *WysteriaServer) FindVersions(qs []*wyc.QueryDesc) ([]*wyc.Version, erro
 }
 
 // Use searchbase to perform search, return any matching resources from database
-func (s *WysteriaServer) FindResources(qs []*wyc.QueryDesc) ([]*wyc.Resource, error) {
+func (s *WysteriaServer) FindResources(limit, offset int32, qs []*wyc.QueryDesc) ([]*wyc.Resource, error) {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryResource(0, 0, qs...)
+	ids, err := s.searchbase.QueryResource(int(limit), int(offset), qs...)
 	if err != nil {
 		return nil, err
 	}
@@ -467,13 +467,13 @@ func (s *WysteriaServer) FindResources(qs []*wyc.QueryDesc) ([]*wyc.Resource, er
 }
 
 // Use searchbase to perform search, return any matching links from database
-func (s *WysteriaServer) FindLinks(qs []*wyc.QueryDesc) ([]*wyc.Link, error) {
+func (s *WysteriaServer) FindLinks(limit, offset int32, qs []*wyc.QueryDesc) ([]*wyc.Link, error) {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryLink(0, 0, qs...)
+	ids, err := s.searchbase.QueryLink(int(limit), int(offset), qs...)
 	if err != nil {
 		return nil, err
 	}

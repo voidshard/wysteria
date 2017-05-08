@@ -29,6 +29,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"sync"
 )
 
 // Main server struct
@@ -37,7 +38,8 @@ import (
 type WysteriaServer struct {
 	GracefulShutdownTime time.Duration
 	refuseClientRequests bool
-	refustClientReason   string
+	refuseClientReason   string
+	refuseClientLock     sync.RWMutex
 
 	settings *configuration
 
@@ -510,14 +512,20 @@ func (s *WysteriaServer) Shutdown() {
 
 // Set if the server should serve a client request.
 func (s *WysteriaServer) setRefuseClientRequests(value bool, reason string) {
+	s.refuseClientLock.Lock()
+	defer s.refuseClientLock.Unlock()
+
 	s.refuseClientRequests = value
-	s.refustClientReason = reason
+	s.refuseClientReason = reason
 }
 
 // Returns an error if the server is set to not serve a request, and returns the set reason as an error.
 func (s *WysteriaServer) shouldServeRequest() error {
+	s.refuseClientLock.RLock()
+	defer s.refuseClientLock.RUnlock()
+
 	if s.refuseClientRequests {
-		return errors.New(s.refustClientReason)
+		return errors.New(s.refuseClientReason)
 	}
 	return nil
 }

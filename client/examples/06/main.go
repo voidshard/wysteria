@@ -25,7 +25,7 @@ func main() {
 	batman_search := client.Search().HasFacets(facets)
 
 	// grab matching items
-	items, err := batman_search.Items()
+	items, err := batman_search.FindItems()
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +39,7 @@ func main() {
 	//tree redwood
 
 	// grab matching versions
-	versions, err := batman_search.Versions()
+	versions, err := batman_search.FindVersions()
 
 	fmt.Println("Found versions:")
 	if err != nil {

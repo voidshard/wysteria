@@ -14,11 +14,11 @@ func main() {
 	}
 
 	// Let's get our published pine
-	items, _ := client.Search().ItemType("tree").ItemVariant("pine").Items()
-	published_version, _ := items[0].GetPublished()
+	items, _ := client.Search().ItemType("tree").ItemVariant("pine").FindItems()
+	published_version, _ := items[0].PublishedVersion()
 
 	// We can grab resources by Name
-	default_resources, err := published_version.GetResourcesByName("default")
+	default_resources, err := published_version.ResourcesByName("default")
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +30,7 @@ func main() {
 	//default png /path/to/pine01.png
 
 	// by Type
-	json_resources, _ := published_version.GetResourcesByType("json")
+	json_resources, _ := published_version.ResourcesByType("json")
 	fmt.Println("--json resources--")
 	for _, resource := range json_resources {
 		fmt.Println(resource.Name(), resource.Type(), resource.Location())
@@ -39,7 +39,7 @@ func main() {
 	//stats json url://file.json
 
 	// some combination of the two
-	lowres_jpgs, _ := published_version.GetResources("lowres", "jpeg")
+	lowres_jpgs, _ := published_version.Resources("lowres", "jpeg")
 	fmt.Println("--lowres jpeg resources--")
 	for _, resource := range lowres_jpgs {
 		fmt.Println(resource.Name(), resource.Type(), resource.Location())
@@ -48,7 +48,7 @@ func main() {
 	//lowres jpeg /path/lowres/image.jpeg
 
 	// Or grab all of them
-	all_resources, _ := published_version.GetAllResources()
+	all_resources, _ := published_version.AllResources()
 	fmt.Println("--resources--")
 	for _, resource := range all_resources {
 		fmt.Println(resource.Name(), resource.Type(), resource.Location())

@@ -1,14 +1,17 @@
 package searchends
 
 const (
-	table_collection   = "collections"
-	table_item         = "items"
-	table_version      = "versions"
-	table_fileresource = "fileresource"
-	table_link         = "link"
+	// general names for indexes - provided simply for some consistency
+	// and to avoid having random strings used about the place.
+	tableCollection = "collections"
+	tableItem       = "items"
+	tableVersion    = "versions"
+	tableResource   = "fileresource"
+	tableLink       = "link"
 )
 
-type SearchbaseSettings struct {
+// Settings that will be provided to a searchbase implementation on creation
+type Settings struct {
 	Driver   string
 	Host     string
 	Port     int

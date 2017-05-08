@@ -14,44 +14,48 @@ import (
 var Config *configuration
 
 type configuration struct {
-	Database   wdb.DatabaseSettings
-	Searchbase wsb.SearchbaseSettings
-	Middleware wcm.MiddlewareSettings
+	Database   wdb.Settings
+	Searchbase wsb.Settings
+	Middleware wcm.Settings
 }
 
-// Key tasks of config init();
-//  (1) Load some form of config
+// Load the server side configuration from somewhere.
 //   Load order:
-//    - local .ini file(s) if they are in the cwd
-//    - .ini filepath given by wysteria os.Env variable
+//    - local .ini file(s) if they are in the cwd, if found
+//    - .ini filepath given by wysteria os.Env variable, if set
 //    - default values
 //
 func init() {
-	Config = getDefaults()
-	config_filepath, err := common.ChooseServerConfig()
+	Config = makeDefaults()
+	configSet := false
+	configFilepath, err := common.ChooseServerConfig()
 	if err == nil {
 		cnf := &configuration{}
-		err := common.ReadConfig(config_filepath, cnf)
-		log.Println("Attempting to read", config_filepath, cnf, err)
+		err := common.ReadConfig(configFilepath, cnf)
+		log.Println("Attempting to read", configFilepath, cnf, err)
 		if err != nil {
-			log.Println(fmt.Sprintf("Unable to read config '%s' %s", config_filepath, err))
+			log.Println(fmt.Sprintf("Unable to read config '%s' %s", configFilepath, err))
 		} else {
+			configSet = true
 			Config = cnf
 		}
+	}
+	if !configSet {
+		log.Println("WARNING: No config found, using OS temporary folders for storage.")
 	}
 }
 
 // Get the default settings.
 //
-func getDefaults() *configuration {
+func makeDefaults() *configuration {
 	return &configuration{
-		wdb.DatabaseSettings{
-			Driver:   wdb.DRIVER_BOLT,
+		wdb.Settings{
+			Driver:   wdb.DriverBolt,
 			Database: filepath.Join(os.TempDir(), "wysteria_db"),
 		},
 
-		wsb.SearchbaseSettings{
-			Driver:   wsb.DRIVER_BLEVE,
+		wsb.Settings{
+			Driver:   wsb.DriverBleve,
 			Host:     "",
 			Port:     0,
 			User:     "",
@@ -59,8 +63,8 @@ func getDefaults() *configuration {
 			Database: filepath.Join(os.TempDir(), "wysteria_sb"),
 			PemFile:  "",
 		},
-		wcm.MiddlewareSettings{
-			Driver: wcm.DRIVER_NATS,
+		wcm.Settings{
+			Driver: wcm.DriverNats,
 			Config: "",
 		},
 	}

@@ -7,7 +7,7 @@
 // Nb, despite it being machine generated I find I have to change the line
 //   const _ = grpc.SupportPackageIsVersion2
 // to
-//   const _ = grpc.SupportPackageIsVersion3
+//   const _ = grpc.SupportPackageIsVersion3 / SupportPackageIsVersion4
 // to have it compile nicely (??)
 //
 // Protocol buffer docs:
@@ -39,8 +39,8 @@ service WysteriaGrpc {
     rpc FindResources(QueryDescs) returns (Resources) {}
     rpc FindLinks(QueryDescs) returns (Links) {}
     
-    rpc GetPublishedVersion(Id) returns (Version) {}
-    rpc PublishVersion(Id) returns (Text) {}
+    rpc PublishedVersion(Id) returns (Version) {}
+    rpc SetPublishedVersion(Id) returns (Text) {}
 
     rpc UpdateVersionFacets(IdAndDict) returns (Text) {}
     rpc UpdateItemFacets(IdAndDict) returns (Text) {}
@@ -121,6 +121,8 @@ message QueryDesc {
 }
 
 message QueryDescs {
+    int32 Limit = 105;
+    int32 Offset = 106;
     repeated QueryDesc all = 75;
 }
 

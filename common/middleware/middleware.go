@@ -1,29 +1,36 @@
+/*
+Here we define the interfaces that are required of a client side & server side middleware.
+
+Offers interfaces for EndpointClient, EndpointServer and util funcs for creating new middleware
+endpoints.
+*/
+
 package middleware
 
 import (
 	"errors"
 	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
-	"time"
 )
 
 const (
-	DRIVER_GRPC = "grpc"
-	DRIVER_NATS = "nats"
+	// Drivers known to our middleware
+	DriverGrpc = "grpc"
+	DriverNats = "nats"
 )
 
 var (
-	Timeout          = time.Second * 30
 	client_endpoints = map[string]func() EndpointClient{
-		DRIVER_GRPC: newGrpcClient,
-		DRIVER_NATS: newNatsClient,
+		DriverGrpc: newGrpcClient,
+		DriverNats: newNatsClient,
 	}
 	server_endpoints = map[string]func() EndpointServer{
-		DRIVER_GRPC: newGrpcServer,
-		DRIVER_NATS: newNatsServer,
+		DriverGrpc: newGrpcServer,
+		DriverNats: newNatsServer,
 	}
 )
 
+// Create a new middleware client using the diver matching the given string
 func NewClient(driver string) (EndpointClient, error) {
 	spawner, ok := client_endpoints[driver]
 	if !ok {
@@ -32,6 +39,7 @@ func NewClient(driver string) (EndpointClient, error) {
 	return spawner(), nil
 }
 
+// Create a new middleware server using the diver matching the given string
 func NewServer(driver string) (EndpointServer, error) {
 	spawner, ok := server_endpoints[driver]
 	if !ok {
@@ -40,48 +48,107 @@ func NewServer(driver string) (EndpointServer, error) {
 	return spawner(), nil
 }
 
+// Middleware client interface
 // The client side needs to implement connecting to the server, and calling the
 // appropriate middleware functions to send data across
 type EndpointClient interface {
+	// Connect to the server, given some url / connection string
 	Connect(string) error
+
+	// Close connection(s) to the server
 	Close() error
 
+	// Send collection creation request, return new Id
+	//   - Collection name is required to be unique among collections
 	CreateCollection(string) (string, error)
+
+	// Send item creation request, return new Id
+	// Required to include non empty fields for
+	//   - parent (collection Id)
+	//   - item type
+	//   - item variant
+	// Item facets are required to include
+	//   - grandparent collection name
 	CreateItem(*wyc.Item) (string, error)
+
+	// Send version creation request, return new Id & new version number
+	// Required to include non empty fields for
+	//   - parent (item Id)
+	// Version facets are required to include
+	//   - grandparent collection name
+	//   - parent item type
+	//   - parent item variant
 	CreateVersion(*wyc.Version) (string, int32, error)
+
+	// Send resource creation request, return new Id
+	// Required to include non empty fields for
+	//   - parent (version Id)
 	CreateResource(*wyc.Resource) (string, error)
+
+	// Send link creation request, return new Id
+	// Required to include non empty fields for
+	//   - source Id
+	//   - destination Id
 	CreateLink(*wyc.Link) (string, error)
 
+	// Given the Id, delete some collection
 	DeleteCollection(string) error
+
+	// Given the Id, delete some item
 	DeleteItem(string) error
+
+	// Given the Id, delete some version
 	DeleteVersion(string) error
+
+	// Given the Id, delete some resource
 	DeleteResource(string) error
 
-	FindCollections([]*wyc.QueryDesc) ([]*wyc.Collection, error)
-	FindItems([]*wyc.QueryDesc) ([]*wyc.Item, error)
-	FindVersions([]*wyc.QueryDesc) ([]*wyc.Version, error)
-	FindResources([]*wyc.QueryDesc) ([]*wyc.Resource, error)
-	FindLinks([]*wyc.QueryDesc) ([]*wyc.Link, error)
+	// Given some list of QueryDescriptions, return matching collections
+	FindCollections(int32, int32, []*wyc.QueryDesc) ([]*wyc.Collection, error)
 
-	GetPublishedVersion(string) (*wyc.Version, error)
-	PublishVersion(string) error
+	// Given some list of QueryDescriptions, return matching items
+	FindItems(int32, int32, []*wyc.QueryDesc) ([]*wyc.Item, error)
 
+	// Given some list of QueryDescriptions, return matching versions
+	FindVersions(int32, int32, []*wyc.QueryDesc) ([]*wyc.Version, error)
+
+	// Given some list of QueryDescriptions, return matching resources
+	FindResources(int32, int32, []*wyc.QueryDesc) ([]*wyc.Resource, error)
+
+	// Given some list of QueryDescriptions, return matching links
+	FindLinks(int32, int32, []*wyc.QueryDesc) ([]*wyc.Link, error)
+
+	// Given Id of some Item, return version marked as publish
+	PublishedVersion(string) (*wyc.Version, error)
+
+	// Given Id of some Version, mark version as publish
+	//  - Only one version of a given Item is considered publish at a time
+	SetPublishedVersion(string) error
+
+	// Given Version Id update version facets with given facets
 	UpdateVersionFacets(string, map[string]string) error
+
+	// Given Item Id update item facets with given facets
 	UpdateItemFacets(string, map[string]string) error
 }
 
 // The server side middleware needs to handle starting up, listening, shutting down
 // and calling the appropriate handlers from the given server handler when listening
 type EndpointServer interface {
-	// Start up and serve client requests
+	// Start up and serve client requests given some config string and
+	// a reference to the main wysteria server's available functions
 	ListenAndServe(string, ServerHandler) error
 
-	// You're time is up, kill everything
+	// Time is up, kill everything and shutdown the server, kill all connections
 	Shutdown() error
 }
 
 // Implemented by the Wysteria Server
+//  This is passed into the middleware server side endpoint as the 'ServerHandler'
 type ServerHandler interface {
+	// All funcs here as documented in EndpointClient. These are simply the entry points
+	// for the middlware receiving the request(s) to call down into the main server
+	// and business logic.
 	CreateCollection(string) (string, error)
 	CreateItem(*wyc.Item) (string, error)
 	CreateVersion(*wyc.Version) (string, int32, error)
@@ -93,20 +160,22 @@ type ServerHandler interface {
 	DeleteVersion(string) error
 	DeleteResource(string) error
 
-	FindCollections([]*wyc.QueryDesc) ([]*wyc.Collection, error)
-	FindItems([]*wyc.QueryDesc) ([]*wyc.Item, error)
-	FindVersions([]*wyc.QueryDesc) ([]*wyc.Version, error)
-	FindResources([]*wyc.QueryDesc) ([]*wyc.Resource, error)
-	FindLinks([]*wyc.QueryDesc) ([]*wyc.Link, error)
+	FindCollections(int32, int32, []*wyc.QueryDesc) ([]*wyc.Collection, error)
+	FindItems(int32, int32, []*wyc.QueryDesc) ([]*wyc.Item, error)
+	FindVersions(int32, int32, []*wyc.QueryDesc) ([]*wyc.Version, error)
+	FindResources(int32, int32, []*wyc.QueryDesc) ([]*wyc.Resource, error)
+	FindLinks(int32, int32, []*wyc.QueryDesc) ([]*wyc.Link, error)
 
-	GetPublishedVersion(string) (*wyc.Version, error)
-	PublishVersion(string) error
+	PublishedVersion(string) (*wyc.Version, error)
+	SetPublishedVersion(string) error
 
 	UpdateVersionFacets(string, map[string]string) error
 	UpdateItemFacets(string, map[string]string) error
 }
 
-type MiddlewareSettings struct {
+// Generic middleware settings struct, holding the diver name and the config string.
+// Each driver will expect it's own kind of config string, depending on the driver.
+type Settings struct {
 	Driver string
 	Config string
 }

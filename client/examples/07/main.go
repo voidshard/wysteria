@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// Look up our forest map item
-	items, err := client.Search().ItemType("map").ItemVariant("forest").Items()
+	items, err := client.Search().ItemType("map").ItemVariant("forest").FindItems()
 	if err != nil {
 		panic(err)
 	}
@@ -27,31 +27,34 @@ func main() {
 
 	// Retrieve the current published version (we linked the Version, but we could have linked
 	// items in the same manner
-	forest_01, err := items[0].GetPublished()
+	forest_01, err := items[0].PublishedVersion()
 	if err != nil {
 		panic(err)
 	}
 
 	// Retrieve all linked versions
-	linked_versions, err := forest_01.GetLinked()
+	linked_versions, err := forest_01.Linked()
 	if err != nil {
 		panic(err)
 	}
 
-	for _, version := range linked_versions {
-		fmt.Println(version.Link().Name(), version.Version())
+	for link_name, found_versions := range linked_versions {
+		for _, version := range found_versions {
+			fmt.Println(link_name, version.Version())
+		}
 	}
 	//elm 1
 	//pine 1
 	//oak 2
 
 	// We can also grab links with a specific name
-	linked_elms, err := forest_01.GetLinkedByName("elm")
+	desired_linked_versions := "elm"
+	linked_elms, err := forest_01.LinkedByName(desired_linked_versions)
 	if err != nil {
 		panic(err)
 	}
 	for _, version := range linked_elms {
-		fmt.Println(version.Link().Name(), version.Version())
+		fmt.Println(desired_linked_versions, version.Version())
 	}
 	//elm 1
 }

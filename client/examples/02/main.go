@@ -16,7 +16,7 @@ func main() {
 	}
 
 	// Find our collection
-	col, err := client.GetCollection("tiles")
+	col, err := client.Collection("tiles")
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func main() {
 	//tiles
 
 	// Get all child items
-	items, err := col.GetItems()
+	items, err := col.Items()
 	if err != nil {
 		panic(err)
 	}
@@ -40,16 +40,16 @@ func main() {
 	//tree pine
 
 	// Look up all published versions of our items
-	fmt.Println("-- Published Versions --")
+	fmt.Println("-- PublishedVersion Versions --")
 	for _, i := range items {
-		published, err := i.GetPublished()
+		published, err := i.PublishedVersion()
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println(published.Version())
 
 		// Get & print attached resources for our version
-		resources, err := published.GetAllResources()
+		resources, err := published.AllResources()
 		if err != nil {
 			panic(err)
 		}
@@ -58,7 +58,7 @@ func main() {
 		}
 	}
 
-	//-- Published Versions --
+	//-- PublishedVersion Versions --
 	//2
 	//  [resource] default png /other/images/oak02.png
 	//1

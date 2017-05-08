@@ -17,7 +17,7 @@ func main() {
 
 	// The search function allows you to search for various named fields, and arbitrary user set facets
 	// Let's find all our default resources
-	resources, err := client.Search().Name("default").Resources()
+	resources, err := client.Search().Name("default").FindResources()
 	if err != nil {
 		panic(err)
 	}
@@ -35,7 +35,7 @@ func main() {
 	//default png /other/images/oak03.png
 
 	// A single search works like an "and"
-	items, err := client.Search().ItemType("tree").ItemVariant("oak").Items()
+	items, err := client.Search().ItemType("tree").ItemVariant("oak").FindItems()
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +48,7 @@ func main() {
 	//tree oak
 
 	// You can search for multiple things at once via an "Or" call like so
-	items, err = client.Search().ItemType("tree").ItemVariant("oak").Or().ItemType("tree").ItemVariant("elm").Items()
+	items, err = client.Search().ItemType("tree").ItemVariant("oak").Or().ItemType("tree").ItemVariant("elm").FindItems()
 	if err != nil {
 		panic(err)
 	}

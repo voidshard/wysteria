@@ -87,10 +87,10 @@ forest_scene.LinkTo("input", yew_tree_tiles)
 ```
 That is, the forest_scene item has a link called "input" that connects to our yew_tree_tiles item.
 
-You can link any number of items in this way, and the names are not required to be unique. You can use these links to walk from one object to another 
+You can link any number of items in this way, and the names are not required to be unique. You can use these links to walk from one object to another
 ```Go
 items, _ := forest_scene.Linked()
-input_items, _ := forest_scene.LinkedByName("input")
+items, _ := forest_scene.Linked(wysteria.Name("input"))
 ```
 
 You can also traverse 'up' and 'down' via 
@@ -134,20 +134,21 @@ myVersion.AddResource("batmanSettings", "url", "http://cdn.mystuff/batman.json")
 myVersion.AddResource("somethingElse", "other", "/path/to/foo.bar")
 ```
 
-As you might expect, you can easily retrieve a versions' resources in multiple ways
+As you might expect, you can easily retrieve a versions' resources, with optional extra parameters
 ```Go
-all_resources, err := ver.AllResources()
-batman_image_resources, err := ver.Resources("sprite", "image")
-image_resouces, err = ver.ResourcesByType("image")
-batman_resources, err = ver.ResourcesByName("sprite")
+all_resources, err := ver.Resources()
+batman_image_resources, err := ver.Resources(wysteria.Name("sprite"), wysteria.ResourceType("image"))
 ```
 
 ## Searching
 At this point, you could start with a given collection, then walk up, down and/or sideways through the hierarchy to find what you're looking for. But more likely you're looking for an easier way. You can search on almost any field, facet, name, type, location or id, or any combination of the above.
 A search is it's own object that keeps track of your parameters. You can keep tacking them on to refine the search as much as you want,
 ```Go
-searchObj := client.Search()
-searchObj.ItemType("forest").ItemVariant("yew01").HasFacets(map[string]string{"foo": "bar"})
+search := client.Search(
+    wysteria.ItemType("forest"),
+    wysteria.ItemVariant("yew01"),
+    wysteria.HasFacets(map[string]string{"foo": "bar"}),
+)
 ```
 When you're ready to actually get the results you can call
 ```
@@ -162,7 +163,12 @@ resources, _ := search.FindResources()   # return all matching 'resource' object
 
 Now we have the ability to search via arbitrary "I'd like an item(s) with X and Y and Z" but what about an or statement? Wysteria supports this too and it's pretty similar to the above,
 ```Go
-a_or_b_items, _ := client.Search().ItemType("a").Id("abc123").Or().ItemType("b").FindItems()
+a_or_b_items, _ := client.Search(
+   wysteria.ItemType("a"),
+   wysteria.Id("abc123"),
+).Or(
+    wysteria.ItemType("b"),
+).FindItems()
 ```
 That is, this search will return all items from any collection(s) that have either
 - id of "abc123" and item type of "a"

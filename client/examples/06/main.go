@@ -22,7 +22,7 @@ func main() {
 	}
 
 	// set up our search
-	batman_search := client.Search().HasFacets(facets)
+	batman_search := client.Search(wysteria.HasFacets(facets))
 
 	// grab matching items
 	items, err := batman_search.FindItems()

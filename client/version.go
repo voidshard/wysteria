@@ -44,25 +44,20 @@ func (i *Version) SetFacets(in map[string]string) error {
 // That is, this first finds all links for which the source Id is this Version's Id, then
 // gets all matching Versions.
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Version
-func (i *Version) linkedVersions(name string) (map[string][]*Version, error) {
-	links, err := i.conn.middleware.FindLinks(
-		0,
-		0,
-		[]*wyc.QueryDesc{
-			{LinkSrc: i.data.Id, Name: name},
-		},
-	)
+func (i *Version) Linked(opts ...SearchOptionFunc) (map[string][]*Version, error) {
+	opts = append(opts, LinkSource(i.Id()))
+	links, err := i.conn.Search(opts...).FindLinks()
 	if err != nil {
 		return nil, err
 	}
 
-	version_id_to_link := map[string]*wyc.Link{}
+	version_id_to_link := map[string]*Link{}
 	ids := []*wyc.QueryDesc{}
 	for _, link := range links {
-		id := link.Src
+		id := link.SourceId()
 
-		if link.Src == i.data.Id {
-			id = link.Dst
+		if link.SourceId() == i.data.Id {
+			id = link.DestinationId()
 		}
 
 		version_id_to_link[id] = link
@@ -81,7 +76,7 @@ func (i *Version) linkedVersions(name string) (map[string][]*Version, error) {
 			continue
 		}
 
-		result_list, ok := result[lnk.Name]
+		result_list, ok := result[lnk.Name()]
 		if result_list == nil {
 			result_list = []*Version{}
 		}
@@ -92,27 +87,9 @@ func (i *Version) linkedVersions(name string) (map[string][]*Version, error) {
 		}
 
 		result_list = append(result_list, wrapped_item)
-		result[lnk.Name] = result_list
+		result[lnk.Name()] = result_list
 	}
 	return result, nil
-}
-
-// Get all linked Versions (Versions where links exist that mention this as the source and them as the destination)
-// where the link name is the given 'name'.
-func (i *Version) LinkedByName(name string) ([]*Version, error) {
-	found, err := i.linkedVersions(name)
-	if err != nil {
-		return nil, err
-	}
-	return found[name], nil
-}
-
-// Find and return all linked Versions for which links exist that name this as the source.
-// That is, this first finds all links for which the source Id is this Version's Id, then
-// gets all matching Versions.
-// Since this would cause us to lose the link 'name' we return a map of link name -> []*Version
-func (i *Version) Linked() (map[string][]*Version, error) {
-	return i.linkedVersions("")
 }
 
 // Link this Version with a link described by 'name' to some other Version.
@@ -153,45 +130,10 @@ func (i *Version) AddResource(name, rtype, location string) error {
 	return nil
 }
 
-// Retrieve all resources whose parent is this Version
-func (i *Version) AllResources() ([]*Resource, error) {
-	return i.findResources("", "")
-}
-
 // Retrieve all child resources of this Version with the given name & resource type
-func (i *Version) Resources(name, resource_type string) ([]*Resource, error) {
-	return i.findResources(name, resource_type)
-}
-
-// Retrieve all child resources of this Version with the given resource type
-func (i *Version) ResourcesByType(resource_type string) ([]*Resource, error) {
-	return i.findResources("", resource_type)
-}
-
-// Retrieve all child resources of this Version with the given name
-func (i *Version) ResourcesByName(name string) ([]*Resource, error) {
-	return i.findResources(name, "")
-}
-
-// Retrieve all child resources of this Version with the given name & resource type
-func (i *Version) findResources(name, resource_type string) ([]*Resource, error) {
-	results, err := i.conn.middleware.FindResources(
-		0,
-		0,
-		[]*wyc.QueryDesc{{Parent: i.data.Id, Name: name, ResourceType: resource_type}},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	items := []*Resource{}
-	for _, data := range results {
-		items = append(items, &Resource{
-			conn: i.conn,
-			data: data,
-		})
-	}
-	return items, nil
+func (i *Version) Resources(opts ...SearchOptionFunc) ([]*Resource, error) {
+	opts = append(opts, ChildOf(i.Id()))
+	return i.conn.Search(opts...).FindResources()
 }
 
 // Return the Id of this Version's parent

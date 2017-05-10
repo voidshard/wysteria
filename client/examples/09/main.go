@@ -17,7 +17,11 @@ func main() {
 	}
 
 	for i := 0; i < 3; i++ {
-		resources, err := client.Search().Name("default").Limit(1).Offset(i).FindResources()
+		resources, err := client.Search(
+			wysteria.Name("default"),
+			wysteria.Limit(1),
+			wysteria.Offset(i),
+		).FindResources()
 		if err != nil {
 			panic(err)
 		}

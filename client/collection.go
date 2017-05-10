@@ -29,8 +29,9 @@ func (c *Collection) Delete() error {
 }
 
 // Get all Item objects that name this collection as "parent"
-func (c *Collection) Items() ([]*Item, error) {
-	return c.conn.Search().ChildOf(c.data.Id).FindItems()
+func (c *Collection) Items(opts ...SearchOptionFunc) ([]*Item, error) {
+	opts = append(opts, ChildOf(c.data.Id))
+	return c.conn.Search(opts...).FindItems()
 }
 
 // Create a new Item with the given fields & return it.
@@ -85,7 +86,7 @@ func (w *wysteriaClient) CreateCollection(name string) (*Collection, error) {
 // Collection is a helpful wrapper that looks for a single collection
 // with either the name or Id of the given 'identifier' and returns it if found
 func (w *wysteriaClient) Collection(identifier string) (*Collection, error) {
-	results, err := w.Search().Id(identifier).Or().Name(identifier).FindCollections()
+	results, err := w.Search(Id(identifier)).Or(Name(identifier)).FindCollections()
 	if err != nil {
 		return nil, err
 	}

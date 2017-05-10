@@ -1,8 +1,8 @@
 package wysteria_client
 
 import (
-	"errors"
 	wyc "github.com/voidshard/wysteria/common"
+	"errors"
 )
 
 // Search obj represents a query or set of queries that are about to be sent
@@ -16,22 +16,13 @@ type search struct {
 	offset     int32
 }
 
-// Set limit on number of results
-func (i *search) Limit(val int) *search {
-	if val < 1 {
-		return i
-	}
-	i.limit = int32(val)
-	return i
-}
+type SearchOptionFunc func(*search)
 
-// Get results from the given offset.
-func (i *search) Offset(val int) *search {
-	if val < 0 {
-		return i
+// Apply given options to the build search query
+func (i *search) applyOptions(opts ...SearchOptionFunc) {
+	for _, option := range opts {
+		option(i)
 	}
-	i.offset = int32(val)
-	return i
 }
 
 // Create a new query description.
@@ -42,27 +33,123 @@ func newQuery() *wyc.QueryDesc {
 	}
 }
 
-// Reset any and all given search params and begin a new search
-func (i *search) Clear() *search {
-	i.query = []*wyc.QueryDesc{}
-	i.nextQuery = newQuery()
-	i.nextQValid = false
+// All of the search params before this are considered "AND" (to the Search obj or the last "Or"),
+// this adds a new sub query to find another object based on more params.
+func (i *search) Or(opts ...SearchOptionFunc) *search {
+	if i.nextQValid {
+		i.nextQValid = false
+		i.query = append(i.query, i.nextQuery)
+		i.nextQuery = newQuery()
+	}
+	i.applyOptions(opts...)
 	return i
 }
 
-// Ready the current query description object if it is valid.
-// If we have been given nothing to search for, error
-func (i *search) ready() error {
-	if i.nextQValid {
-		i.query = append(i.query, i.nextQuery)
-		i.nextQValid = false
-		i.nextQuery = newQuery()
+// Set limit on number of results
+func Limit(val int) SearchOptionFunc {
+	return func(i *search) {
+		if val < 1 {
+			return
+		}
+		i.limit = int32(val)
 	}
+}
 
-	if len(i.query) < 1 {
-		return errors.New("You must specify at least one query term.")
+// Get results from the given offset.
+func Offset(val int) SearchOptionFunc {
+	return func(i *search) {
+		if val > -1 {
+			i.offset = int32(val)
+		}
 	}
-	return nil
+}
+
+// Search for something with the given Id
+func Id(s string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.Id = s
+	}
+}
+
+// Search for a resource with the given ResourceType
+func ResourceType(s string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.ResourceType = s
+	}
+}
+
+// Search for something whose parent has the given Id
+func ChildOf(s string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.Parent = s
+	}
+}
+
+// Search for a link whose source is the given Id
+func LinkSource(s string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.LinkSrc = s
+	}
+}
+
+// Search for a link whose destination is the given Id
+func LinkDestination(s string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.LinkDst = s
+	}
+}
+
+// Search for an item with the given type
+func ItemType(s string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.ItemType = s
+	}
+}
+
+// Search for an item with the given variant
+func ItemVariant(s string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.Variant = s
+	}
+}
+
+// Search for a version with the given version number
+func VersionNumber(n int32) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.VersionNumber = n
+	}
+}
+
+// Search for something that has all of the given facets
+func HasFacets(f map[string]string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.Facets = f
+	}
+}
+
+// Search for something with a name matching the given name
+func Name(s string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.Name = s
+	}
+}
+
+// Search for a resource with the given location
+func ResourceLocation(s string) SearchOptionFunc {
+	return func(i *search) {
+		i.nextQValid = true
+		i.nextQuery.Location = s
+	}
 }
 
 // Find all matching Collections given our search params
@@ -153,6 +240,21 @@ func (i *search) FindResources() ([]*Resource, error) {
 	return ret, nil
 }
 
+// Ready the current query description object if it is valid.
+// If we have been given nothing to search for, error
+func (i *search) ready() error {
+	if i.nextQValid {
+		i.query = append(i.query, i.nextQuery)
+		i.nextQValid = false
+		i.nextQuery = newQuery()
+	}
+
+	if len(i.query) < 1 {
+		return errors.New("You must specify at least one query term.")
+	}
+	return nil
+}
+
 // Find all matching Links given our search params
 func (i *search) FindLinks() ([]*Link, error) {
 	err := i.ready()
@@ -173,92 +275,4 @@ func (i *search) FindLinks() ([]*Link, error) {
 		})
 	}
 	return ret, nil
-}
-
-// Search for something with the given Id
-func (i *search) Id(s string) *search {
-	i.nextQValid = true
-	i.nextQuery.Id = s
-	return i
-}
-
-// Search for a resource with the given ResourceType
-func (i *search) ResourceType(s string) *search {
-	i.nextQValid = true
-	i.nextQuery.ResourceType = s
-	return i
-}
-
-// Search for something whose parent has the given Id
-func (i *search) ChildOf(s string) *search {
-	i.nextQValid = true
-	i.nextQuery.Parent = s
-	return i
-}
-
-// Search for a link whose source is the given Id
-func (i *search) LinkSource(s string) *search {
-	i.nextQValid = true
-	i.nextQuery.LinkSrc = s
-	return i
-}
-
-// Search for a link whose destination is the given Id
-func (i *search) LinkDestination(s string) *search {
-	i.nextQValid = true
-	i.nextQuery.LinkDst = s
-	return i
-}
-
-// Search for an item with the given type
-func (i *search) ItemType(s string) *search {
-	i.nextQValid = true
-	i.nextQuery.ItemType = s
-	return i
-}
-
-// Search for an item with the given variant
-func (i *search) ItemVariant(s string) *search {
-	i.nextQValid = true
-	i.nextQuery.Variant = s
-	return i
-}
-
-// Search for a version with the given version number
-func (i *search) VersionNumber(n int32) *search {
-	i.nextQValid = true
-	i.nextQuery.VersionNumber = n
-	return i
-}
-
-// Search for something that has all of the given facets
-func (i *search) HasFacets(f map[string]string) *search {
-	i.nextQValid = true
-	i.nextQuery.Facets = f
-	return i
-}
-
-// Search for something with a name matching the given name
-func (i *search) Name(s string) *search {
-	i.nextQValid = true
-	i.nextQuery.Name = s
-	return i
-}
-
-// Search for a resource with the given location
-func (i *search) ResourceLocation(s string) *search {
-	i.nextQValid = true
-	i.nextQuery.Location = s
-	return i
-}
-
-// All of the search params before this are considered "AND" (to the Search obj or the last "Or"),
-// this adds a new sub query to find another object based on more params.
-func (i *search) Or() *search {
-	if i.nextQValid {
-		i.nextQValid = false
-		i.query = append(i.query, i.nextQuery)
-		i.nextQuery = newQuery()
-	}
-	return i
 }

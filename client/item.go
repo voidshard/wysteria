@@ -52,25 +52,20 @@ func (i *Item) LinkTo(name string, other *Item) error {
 // That is, this first finds all links for which the source Id is this Item's Id, then
 // gets all matching Items.
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Item
-func (i *Item) linkedItems(name string) (map[string][]*Item, error) {
-	links, err := i.conn.middleware.FindLinks(
-		0,
-		0,
-		[]*wyc.QueryDesc{
-			{LinkSrc: i.data.Id, Name: name},
-		},
-	)
+func (i *Item) Linked(opts ...SearchOptionFunc) (map[string][]*Item, error) {
+	opts = append(opts, ChildOf(i.Id()))
+	links, err := i.conn.Search(opts...).FindLinks()
 	if err != nil {
 		return nil, err
 	}
 
-	item_id_to_link := map[string]*wyc.Link{}
+	item_id_to_link := map[string]*Link{}
 	ids := []*wyc.QueryDesc{}
 	for _, link := range links {
-		id := link.Src
+		id := link.SourceId()
 
-		if link.Src == i.data.Id {
-			id = link.Dst
+		if link.SourceId() == i.data.Id {
+			id = link.DestinationId()
 		}
 
 		item_id_to_link[id] = link
@@ -89,7 +84,7 @@ func (i *Item) linkedItems(name string) (map[string][]*Item, error) {
 			continue
 		}
 
-		result_list, ok := result[lnk.Name]
+		result_list, ok := result[lnk.Name()]
 		if result_list == nil {
 			result_list = []*Item{}
 		}
@@ -100,27 +95,9 @@ func (i *Item) linkedItems(name string) (map[string][]*Item, error) {
 		}
 
 		result_list = append(result_list, wrapped_item)
-		result[lnk.Name] = result_list
+		result[lnk.Name()] = result_list
 	}
 	return result, nil
-}
-
-// Get all linked items (items where links exist that mention this as the source and them as the destination)
-// where the link name is the given 'name'.
-func (i *Item) LinkedByName(name string) ([]*Item, error) {
-	found, err := i.linkedItems(name)
-	if err != nil {
-		return nil, err
-	}
-	return found[name], nil
-}
-
-// Find and return all linked items for which links exist that name this as the source.
-// That is, this first finds all links for which the source Id is this Item's Id, then
-// gets all matching Items.
-// Since this would cause us to lose the link 'name' we return a map of link name -> []*Item
-func (i *Item) Linked() (map[string][]*Item, error) {
-	return i.linkedItems("")
 }
 
 // Return the variant string associated with this Item

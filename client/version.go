@@ -44,7 +44,7 @@ func (i *Version) SetFacets(in map[string]string) error {
 // That is, this first finds all links for which the source Id is this Version's Id, then
 // gets all matching Versions.
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Version
-func (i *Version) Linked(opts ...SearchOptionFunc) (map[string][]*Version, error) {
+func (i *Version) Linked(opts ...SearchParam) (map[string][]*Version, error) {
 	opts = append(opts, LinkSource(i.Id()))
 	links, err := i.conn.Search(opts...).FindLinks()
 	if err != nil {
@@ -131,7 +131,7 @@ func (i *Version) AddResource(name, rtype, location string) error {
 }
 
 // Retrieve all child resources of this Version with the given name & resource type
-func (i *Version) Resources(opts ...SearchOptionFunc) ([]*Resource, error) {
+func (i *Version) Resources(opts ...SearchParam) ([]*Resource, error) {
 	opts = append(opts, ChildOf(i.Id()))
 	return i.conn.Search(opts...).FindResources()
 }

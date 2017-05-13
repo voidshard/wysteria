@@ -52,7 +52,7 @@ func (i *Item) LinkTo(name string, other *Item) error {
 // That is, this first finds all links for which the source Id is this Item's Id, then
 // gets all matching Items.
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Item
-func (i *Item) Linked(opts ...SearchOptionFunc) (map[string][]*Item, error) {
+func (i *Item) Linked(opts ...SearchParam) (map[string][]*Item, error) {
 	opts = append(opts, ChildOf(i.Id()))
 	links, err := i.conn.Search(opts...).FindLinks()
 	if err != nil {
@@ -72,6 +72,7 @@ func (i *Item) Linked(opts ...SearchOptionFunc) (map[string][]*Item, error) {
 		ids = append(ids, &wyc.QueryDesc{Id: id})
 	}
 
+	// Apply limit to query just to be safe
 	items, err := i.conn.middleware.FindItems(int32(len(ids)), 0, ids)
 	if err != nil {
 		return nil, err

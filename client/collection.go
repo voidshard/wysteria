@@ -29,7 +29,7 @@ func (c *Collection) Delete() error {
 }
 
 // Get all Item objects that name this collection as "parent"
-func (c *Collection) Items(opts ...SearchOptionFunc) ([]*Item, error) {
+func (c *Collection) Items(opts ...SearchParam) ([]*Item, error) {
 	opts = append(opts, ChildOf(c.data.Id))
 	return c.conn.Search(opts...).FindItems()
 }

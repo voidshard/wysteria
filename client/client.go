@@ -29,13 +29,15 @@ type wysteriaClient struct {
 //  Since network round trip time is invariably expensive, it's recommended to make
 //  few specific queries than many non specific.
 //  ToDo: Implement Limit & Page settings
-func (w *wysteriaClient) Search() *search {
-	return &search{
+func (w *wysteriaClient) Search(opts ...SearchParam) *search {
+	s := &search{
 		limit:     defaultSearchLimit,
 		conn:      w,
 		query:     []*wyc.QueryDesc{},
 		nextQuery: &wyc.QueryDesc{},
 	}
+	s.applyOptions(opts...)
+	return s
 }
 
 // Create a new client and connect to the server

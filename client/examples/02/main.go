@@ -49,7 +49,7 @@ func main() {
 		fmt.Println(published.Version())
 
 		// Get & print attached resources for our version
-		resources, err := published.AllResources()
+		resources, err := published.Resources()
 		if err != nil {
 			panic(err)
 		}

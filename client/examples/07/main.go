@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// Look up our forest map item
-	items, err := client.Search().ItemType("map").ItemVariant("forest").FindItems()
+	items, err := client.Search(wysteria.ItemType("map"), wysteria.ItemVariant("forest")).FindItems()
 	if err != nil {
 		panic(err)
 	}
@@ -48,13 +48,13 @@ func main() {
 	//oak 2
 
 	// We can also grab links with a specific name
-	desired_linked_versions := "elm"
-	linked_elms, err := forest_01.LinkedByName(desired_linked_versions)
+	desired_link_name := "elm"
+	linked, err := forest_01.Linked(wysteria.Name(desired_link_name))
 	if err != nil {
 		panic(err)
 	}
-	for _, version := range linked_elms {
-		fmt.Println(desired_linked_versions, version.Version())
+	for _, version := range linked[desired_link_name] {
+		fmt.Println(desired_link_name, version.Version())
 	}
 	//elm 1
 }

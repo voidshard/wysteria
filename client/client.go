@@ -40,10 +40,33 @@ func (w *wysteriaClient) Search(opts ...SearchParam) *search {
 	return s
 }
 
+type ClientOption func(*wysteriaClient)
+
+// Set a particular host for the client to connect to (overrides config var).
+// The exact format of this depends on the middleware driver being used.
+// (See example config for details & examples).
+func Host(url string) ClientOption {
+	return func(i *wysteriaClient) {
+		i.settings.Middleware.Config = url
+	}
+}
+
+// Set a particular driver for the client to connect with (overrides config var).
+// (See example config for details & examples).
+func Driver(name string) ClientOption {
+	return func(i *wysteriaClient) {
+		i.settings.Middleware.Driver = name
+	}
+}
+
 // Create a new client and connect to the server
-func New() (*wysteriaClient, error) {
+func New(opts ...ClientOption) (*wysteriaClient, error) {
 	client := &wysteriaClient{
 		settings: Config,
+	}
+
+	for _, opt := range opts {
+		opt(client)
 	}
 
 	middleware, err := wcm.NewClient(client.settings.Middleware.Driver)

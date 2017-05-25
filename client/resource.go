@@ -8,7 +8,7 @@ import (
 
 // Wrapper around wysteria/common Resource obj
 type Resource struct {
-	conn *wysteriaClient
+	conn *Client
 	data *wyc.Resource
 }
 

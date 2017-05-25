@@ -8,7 +8,7 @@ import (
 
 // Wrapper class for wysteria/common Collection
 type Collection struct {
-	conn *wysteriaClient
+	conn *Client
 	data *wyc.Collection
 }
 
@@ -68,7 +68,7 @@ func (c *Collection) CreateItem(itemtype, variant string, facets map[string]stri
 
 // Create a new collection & return it
 //  - The collection name is required to be unique among collections
-func (w *wysteriaClient) CreateCollection(name string) (*Collection, error) {
+func (w *Client) CreateCollection(name string) (*Collection, error) {
 	collection_id, err := w.middleware.CreateCollection(name)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (w *wysteriaClient) CreateCollection(name string) (*Collection, error) {
 
 // Collection is a helpful wrapper that looks for a single collection
 // with either the name or Id of the given 'identifier' and returns it if found
-func (w *wysteriaClient) Collection(identifier string) (*Collection, error) {
+func (w *Client) Collection(identifier string) (*Collection, error) {
 	results, err := w.Search(Id(identifier)).Or(Name(identifier)).FindCollections()
 	if err != nil {
 		return nil, err

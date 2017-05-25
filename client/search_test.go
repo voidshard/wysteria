@@ -9,7 +9,7 @@ import (
 func TestMultiOr(t *testing.T) {
 	// Arrange
 	testSearch := newTestQuery()
-	funcs := []func(string) *search{
+	funcs := []func(string) *Search{
 		testSearch.Id,
 		testSearch.ChildOf,
 		testSearch.LinkSource,
@@ -21,32 +21,32 @@ func TestMultiOr(t *testing.T) {
 	}
 
 	cases := []struct {
-		CallFuncs []func(string) *search
+		CallFuncs []func(string) *Search
 	}{
-		{[]func(string) *search{funcs[0], funcs[3], funcs[5], funcs[7]}},
-		{[]func(string) *search{funcs[1], funcs[5], funcs[6], funcs[2]}},
-		{[]func(string) *search{funcs[2], funcs[0], funcs[4], funcs[7]}},
-		{[]func(string) *search{funcs[3], funcs[1], funcs[1], funcs[1]}},
-		{[]func(string) *search{funcs[4], funcs[2], funcs[7], funcs[2]}},
-		{[]func(string) *search{funcs[5], funcs[7], funcs[6], funcs[3]}},
-		{[]func(string) *search{funcs[6], funcs[6], funcs[5], funcs[5]}},
-		{[]func(string) *search{funcs[7], funcs[5], funcs[4]}},
-		{[]func(string) *search{funcs[0], funcs[4], funcs[1]}},
-		{[]func(string) *search{funcs[1], funcs[3], funcs[2]}},
-		{[]func(string) *search{funcs[2], funcs[2], funcs[3]}},
-		{[]func(string) *search{funcs[3], funcs[1], funcs[1]}},
-		{[]func(string) *search{funcs[4], funcs[0], funcs[5]}},
-		{[]func(string) *search{funcs[5], funcs[1], funcs[2]}},
-		{[]func(string) *search{funcs[6], funcs[2], funcs[7]}},
-		{[]func(string) *search{funcs[7], funcs[4], funcs[3]}},
-		{[]func(string) *search{funcs[0], funcs[7]}},
-		{[]func(string) *search{funcs[1], funcs[1]}},
-		{[]func(string) *search{funcs[2], funcs[1]}},
-		{[]func(string) *search{funcs[3], funcs[3]}},
-		{[]func(string) *search{funcs[4], funcs[1]}},
-		{[]func(string) *search{funcs[5], funcs[0]}},
-		{[]func(string) *search{funcs[6], funcs[1]}},
-		{[]func(string) *search{funcs[7], funcs[0]}},
+		{[]func(string) *Search{funcs[0], funcs[3], funcs[5], funcs[7]}},
+		{[]func(string) *Search{funcs[1], funcs[5], funcs[6], funcs[2]}},
+		{[]func(string) *Search{funcs[2], funcs[0], funcs[4], funcs[7]}},
+		{[]func(string) *Search{funcs[3], funcs[1], funcs[1], funcs[1]}},
+		{[]func(string) *Search{funcs[4], funcs[2], funcs[7], funcs[2]}},
+		{[]func(string) *Search{funcs[5], funcs[7], funcs[6], funcs[3]}},
+		{[]func(string) *Search{funcs[6], funcs[6], funcs[5], funcs[5]}},
+		{[]func(string) *Search{funcs[7], funcs[5], funcs[4]}},
+		{[]func(string) *Search{funcs[0], funcs[4], funcs[1]}},
+		{[]func(string) *Search{funcs[1], funcs[3], funcs[2]}},
+		{[]func(string) *Search{funcs[2], funcs[2], funcs[3]}},
+		{[]func(string) *Search{funcs[3], funcs[1], funcs[1]}},
+		{[]func(string) *Search{funcs[4], funcs[0], funcs[5]}},
+		{[]func(string) *Search{funcs[5], funcs[1], funcs[2]}},
+		{[]func(string) *Search{funcs[6], funcs[2], funcs[7]}},
+		{[]func(string) *Search{funcs[7], funcs[4], funcs[3]}},
+		{[]func(string) *Search{funcs[0], funcs[7]}},
+		{[]func(string) *Search{funcs[1], funcs[1]}},
+		{[]func(string) *Search{funcs[2], funcs[1]}},
+		{[]func(string) *Search{funcs[3], funcs[3]}},
+		{[]func(string) *Search{funcs[4], funcs[1]}},
+		{[]func(string) *Search{funcs[5], funcs[0]}},
+		{[]func(string) *Search{funcs[6], funcs[1]}},
+		{[]func(string) *Search{funcs[7], funcs[0]}},
 	}
 
 	for _, tst := range cases {
@@ -68,7 +68,7 @@ func TestMultiOr(t *testing.T) {
 func TestSingleOr(t *testing.T) {
 	// Arrange
 	testSearch := newTestQuery()
-	funcs := []func(string) *search{
+	funcs := []func(string) *Search{
 		testSearch.Id,
 		testSearch.ChildOf,
 		testSearch.LinkSource,
@@ -80,32 +80,32 @@ func TestSingleOr(t *testing.T) {
 	}
 
 	cases := []struct {
-		CallFuncs []func(string) *search
+		CallFuncs []func(string) *Search
 	}{
-		{[]func(string) *search{funcs[0], funcs[3], funcs[5], funcs[7]}},
-		{[]func(string) *search{funcs[1], funcs[5], funcs[6], funcs[2]}},
-		{[]func(string) *search{funcs[2], funcs[0], funcs[4], funcs[7]}},
-		{[]func(string) *search{funcs[3], funcs[1], funcs[1], funcs[1]}},
-		{[]func(string) *search{funcs[4], funcs[2], funcs[7], funcs[2]}},
-		{[]func(string) *search{funcs[5], funcs[7], funcs[6], funcs[3]}},
-		{[]func(string) *search{funcs[6], funcs[6], funcs[5], funcs[5]}},
-		{[]func(string) *search{funcs[7], funcs[5], funcs[4]}},
-		{[]func(string) *search{funcs[0], funcs[4], funcs[1]}},
-		{[]func(string) *search{funcs[1], funcs[3], funcs[2]}},
-		{[]func(string) *search{funcs[2], funcs[2], funcs[3]}},
-		{[]func(string) *search{funcs[3], funcs[1], funcs[1]}},
-		{[]func(string) *search{funcs[4], funcs[0], funcs[5]}},
-		{[]func(string) *search{funcs[5], funcs[1], funcs[2]}},
-		{[]func(string) *search{funcs[6], funcs[2], funcs[7]}},
-		{[]func(string) *search{funcs[7], funcs[4], funcs[3]}},
-		{[]func(string) *search{funcs[0], funcs[7]}},
-		{[]func(string) *search{funcs[1], funcs[1]}},
-		{[]func(string) *search{funcs[2], funcs[1]}},
-		{[]func(string) *search{funcs[3], funcs[3]}},
-		{[]func(string) *search{funcs[4], funcs[1]}},
-		{[]func(string) *search{funcs[5], funcs[0]}},
-		{[]func(string) *search{funcs[6], funcs[1]}},
-		{[]func(string) *search{funcs[7], funcs[0]}},
+		{[]func(string) *Search{funcs[0], funcs[3], funcs[5], funcs[7]}},
+		{[]func(string) *Search{funcs[1], funcs[5], funcs[6], funcs[2]}},
+		{[]func(string) *Search{funcs[2], funcs[0], funcs[4], funcs[7]}},
+		{[]func(string) *Search{funcs[3], funcs[1], funcs[1], funcs[1]}},
+		{[]func(string) *Search{funcs[4], funcs[2], funcs[7], funcs[2]}},
+		{[]func(string) *Search{funcs[5], funcs[7], funcs[6], funcs[3]}},
+		{[]func(string) *Search{funcs[6], funcs[6], funcs[5], funcs[5]}},
+		{[]func(string) *Search{funcs[7], funcs[5], funcs[4]}},
+		{[]func(string) *Search{funcs[0], funcs[4], funcs[1]}},
+		{[]func(string) *Search{funcs[1], funcs[3], funcs[2]}},
+		{[]func(string) *Search{funcs[2], funcs[2], funcs[3]}},
+		{[]func(string) *Search{funcs[3], funcs[1], funcs[1]}},
+		{[]func(string) *Search{funcs[4], funcs[0], funcs[5]}},
+		{[]func(string) *Search{funcs[5], funcs[1], funcs[2]}},
+		{[]func(string) *Search{funcs[6], funcs[2], funcs[7]}},
+		{[]func(string) *Search{funcs[7], funcs[4], funcs[3]}},
+		{[]func(string) *Search{funcs[0], funcs[7]}},
+		{[]func(string) *Search{funcs[1], funcs[1]}},
+		{[]func(string) *Search{funcs[2], funcs[1]}},
+		{[]func(string) *Search{funcs[3], funcs[3]}},
+		{[]func(string) *Search{funcs[4], funcs[1]}},
+		{[]func(string) *Search{funcs[5], funcs[0]}},
+		{[]func(string) *Search{funcs[6], funcs[1]}},
+		{[]func(string) *Search{funcs[7], funcs[0]}},
 	}
 
 	for _, tst := range cases {
@@ -165,7 +165,7 @@ func TestIntTerms(t *testing.T) {
 		1273901287,
 	}
 	cases := []struct {
-		CallFunc  func(int32) *search
+		CallFunc  func(int32) *Search
 		CheckFunc func() int32
 		Name      string
 	}{
@@ -202,7 +202,7 @@ func TestStringTerms(t *testing.T) {
 		"/this/is/a/path.something.####.foo",
 	}
 	cases := []struct {
-		CallFunc  func(string) *search
+		CallFunc  func(string) *Search
 		CheckFunc func() string
 		Name      string
 	}{
@@ -236,45 +236,45 @@ func TestStringTerms(t *testing.T) {
 }
 
 // Test helper funcs
-func (i *search) nqId() string {
+func (i *Search) nqId() string {
 	return i.nextQuery.Id
 }
 
-func (i *search) nqChildOf() string {
+func (i *Search) nqChildOf() string {
 	return i.nextQuery.Parent
 }
 
-func (i *search) nqSrc() string {
+func (i *Search) nqSrc() string {
 	return i.nextQuery.LinkSrc
 }
 
-func (i *search) nqDst() string {
+func (i *Search) nqDst() string {
 	return i.nextQuery.LinkDst
 }
 
-func (i *search) nqIType() string {
+func (i *Search) nqIType() string {
 	return i.nextQuery.ItemType
 }
 
-func (i *search) nqIVariant() string {
+func (i *Search) nqIVariant() string {
 	return i.nextQuery.Variant
 }
 
-func (i *search) nqName() string {
+func (i *Search) nqName() string {
 	return i.nextQuery.Name
 }
 
-func (i *search) nqLocation() string {
+func (i *Search) nqLocation() string {
 	return i.nextQuery.Location
 }
 
-func newTestQuery() *search {
-	return &search{
+func newTestQuery() *Search {
+	return &Search{
 		query:     []*wyc.QueryDesc{},
 		nextQuery: &wyc.QueryDesc{},
 	}
 }
 
-func (i *search) nqVersion() int32 {
+func (i *Search) nqVersion() int32 {
 	return i.nextQuery.VersionNumber
 }

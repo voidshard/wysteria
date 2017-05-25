@@ -17,7 +17,7 @@ const (
 )
 
 // Client wraps the desired middleware and supplies a more user friendly interface to users
-type wysteriaClient struct {
+type Client struct {
 	settings   *configuration
 	middleware wcm.EndpointClient
 }
@@ -28,9 +28,8 @@ type wysteriaClient struct {
 //  of the given <ObjectType>.
 //  Since network round trip time is invariably expensive, it's recommended to make
 //  few specific queries than many non specific.
-//  ToDo: Implement Limit & Page settings
-func (w *wysteriaClient) Search(opts ...SearchParam) *search {
-	s := &search{
+func (w *Client) Search(opts ...SearchParam) *Search {
+	s := &Search{
 		limit:     defaultSearchLimit,
 		conn:      w,
 		query:     []*wyc.QueryDesc{},
@@ -41,8 +40,8 @@ func (w *wysteriaClient) Search(opts ...SearchParam) *search {
 }
 
 // Create a new client and connect to the server
-func New() (*wysteriaClient, error) {
-	client := &wysteriaClient{
+func New() (*Client, error) {
+	client := &Client{
 		settings: Config,
 	}
 
@@ -55,6 +54,6 @@ func New() (*wysteriaClient, error) {
 }
 
 // Close any open server connection(s)
-func (w *wysteriaClient) Close() {
+func (w *Client) Close() {
 	w.middleware.Close()
 }

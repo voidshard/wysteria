@@ -8,7 +8,7 @@ import (
 
 // Wrapper around wysteria/common Version object
 type Version struct {
-	conn *wysteriaClient
+	conn *Client
 	data *wyc.Version
 }
 

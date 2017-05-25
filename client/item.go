@@ -6,7 +6,7 @@ import (
 
 // Wrapper around wysteria/common Item object
 type Item struct {
-	conn *wysteriaClient
+	conn *Client
 	data *wyc.Item
 }
 

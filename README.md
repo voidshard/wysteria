@@ -43,16 +43,17 @@ Dependencies are managed via [glide](http://glide.sh/)
 
 Build the server (requires [Go runtime](https://golang.org/dl/) to be installed):
 
-## Clients
-
-* Go: https://godoc.org/github.com/voidshard/wysteria/client
-* Python 2.7: https://github.com/voidshard/pywysteria (implements nats.io middleware)
-    
 ```
 cd wysteria
 go build -o wysteria ./server
 ```
 
+
+## Clients
+
+* Go: https://godoc.org/github.com/voidshard/wysteria/client
+* Python 2.7: https://github.com/voidshard/pywysteria (implements nats.io middleware)
+    
 ## Connecting
 Once you're set up, opening a connection to the server is reasonably simple
 ```Go

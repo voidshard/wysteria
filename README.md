@@ -2,6 +2,14 @@
 
 An open source asset tracking, versioning & publishing system written in Go. 
 
+* [Before You Start](#before-you-start)
+* [Building and Requirements](#building-and-requirements)
+* [Available Clients](#clients)
+* [Go Client Example](#connecting)
+* [Types](#collections)
+* [Notes](#notes)
+* [Contributing](#contributing)
+* [Todo List](#todo-list)
 
 ## Before You Start
 
@@ -27,6 +35,25 @@ Middleware
 You can also start wysteria with no config at all in which case it will spin up it's own embedded Nats server
 and use BoltDB & Bleve to write to an OS temporary folder.
 
+## Building and Requirements
+
+Project can either be cloned or use `go get github.com/voidshard/wysteria/server`
+
+Dependencies are managed via [glide](http://glide.sh/)
+
+Build the server (requires [Go runtime](https://golang.org/dl/) to be installed):
+
+```
+cd wysteria
+go build -o wysteria ./server
+```
+
+
+## Clients
+
+* Go: https://godoc.org/github.com/voidshard/wysteria/client
+* Python 2.7: https://github.com/voidshard/pywysteria (implements nats.io middleware)
+    
 ## Connecting
 Once you're set up, opening a connection to the server is reasonably simple
 ```Go
@@ -173,12 +200,6 @@ a_or_b_items, _ := client.Search(
 That is, this search will return all items from any collection(s) that have either
 - id of "abc123" and item type of "a"
 - item type of "b"
-
-
-## Clients
-
-Python 2.7
-    https://github.com/voidshard/pywysteria (implements nats.io middleware)
 
 
 ## Notes

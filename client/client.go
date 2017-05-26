@@ -61,7 +61,7 @@ func Driver(name string) ClientOption {
 // Create a new client and connect to the server
 func New(opts ...ClientOption) (*Client, error) {
 	client := &Client{
-		settings: Config,
+		settings: config,
 	}
 
 	for _, opt := range opts {

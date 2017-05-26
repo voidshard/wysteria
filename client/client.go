@@ -39,10 +39,33 @@ func (w *Client) Search(opts ...SearchParam) *Search {
 	return s
 }
 
+type ClientOption func(*Client)
+
+// Set a particular host for the client to connect to (overrides config var).
+// The exact format of this depends on the middleware driver being used.
+// (See example config for details & examples).
+func Host(url string) ClientOption {
+	return func(i *Client) {
+		i.settings.Middleware.Config = url
+	}
+}
+
+// Set a particular driver for the client to connect with (overrides config var).
+// (See example config for details & examples).
+func Driver(name string) ClientOption {
+	return func(i *Client) {
+		i.settings.Middleware.Driver = name
+	}
+}
+
 // Create a new client and connect to the server
-func New() (*Client, error) {
+func New(opts ...ClientOption) (*Client, error) {
 	client := &Client{
 		settings: Config,
+	}
+
+	for _, opt := range opts {
+		opt(client)
 	}
 
 	middleware, err := wcm.NewClient(client.settings.Middleware.Driver)

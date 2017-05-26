@@ -17,7 +17,7 @@ const (
 )
 
 // Client wraps the desired middleware and supplies a more user friendly interface to users
-type wysteriaClient struct {
+type Client struct {
 	settings   *configuration
 	middleware wcm.EndpointClient
 }
@@ -28,9 +28,8 @@ type wysteriaClient struct {
 //  of the given <ObjectType>.
 //  Since network round trip time is invariably expensive, it's recommended to make
 //  few specific queries than many non specific.
-//  ToDo: Implement Limit & Page settings
-func (w *wysteriaClient) Search(opts ...SearchParam) *search {
-	s := &search{
+func (w *Client) Search(opts ...SearchParam) *Search {
+	s := &Search{
 		limit:     defaultSearchLimit,
 		conn:      w,
 		query:     []*wyc.QueryDesc{},
@@ -40,13 +39,13 @@ func (w *wysteriaClient) Search(opts ...SearchParam) *search {
 	return s
 }
 
-type ClientOption func(*wysteriaClient)
+type ClientOption func(*Client)
 
 // Set a particular host for the client to connect to (overrides config var).
 // The exact format of this depends on the middleware driver being used.
 // (See example config for details & examples).
 func Host(url string) ClientOption {
-	return func(i *wysteriaClient) {
+	return func(i *Client) {
 		i.settings.Middleware.Config = url
 	}
 }
@@ -54,15 +53,15 @@ func Host(url string) ClientOption {
 // Set a particular driver for the client to connect with (overrides config var).
 // (See example config for details & examples).
 func Driver(name string) ClientOption {
-	return func(i *wysteriaClient) {
+	return func(i *Client) {
 		i.settings.Middleware.Driver = name
 	}
 }
 
 // Create a new client and connect to the server
-func New(opts ...ClientOption) (*wysteriaClient, error) {
-	client := &wysteriaClient{
-		settings: Config,
+func New(opts ...ClientOption) (*Client, error) {
+	client := &Client{
+		settings: config,
 	}
 
 	for _, opt := range opts {
@@ -78,6 +77,6 @@ func New(opts ...ClientOption) (*wysteriaClient, error) {
 }
 
 // Close any open server connection(s)
-func (w *wysteriaClient) Close() {
+func (w *Client) Close() {
 	w.middleware.Close()
 }

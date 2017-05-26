@@ -6,7 +6,7 @@ import (
 
 // Wrapper around wysteria/common Link object
 type Link struct {
-	conn *wysteriaClient
+	conn *Client
 	data *wyc.Link
 }
 

@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-var Config *configuration
+var config *configuration
 
 type configuration struct {
 	Middleware wcm.Settings
@@ -19,7 +19,7 @@ type configuration struct {
 //    - default values
 //
 func init() {
-	Config = makeDefaults()
+	config = makeDefaults()
 
 	config_filepath, err := common.ChooseClientConfig()
 	if err == nil {
@@ -28,7 +28,7 @@ func init() {
 		if err != nil {
 			log.Println("Unable to read config", config_filepath, err)
 		} else {
-			Config = cnf
+			config = cnf
 		}
 	}
 }

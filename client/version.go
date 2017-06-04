@@ -141,6 +141,11 @@ func (i *Version) ParentId() string {
 	return i.data.Parent
 }
 
+// Get all facets
+func (i *Version) Facets() map[string]string {
+	return i.data.Facets
+}
+
 // Get the parent Item of this Version
 func (i *Version) Parent() (*Item, error) {
 	items, err := i.conn.middleware.FindItems(

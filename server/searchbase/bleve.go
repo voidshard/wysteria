@@ -279,7 +279,8 @@ func genericQuery(limit, from int, index bleve.Index, convert func(desc *wyc.Que
 	var result *bleve.SearchResult
 	for _, query := range queries {
 		search_query := bleve.NewQueryStringQuery(convert(query))
-		search := bleve.NewSearchRequest(search_query)
+
+		search := bleve.NewSearchRequestOptions(search_query, limit, from, false)
 		res, err := index.Search(search)
 
 		if err != nil {
@@ -299,23 +300,7 @@ func genericQuery(limit, from int, index bleve.Index, convert func(desc *wyc.Que
 		ids = append(ids, doc.ID)
 	}
 
-	if limit < 1 {
-		// there is no limit, return them all
-		return ids, nil
-	}
-
-	if limit >= len(ids) {
-		// we found less results than our limit, return them all
-		return ids, nil
-	}
-
-	if limit+from >= len(ids) {
-		// we've been asked for the last segment of the values
-		return ids[from:], nil
-	}
-
-	// We've been asked for a page of results somewhere in the middle
-	return ids[from : limit+from], nil
+	return ids, nil
 }
 
 // Search for collections matching the given query descriptions

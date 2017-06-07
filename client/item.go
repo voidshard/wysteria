@@ -112,6 +112,11 @@ func (i *Item) Facet(key string) (string, bool) {
 	return val, ok
 }
 
+// Get all facets
+func (i *Item) Facets() map[string]string {
+	return i.data.Facets
+}
+
 // Get the Id for this Item
 func (i *Item) Id() string {
 	return i.data.Id

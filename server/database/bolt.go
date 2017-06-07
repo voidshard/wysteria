@@ -35,7 +35,7 @@ type boltDb struct {
 func (b *boltDb) createBuckets() error {
 	return b.db.Update(func(tx *bolt.Tx) error {
 		for _, bucket := range [][]byte{bucketCollection, bucketItem, bucketVersion, bucketResource, bucketLink, bucketCollisions} {
-			_, err := tx.CreateBucket(bucket)
+			_, err := tx.CreateBucketIfNotExists(bucket)
 			if err != nil {
 				return nil
 			}

@@ -63,9 +63,14 @@ func makeDefaults() *configuration {
 			Database: filepath.Join(os.TempDir(), "wysteria_sb"),
 			PemFile:  "",
 		},
+
 		wcm.Settings{
 			Driver: wcm.DriverNats,
 			Config: "",
+			SSLEnableTLS: false,
+			SSLVerify: false,
+			SSLCert: "",
+			SSLKey: "",
 		},
 	}
 }

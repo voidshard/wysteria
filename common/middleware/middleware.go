@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
+	"crypto/tls"
 )
 
 const (
@@ -52,8 +53,8 @@ func NewServer(driver string) (EndpointServer, error) {
 // The client side needs to implement connecting to the server, and calling the
 // appropriate middleware functions to send data across
 type EndpointClient interface {
-	// Connect to the server, given some url / connection string
-	Connect(string) error
+	// Connect to the server, given the middleware settings struct
+	Connect(*Settings) error
 
 	// Close connection(s) to the server
 	Close() error
@@ -137,7 +138,7 @@ type EndpointClient interface {
 type EndpointServer interface {
 	// Start up and serve client requests given some config string and
 	// a reference to the main wysteria server's available functions
-	ListenAndServe(string, ServerHandler) error
+	ListenAndServe(*Settings, ServerHandler) error
 
 	// Time is up, kill everything and shutdown the server, kill all connections
 	Shutdown() error
@@ -178,4 +179,25 @@ type ServerHandler interface {
 type Settings struct {
 	Driver string
 	Config string
+	SSLCert string
+	SSLKey string
+	SSLEnableTLS bool
+	SSLVerify bool
+}
+
+// Return TLS config for our middleware settings
+//
+func (s *Settings) TLSconfig() (*tls.Config, error) {
+	cert, err := tls.LoadX509KeyPair(s.SSLCert, s.SSLKey)
+	if err != nil {
+		return nil, err
+	}
+
+	conf := &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		InsecureSkipVerify: !s.SSLVerify,
+		MinVersion:         tls.VersionTLS12,
+	}
+
+	return conf, nil
 }

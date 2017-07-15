@@ -41,6 +41,10 @@ func makeDefaults() *configuration {
 		wcm.Settings{
 			Driver: wcm.DriverNats,
 			Config: "",
+			SSLEnableTLS: false,
+			SSLVerify: false,
+			SSLCert: "",
+			SSLKey: "",
 		},
 	}
 }

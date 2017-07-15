@@ -22,14 +22,15 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 	wcm "github.com/voidshard/wysteria/common/middleware"
 	wdb "github.com/voidshard/wysteria/server/database"
+	wsi "github.com/voidshard/wysteria/server/instrumentation"
 	wsb "github.com/voidshard/wysteria/server/searchbase"
 	"log"
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
-	"sync"
 )
 
 // Main server struct
@@ -46,6 +47,7 @@ type WysteriaServer struct {
 	database          wdb.Database
 	searchbase        wsb.Searchbase
 	middleware_server wcm.EndpointServer
+	monitor           *wsi.Monitor
 }
 
 var (
@@ -554,10 +556,44 @@ func (s *WysteriaServer) awaitSignal() {
 	os.Exit(0)
 }
 
+// Setup all the logger(s) we've been asked to.
+//  Wont fail a particular logger doesn't work - we will stop if all fail though.
+//
+func (s *WysteriaServer) setupMonitor() error {
+	targets := []wsi.MonitorOutput{}
+	for _, settings := range s.settings.Instrumentation {
+		output, err := wsi.Connect(settings)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		targets = append(targets, output)
+	}
+
+	mon, err := wsi.NewMonitor(targets...)
+	if err != nil {
+		return err
+	}
+
+	s.monitor = mon
+	return nil
+}
+
 // Start up the server, connect to any require remote service(s)
 func (s *WysteriaServer) Run() error {
 	go s.awaitSignal()
 	msg := "Opening %s %s %s:%d"
+
+	// [0] Start up the monitor
+	log.Println("Initializing monitoring ...")
+	err := s.setupMonitor()
+	if err != nil {
+		return err
+	}
+	err = s.monitor.Start(&s.settings.Health)
+	if err != nil {
+		return err
+	}
 
 	// [1] Connect / spin up the database
 	log.Println(fmt.Sprintf(msg, "database", s.settings.Database.Driver, s.settings.Database.Host, s.settings.Database.Port))
@@ -575,7 +611,7 @@ func (s *WysteriaServer) Run() error {
 	}
 	s.searchbase = searchbase
 
-	// [3] Lastly, spin up or connect to whatever is bring us requests
+	// [4] Spin up or connect to whatever is bring us requests
 	log.Println(fmt.Sprintf("Initializing middleware %s", s.settings.Middleware.Driver))
 	mware_server, err := wcm.NewServer(s.settings.Middleware.Driver)
 	if err != nil {
@@ -584,5 +620,6 @@ func (s *WysteriaServer) Run() error {
 	s.middleware_server = mware_server
 
 	log.Println("Spinning up middleware & waiting for connections")
-	return mware_server.ListenAndServe(s.settings.Middleware.Config, s)
+	shim := Shim{}
+	return shim.ListenAndServe(s.settings.Middleware.Config, s)
 }

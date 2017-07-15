@@ -73,7 +73,7 @@ func New(opts ...ClientOption) (*Client, error) {
 		return nil, err
 	}
 	client.middleware = middleware
-	return client, middleware.Connect(client.settings.Middleware.Config)
+	return client, middleware.Connect(&client.settings.Middleware)
 }
 
 // Close any open server connection(s)

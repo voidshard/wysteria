@@ -8,10 +8,10 @@ endpoints.
 package middleware
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
-	"crypto/tls"
 )
 
 const (
@@ -177,12 +177,12 @@ type ServerHandler interface {
 // Generic middleware settings struct, holding the diver name and the config string.
 // Each driver will expect it's own kind of config string, depending on the driver.
 type Settings struct {
-	Driver string
-	Config string
-	SSLCert string
-	SSLKey string
+	Driver       string
+	Config       string
+	SSLCert      string
+	SSLKey       string
 	SSLEnableTLS bool
-	SSLVerify bool
+	SSLVerify    bool
 }
 
 // Return TLS config for our middleware settings

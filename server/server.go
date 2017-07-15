@@ -27,9 +27,9 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
-	"sync"
 )
 
 // Main server struct

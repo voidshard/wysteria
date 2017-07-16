@@ -1,8 +1,8 @@
 package wysteria_client
 
 import (
-	wyc "github.com/voidshard/wysteria/common"
 	"errors"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 // Search obj represents a query or set of queries that are about to be sent

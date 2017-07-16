@@ -27,9 +27,9 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
-	"sync"
 )
 
 // Main server struct
@@ -584,5 +584,5 @@ func (s *WysteriaServer) Run() error {
 	s.middleware_server = mware_server
 
 	log.Println("Spinning up middleware & waiting for connections")
-	return mware_server.ListenAndServe(s.settings.Middleware.Config, s)
+	return mware_server.ListenAndServe(&s.settings.Middleware, s)
 }

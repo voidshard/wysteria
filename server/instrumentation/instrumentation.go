@@ -22,22 +22,22 @@ import (
 const (
 	// The driver names that we accept
 	DriverLogfile = "logfile"
-	DriverElastic  = "elastic"
+	DriverElastic = "elastic"
 
 	// Call types
-	callFind = "find"
-	callCreate = "create"
-	callDelete = "delete"
-	callPublish = "publish"
+	callFind      = "find"
+	callCreate    = "create"
+	callDelete    = "delete"
+	callPublish   = "publish"
 	callPublished = "published"
-	callUpdate = "update"
+	callUpdate    = "update"
 
 	// What is being found / created / deleted / updated
 	targetCollection = "collection"
-	targetItem = "item"
-	targetVersion = "version"
-	targetResource = "resource"
-	targetLink = "link"
+	targetItem       = "item"
+	targetVersion    = "version"
+	targetResource   = "resource"
+	targetLink       = "link"
 )
 
 var (
@@ -59,14 +59,14 @@ func Connect(settings *Settings) (MonitorOutput, error) {
 }
 
 type event struct {
-	Msg string
-	Note string
-	InFunc string
-	Severity string
-	EpochTime int64
-	UTCTime string
-	TimeTaken int64
-	CallType string
+	Msg        string
+	Note       string
+	InFunc     string
+	Severity   string
+	EpochTime  int64
+	UTCTime    string
+	TimeTaken  int64
+	CallType   string
 	CallTarget string
 }
 
@@ -150,7 +150,7 @@ func TargetLink() Opt {
 	}
 }
 
-// Set InFunc value
+// Set Time (time taken in nano seconds) value
 //
 func Time(t int64) Opt {
 	return func(i *event) {
@@ -178,10 +178,10 @@ type MonitorOutput interface {
 func newEvent(msg string) *event {
 	tnow := time.Now()
 	return &event{
-		Msg: msg,
-		EpochTime: tnow.Unix(),
-		UTCTime: tnow.UTC().String(),
-		Severity: severityInfo,
+		Msg:       msg,
+		EpochTime: tnow.Unix() * 1000,
+		UTCTime:   tnow.UTC().String(),
+		Severity:  severityInfo,
 	}
 }
 

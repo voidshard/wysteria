@@ -7,10 +7,10 @@ change data, it only logs traffic & events as they pass by.
 package main
 
 import (
+	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
 	wsi "github.com/voidshard/wysteria/server/instrumentation"
 	"time"
-	"fmt"
 )
 
 type Shim struct {
@@ -36,7 +36,7 @@ func (s *Shim) Shutdown() error {
 //
 func (s *Shim) log(err error, t int64, opts ...wsi.Opt) {
 	go func() {
-		opts = append(opts, wsi.Time(time.Now().UnixNano() - t))
+		opts = append(opts, wsi.Time(time.Now().UnixNano()-t))
 		if err != nil {
 			s.server.monitor.Err(err, opts...)
 			return
@@ -99,7 +99,7 @@ func (s *Shim) DeleteItem(in string) error {
 	ts := time.Now().UnixNano()
 	err := s.server.DeleteItem(in)
 	s.log(err, ts, wsi.IsDelete(), wsi.TargetItem(), wsi.Note(in))
-	return err	
+	return err
 }
 
 func (s *Shim) DeleteVersion(in string) error {
@@ -150,7 +150,6 @@ func (s *Shim) FindLinks(l int32, o int32, q []*wyc.QueryDesc) ([]*wyc.Link, err
 	s.log(err, ts, wsi.IsFind(), wsi.TargetLink(), wsi.Note(fmt.Sprintf("%d %d %d", l, o, len(q))))
 	return results, err
 }
-
 
 func (s *Shim) PublishedVersion(in string) (*wyc.Version, error) {
 	ts := time.Now().UnixNano()

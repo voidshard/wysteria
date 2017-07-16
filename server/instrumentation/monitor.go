@@ -1,12 +1,12 @@
 package instrumentation
 
 import (
+	"encoding/json"
 	"errors"
-	"sync"
-	"net/http"
 	"fmt"
 	"io"
-	"encoding/json"
+	"net/http"
+	"sync"
 )
 
 const (
@@ -15,8 +15,8 @@ const (
 
 	// Severity constants
 	severityError = "error"
-	severityWarn = "warning"
-	severityInfo = "info"
+	severityWarn  = "warning"
+	severityInfo  = "info"
 )
 
 // Config for monitor's webserver
@@ -31,11 +31,11 @@ type WebserverConfig struct {
 type Monitor struct {
 	incoming chan *event
 
-	lock sync.Mutex
+	lock    sync.Mutex
 	outputs []MonitorOutput // all available outputs
-	recent []*event // most recent docs
-	maxLen int  // max number of docs held internally
-	latest int  // last doc saved internally
+	recent  []*event        // most recent docs
+	maxLen  int             // max number of docs held internally
+	latest  int             // last doc saved internally
 }
 
 // Create and return a new Monitor
@@ -47,10 +47,10 @@ func NewMonitor(outs ...MonitorOutput) (*Monitor, error) {
 	}
 
 	m := &Monitor{
-		lock: sync.Mutex{},
-		outputs: outs,
-		maxLen: MonitorMaxDocsHeld,
-		recent: make([]*event, MonitorMaxDocsHeld),
+		lock:     sync.Mutex{},
+		outputs:  outs,
+		maxLen:   MonitorMaxDocsHeld,
+		recent:   make([]*event, MonitorMaxDocsHeld),
 		incoming: make(chan *event),
 	}
 	return m, nil
@@ -84,7 +84,7 @@ func (m *Monitor) prepareReport() ([]byte, error) {
 	}
 
 	return json.Marshal(map[string]interface{}{
-		"logs": logs,
+		"logs":   logs,
 		"status": "OK",
 	})
 }
@@ -103,7 +103,6 @@ func (m *Monitor) healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Write(logdata)
 }
 
-
 // Kick off the sub routines that run int the Monitor
 //  - routines to write to log(s)
 //  - routine to reply to http requests
@@ -112,7 +111,7 @@ func (m *Monitor) Start(settings *WebserverConfig) error {
 	go m.run() // handle incoming log messages
 	go m.run() // handle incoming log messages
 
-	go func(){ // serve up http endpoints
+	go func() { // serve up http endpoints
 		http.HandleFunc(settings.EndpointHealth, m.healthCheck)
 		err := http.ListenAndServe(fmt.Sprintf(":%d", settings.Port), nil)
 		if err != nil {
@@ -131,8 +130,6 @@ func (m *Monitor) run() {
 		m.latest += 1 // Considered Atomic num, but I think we'd have to lock to apply math on next line anyhow?
 		m.latest %= m.maxLen
 		m.recent[m.latest] = doc
-		fmt.Println(m.recent)
-
 		m.lock.Unlock()
 
 		// ToDo: Do we need to lock here? I've tested this writing out 12+ logs w/ 20+ routines and it
@@ -168,7 +165,6 @@ func (m *Monitor) Warn(msg string, opts ...Opt) {
 	event.Severity = severityWarn
 	m.incoming <- event
 }
-
 
 // Log an error message
 //

@@ -1,16 +1,34 @@
 package instrumentation
 
 import (
-	"gopkg.in/olivere/elastic.v2"
 	"errors"
 	"fmt"
+	"gopkg.in/olivere/elastic.v2"
 )
+
+const defaultMapping = `{
+	"mappings": {
+		"wysterialog": {
+			"properties": {
+				"EpochTime": {"type": "date", "format": "epoch_millis"},
+				"CallTarget": {"type": "string"},
+				"CallType": {"type": "string"},
+				"TimeTaken": {"type": "integer"},
+				"InFunc": {"type": "string"},
+				"Msg": {"type": "string"},
+				"Severity": {"type": "string"},
+				"Note": {"type": "string"},
+				"UTCTime": {"type": "string"}
+			}
+		}
+	}
+}`
 
 // Write log document to Elastic
 //
 type elasticLogger struct {
-	url string
-	index string
+	url    string
+	index  string
 	client *elastic.Client
 }
 
@@ -31,8 +49,8 @@ func newElasticLogger(settings *Settings) (MonitorOutput, error) {
 	}
 
 	e := &elasticLogger{
-		url: settings.Location,
-		index: settings.Target,
+		url:    settings.Location,
+		index:  settings.Target,
 		client: client,
 	}
 	return e, e.createIndexIfNotExists(settings.Target)
@@ -48,7 +66,7 @@ func (l *elasticLogger) createIndexIfNotExists(index string) error {
 		return nil
 	}
 
-	createIndex, err := l.client.CreateIndex(index).Do()
+	createIndex, err := l.client.CreateIndex(index).BodyString(defaultMapping).Do()
 	if err != nil {
 		return err
 	}

@@ -2,8 +2,8 @@ package instrumentation
 
 import (
 	"log"
-	"path/filepath"
 	"os"
+	"path/filepath"
 )
 
 const logdivider = "|"
@@ -11,7 +11,7 @@ const logdivider = "|"
 // The most trivial of implementations - write via vanilla log package.
 //
 type simpleLogger struct {
-	logger *log.Logger
+	logger     *log.Logger
 	filehandle *os.File
 }
 
@@ -45,7 +45,7 @@ func openFile(path string) (*os.File, error) {
 		}
 		fh = tmp
 	} else {
-		tmp, err := os.OpenFile(path, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+		tmp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +69,7 @@ func newFileLogger(settings *Settings) (MonitorOutput, error) {
 	}
 
 	return &simpleLogger{
-		logger: log.New(fh, "", log.LstdFlags),
+		logger:     log.New(fh, "", log.LstdFlags),
 		filehandle: fh,
 	}, nil
 }
@@ -77,7 +77,7 @@ func newFileLogger(settings *Settings) (MonitorOutput, error) {
 // Log event to file.
 //
 func (l *simpleLogger) Log(doc *event) {
-	l.logger.Println( logdivider,
+	l.logger.Println(logdivider,
 		doc.EpochTime, logdivider,
 		doc.TimeTaken, logdivider,
 		doc.Severity, logdivider,

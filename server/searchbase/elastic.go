@@ -134,6 +134,29 @@ func (e *elasticSearch) DeleteLink(ids ...string) error {
 
 // Search for collections matching the given query descriptions
 func (e *elasticSearch) QueryCollection(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	if len(qs) == 0 {
+		base := e.client.Search().Index(e.Settings.Database).Type(tableCollection).Fields("Id").From(from)
+		if limit > 0 {
+			base.Size(limit)
+		}
+
+		matchAll := elastic.NewBoolQuery().Must(elastic.NewMatchAllQuery())
+		results := []string{}
+
+		res, err := base.Query(matchAll).Do()  // perform the query
+		if err != nil {
+			return results, err
+		} else {
+			// And pull together all the results
+			for _, hit := range res.Hits.Hits {
+				// ToDo: works, but could use some straightening up
+				// (We only asked for the Id field)
+				result_id := hit.Fields["Id"].([]interface{})[0].(string)
+				results = append(results, result_id)
+			}
+		}
+		return results, nil
+	}
 	return e.fanSearch(tableCollection, elasticTermsCollection, limit, from, qs...)
 }
 

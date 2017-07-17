@@ -305,6 +305,21 @@ func genericQuery(limit, from int, index bleve.Index, convert func(desc *wyc.Que
 
 // Search for collections matching the given query descriptions
 func (b *bleveSearchbase) QueryCollection(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
+	if len(query) == 0 {
+		search_query := bleve.NewQueryStringQuery("*")
+		search := bleve.NewSearchRequestOptions(search_query, limit, from, false)
+		result, err := b.collections.Search(search)
+
+		if err != nil || result.Hits.Len() == 0 {
+			return nil, err
+		}
+
+		ids := []string{}
+		for _, doc := range result.Hits {
+			ids = append(ids, doc.ID)
+		}
+		return ids, nil
+	}
 	return genericQuery(limit, from, b.collections, toCollectionQueryString, query...)
 }
 

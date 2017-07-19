@@ -69,4 +69,36 @@ func main() {
 	//--tree/oak or tree/elm items--
 	//tree oak
 	//tree elm
+
+	// We can also search without any search terms.
+	//  Note that internally Wysteria will cap searches that include no query args
+	fmt.Println("\n--collections--")
+	collections, _ := client.Search().FindCollections()
+	for _, c := range collections {
+		fmt.Println(c.Name())
+	}
+
+	fmt.Println("--items--")
+	items, _ = client.Search().FindItems()
+	for _, i := range items {
+		fmt.Println(i.Type(), i.Variant())
+	}
+
+	fmt.Println("--versions--")
+	versions, _ := client.Search().FindVersions()
+	for _, v := range versions {
+		fmt.Println(v.Version())
+	}
+
+	fmt.Println("--resources--")
+	resources, _ = client.Search().FindResources()
+	for _, r := range resources {
+		fmt.Println(r.Name(), r.Type(), r.Name())
+	}
+
+	fmt.Println("--links--")
+	links, _ := client.Search().FindLinks()
+	for _, l := range links {
+		fmt.Println(l.Name(), l.SourceId(), l.DestinationId())
+	}
 }

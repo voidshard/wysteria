@@ -132,28 +132,71 @@ func (e *elasticSearch) DeleteLink(ids ...string) error {
 	return e.generic_delete(tableLink, ids...)
 }
 
+// Special case for a query that has no query args (match all query)
+func (e *elasticSearch) emptyQuery(limit, from int, table string) ([]string, error) {
+	base := e.client.Search().Index(e.Settings.Database).Type(table).Fields("Id").From(from)
+	if limit > matchAllSearchLimit {
+		limit = matchAllSearchLimit
+	}
+	if limit > 0 {
+		base.Size(limit)
+	}
+
+	matchAll := elastic.NewBoolQuery().Must(elastic.NewMatchAllQuery())
+	results := []string{}
+
+	res, err := base.Query(matchAll).Do() // perform the query
+	if err != nil {
+		return results, err
+	} else {
+		// And pull together all the results
+		for _, hit := range res.Hits.Hits {
+			// ToDo: works, but could use some straightening up
+			// (We only asked for the Id field)
+			result_id := hit.Fields["Id"].([]interface{})[0].(string)
+			results = append(results, result_id)
+		}
+	}
+	return results, nil
+}
+
 // Search for collections matching the given query descriptions
 func (e *elasticSearch) QueryCollection(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	if len(qs) == 0 {
+		return e.emptyQuery(limit, from, tableCollection)
+	}
 	return e.fanSearch(tableCollection, elasticTermsCollection, limit, from, qs...)
 }
 
 // Search for items matching the given query descriptions
 func (e *elasticSearch) QueryItem(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	if len(qs) == 0 {
+		return e.emptyQuery(limit, from, tableItem)
+	}
 	return e.fanSearch(tableItem, elasticTermsItem, limit, from, qs...)
 }
 
 // Search for versions matching the given query descriptions
 func (e *elasticSearch) QueryVersion(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	if len(qs) == 0 {
+		return e.emptyQuery(limit, from, tableVersion)
+	}
 	return e.fanSearch(tableVersion, elasticTermsVersion, limit, from, qs...)
 }
 
 // Search for resources matching the given query descriptions
 func (e *elasticSearch) QueryResource(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	if len(qs) == 0 {
+		return e.emptyQuery(limit, from, tableResource)
+	}
 	return e.fanSearch(tableResource, elasticTermsResource, limit, from, qs...)
 }
 
 // Search for links matching the given query descriptions
 func (e *elasticSearch) QueryLink(limit, from int, qs ...*wyc.QueryDesc) ([]string, error) {
+	if len(qs) == 0 {
+		return e.emptyQuery(limit, from, tableLink)
+	}
 	return e.fanSearch(tableLink, elasticTermsLink, limit, from, qs...)
 }
 

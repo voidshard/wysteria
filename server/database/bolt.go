@@ -409,7 +409,7 @@ func (b *boltDb) genericDelete(bucket []byte, ids ...string) error {
 // Get a unique collision key for the given collection.
 //  - We require it to match on any collection of the same name
 func collision_key_collection(collection *wyc.Collection) []byte {
-	return []byte(fmt.Sprintf("collection:%s", collection.Name))
+	return []byte(fmt.Sprintf("collection:%s%s", collection.Name, collection.Parent))
 }
 
 // Delete collection(s) by Id(s).

@@ -159,7 +159,7 @@ func (e *mongoEndpoint) InsertCollection(id string, d *wyc.Collection) error {
 	collection := e.getCollection(tableCollection)
 
 	var res []interface{}
-	err := collection.Find(bson.M{"name": d.Name}).All(&res)
+	err := collection.Find(bson.M{"name": d.Name, "parent": d.Parent}).All(&res)
 	if err != nil {
 		return err
 	}

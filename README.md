@@ -94,7 +94,7 @@ foo, _ := client.CreateCollection("foo")
 mapsOfFoo, _ := foo.CreateCollection("maps")
 ```
 And fetch children of a collection.
-```
+```Go
 children, _ := foo.Collections()
 ```
 All collections of a given parent are still required to have unique names.

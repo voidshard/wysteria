@@ -303,42 +303,64 @@ func genericQuery(limit, from int, index bleve.Index, convert func(desc *wyc.Que
 	return ids, nil
 }
 
+// Special case 'match all' query
+//
+func (b *bleveSearchbase) emptyQuery(limit, from int, index bleve.Index) ([]string, error) {
+	if limit > matchAllSearchLimit {
+		limit = matchAllSearchLimit
+	}
+
+	search_query := bleve.NewQueryStringQuery("*")
+	search := bleve.NewSearchRequestOptions(search_query, limit, from, false)
+	result, err := index.Search(search)
+
+	if err != nil || result.Hits.Len() == 0 {
+		return nil, err
+	}
+
+	ids := []string{}
+	for _, doc := range result.Hits {
+		ids = append(ids, doc.ID)
+	}
+	return ids, nil
+}
+
 // Search for collections matching the given query descriptions
 func (b *bleveSearchbase) QueryCollection(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
 	if len(query) == 0 {
-		search_query := bleve.NewQueryStringQuery("*")
-		search := bleve.NewSearchRequestOptions(search_query, limit, from, false)
-		result, err := b.collections.Search(search)
-
-		if err != nil || result.Hits.Len() == 0 {
-			return nil, err
-		}
-
-		ids := []string{}
-		for _, doc := range result.Hits {
-			ids = append(ids, doc.ID)
-		}
-		return ids, nil
+		return b.emptyQuery(limit, from, b.collections)
 	}
 	return genericQuery(limit, from, b.collections, toCollectionQueryString, query...)
 }
 
 // Search for items matching the given query descriptions
 func (b *bleveSearchbase) QueryItem(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
+	if len(query) == 0 {
+		return b.emptyQuery(limit, from, b.items)
+	}
 	return genericQuery(limit, from, b.items, toItemQueryString, query...)
 }
 
 // Search for versions matching the given query descriptions
 func (b *bleveSearchbase) QueryVersion(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
+	if len(query) == 0 {
+		return b.emptyQuery(limit, from, b.versions)
+	}
 	return genericQuery(limit, from, b.versions, toVersionQueryString, query...)
 }
 
 // Search for resources matching the given query descriptions
 func (b *bleveSearchbase) QueryResource(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
+	if len(query) == 0 {
+		return b.emptyQuery(limit, from, b.resources)
+	}
 	return genericQuery(limit, from, b.resources, toResourceQueryString, query...)
 }
 
 // Search for links matching the given query descriptions
 func (b *bleveSearchbase) QueryLink(limit, from int, query ...*wyc.QueryDesc) ([]string, error) {
+	if len(query) == 0 {
+		return b.emptyQuery(limit, from, b.links)
+	}
 	return genericQuery(limit, from, b.links, toLinkQueryString, query...)
 }

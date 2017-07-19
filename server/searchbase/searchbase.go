@@ -22,6 +22,9 @@ import (
 )
 
 const (
+	// The most results we'll ever return in one page if no query args are given
+	matchAllSearchLimit = 10000
+
 	// Driver name strings
 	DriverElastic = "elastic"
 	DriverBleve   = "bleve"

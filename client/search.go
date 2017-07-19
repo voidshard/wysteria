@@ -2,7 +2,6 @@ package wysteria_client
 
 import (
 	wyc "github.com/voidshard/wysteria/common"
-	"errors"
 )
 
 // Search obj represents a query or set of queries that are about to be sent
@@ -155,11 +154,7 @@ func ResourceLocation(s string) SearchParam {
 
 // Find all matching Collections given our search params
 func (i *Search) FindCollections(opts ...SearchOption) ([]*Collection, error) {
-	if i.nextQValid {
-		i.query = append(i.query, i.nextQuery)
-		i.nextQValid = false
-		i.nextQuery = newQuery()
-	}
+	i.ready()
 
 	for _, option := range opts {
 		option(i)
@@ -182,10 +177,7 @@ func (i *Search) FindCollections(opts ...SearchOption) ([]*Collection, error) {
 
 // Find all matching Items given our search params
 func (i *Search) FindItems(opts ...SearchOption) ([]*Item, error) {
-	err := i.ready()
-	if err != nil {
-		return nil, err
-	}
+	i.ready()
 
 	for _, option := range opts {
 		option(i)
@@ -208,10 +200,7 @@ func (i *Search) FindItems(opts ...SearchOption) ([]*Item, error) {
 
 // Find all matching Versions given our search params
 func (i *Search) FindVersions(opts ...SearchOption) ([]*Version, error) {
-	err := i.ready()
-	if err != nil {
-		return nil, err
-	}
+	i.ready()
 
 	for _, option := range opts {
 		option(i)
@@ -234,10 +223,7 @@ func (i *Search) FindVersions(opts ...SearchOption) ([]*Version, error) {
 
 // Find all matching Resources given our search params
 func (i *Search) FindResources(opts ...SearchOption) ([]*Resource, error) {
-	err := i.ready()
-	if err != nil {
-		return nil, err
-	}
+	i.ready()
 
 	for _, option := range opts {
 		option(i)
@@ -260,25 +246,17 @@ func (i *Search) FindResources(opts ...SearchOption) ([]*Resource, error) {
 
 // Ready the current query description object if it is valid.
 // If we have been given nothing to search for, error
-func (i *Search) ready() error {
+func (i *Search) ready() {
 	if i.nextQValid {
 		i.query = append(i.query, i.nextQuery)
 		i.nextQValid = false
 		i.nextQuery = newQuery()
 	}
-
-	if len(i.query) < 1 {
-		return errors.New("You must specify at least one query term.")
-	}
-	return nil
 }
 
 // Find all matching Links given our search params
 func (i *Search) FindLinks(opts ...SearchOption) ([]*Link, error) {
-	err := i.ready()
-	if err != nil {
-		return nil, err
-	}
+	i.ready()
 
 	for _, option := range opts {
 		option(i)

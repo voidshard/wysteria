@@ -9,6 +9,7 @@ package main
 import (
 	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
+	wym "github.com/voidshard/wysteria/common/middleware"
 	wsi "github.com/voidshard/wysteria/server/instrumentation"
 	"time"
 )
@@ -20,7 +21,7 @@ type Shim struct {
 // The server calls us to listen, we'll call the middleware server in turn.
 // Essentially, all we have to do is pass back and forth, and be sure not to change any state.
 //
-func (s *Shim) ListenAndServe(config string, server *WysteriaServer) error {
+func (s *Shim) ListenAndServe(config *wym.Settings, server *WysteriaServer) error {
 	s.server = server
 	return server.middleware_server.ListenAndServe(config, s)
 }

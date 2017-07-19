@@ -621,5 +621,5 @@ func (s *WysteriaServer) Run() error {
 
 	log.Println("Spinning up middleware & waiting for connections")
 	shim := Shim{}
-	return shim.ListenAndServe(s.settings.Middleware.Config, s)
+	return shim.ListenAndServe(&s.settings.Middleware, s)
 }

@@ -32,11 +32,11 @@ type grpcClient struct {
 }
 
 // Create a new client & connect to the remote RPC server
-func (c *grpcClient) Connect(config string) error {
-	if config == "" {
-		config = "localhost:50051"
+func (c *grpcClient) Connect(config *Settings) error {
+	if config.Config == "" {
+		config.Config = "localhost:50051"
 	}
-	conn, err := grpc.Dial(config, grpc.WithInsecure())
+	conn, err := grpc.Dial(config.Config, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -474,12 +474,12 @@ func newGrpcServer() EndpointServer {
 //
 // It's simple really, if you don't think about it.
 //
-func (s *grpcServer) ListenAndServe(config string, handler ServerHandler) error {
-	if config == "" {
-		config = ":50051"
+func (s *grpcServer) ListenAndServe(config *Settings, handler ServerHandler) error {
+	if config.Config == "" {
+		config.Config = ":50051"
 	}
 
-	conn, err := net.Listen("tcp", config)
+	conn, err := net.Listen("tcp", config.Config)
 	if err != nil {
 		return err
 	}

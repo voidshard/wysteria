@@ -75,12 +75,12 @@ func newNatsClient() EndpointClient {
 //    nats://derek:pass@localhost:4222
 //  As in,
 //    nats://user:password@host:port
-func (c *natsClient) Connect(config string) error {
-	if config == "" {
-		config = fmt.Sprintf("nats://%s:%d", natsDefaultHost, natsDefaultPort)
+func (c *natsClient) Connect(config *Settings) error {
+	if config.Config == "" {
+		config.Config = fmt.Sprintf("nats://%s:%d", natsDefaultHost, natsDefaultPort)
 	}
 
-	raw, err := nats.Connect(config)
+	raw, err := connect(config)
 	if err != nil {
 		return err
 	}
@@ -508,11 +508,8 @@ type natsServer struct {
 }
 
 // If no nats config is given this is called to spin up a nats server of our own to run embedded.
-func (s *natsServer) spinup() (string, error) {
-	s.embedded = natsd.New(&natsd.Options{
-		Host: natsDefaultHost,
-		Port: natsDefaultPort,
-	})
+func (s *natsServer) spinup(options *natsd.Options) (string, error) {
+	s.embedded = natsd.New(options)
 	go s.embedded.Start()
 
 	if s.embedded.ReadyForConnections(timeout) {
@@ -524,23 +521,39 @@ func (s *natsServer) spinup() (string, error) {
 // Start up and serve client requests.
 // Incoming client requests will be translated from whatever the middleware protocol is to
 // native wysteria objects, then passed to the correct server side handler.
-func (s *natsServer) ListenAndServe(config string, handler ServerHandler) error {
+func (s *natsServer) ListenAndServe(config *Settings, handler ServerHandler) error {
 	s.handler = handler
 
 	// If we've been told nothing, we'll spin up our own embedded nats server
-	if config == "" {
-		url, err := s.spinup()
+	if config.Config == "" {
+		options := &natsd.Options{
+			Host: natsDefaultHost,
+			Port: natsDefaultPort,
+		}
+
+		if config.SSLEnableTLS {
+			options.TLS = config.SSLEnableTLS
+			options.TLSVerify = config.SSLVerify
+			tlsconf, err := config.TLSconfig()
+			if err != nil {
+				return err
+			}
+			options.TLSConfig = tlsconf
+		}
+
+		url, err := s.spinup(options)
 		if err != nil {
 			return err // with no nats to connect to and unable to start one .. we're stuffed
 		}
-		config = url
+		config.Config = url
 	}
 
 	// set up the raw nats.io connection
-	err := s.connect(config)
+	raw, err := connect(config)
 	if err != nil {
 		return err
 	}
+	s.conn = raw
 
 	// subscribe to all our chans
 	fromClients, err := s.subscribe(natsRouteClient+">", natsQueueServer)
@@ -1068,19 +1081,24 @@ func (s *natsServer) handleClient(msg *nats.Msg) {
 	s.sendReply(msg.Reply, result)
 }
 
-// Connect to nats server given the url
+// Connect to nats a server given the settings object
 //  Url required by nats.io (from the docs)
 //    nats://derek:pass@localhost:4222
 //  As in,
 //    nats://user:password@host:port
+// This also wraps up configuring the nats connection with TLS & similar options
 //
-func (s *natsServer) connect(config string) error {
-	raw, err := nats.Connect(config)
-	if err != nil {
-		return err
+func connect(config *Settings) (*nats.Conn, error) {
+	opts := []nats.Option{}
+	if config.SSLEnableTLS {
+		tlsconf, err := config.TLSconfig()
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, nats.Secure(tlsconf))
 	}
-	s.conn = raw
-	return err
+
+	return nats.Connect(config.Config, opts...)
 }
 
 // Shutdown the server and kill connections

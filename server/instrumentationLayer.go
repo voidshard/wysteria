@@ -50,10 +50,10 @@ func (s *Shim) log(err error, t int64, opts ...wsi.Opt) {
 // and pass the results back to the calling middleware.
 // Except of course, we log the call in the middle.
 //
-func (s *Shim) CreateCollection(in string) (string, error) {
+func (s *Shim) CreateCollection(in *wyc.Collection) (string, error) {
 	ts := time.Now().UnixNano()
 	result, err := s.server.CreateCollection(in)
-	s.log(err, ts, wsi.IsCreate(), wsi.TargetCollection(), wsi.Note(in))
+	s.log(err, ts, wsi.IsCreate(), wsi.TargetCollection(), wsi.Note(in.Name))
 	return result, err
 }
 

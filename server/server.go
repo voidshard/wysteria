@@ -122,24 +122,24 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 // Create a collection with the given name.
 //   Any ID set by the client is ignored.
 //   Will fail if name is empty or a collection with the given name already exists
-func (s *WysteriaServer) CreateCollection(name string) (string, error) {
+func (s *WysteriaServer) CreateCollection(in *wyc.Collection) (string, error) {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return "", err
 	}
 
-	if name == "" { // Check required field
+	if in.Name == "" { // Check required field
 		return "", errors.New("Name required for Collection")
 	}
 
 	id := NewId()
-	obj := &wyc.Collection{Name: name, Id: id}
+	in.Id = id
 
-	err = s.database.InsertCollection(id, obj)
+	err = s.database.InsertCollection(id, in)
 	if err != nil {
 		return "", err
 	}
-	return id, s.searchbase.InsertCollection(id, obj)
+	return id, s.searchbase.InsertCollection(id, in)
 }
 
 // Create a item based on the given item.

@@ -16,10 +16,9 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 )
 
-// Sent for a Collection creation request (we only need the name, since the
-// id is created server side
+// Sent for a Collection creation request
 type CreateReqCollection struct {
-	Name string
+	Collection wyc.Collection
 }
 
 // Sent for Item creation request

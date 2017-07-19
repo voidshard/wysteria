@@ -61,7 +61,7 @@ type EndpointClient interface {
 
 	// Send collection creation request, return new Id
 	//   - Collection name is required to be unique among collections
-	CreateCollection(string) (string, error)
+	CreateCollection(*wyc.Collection) (string, error)
 
 	// Send item creation request, return new Id
 	// Required to include non empty fields for
@@ -150,7 +150,7 @@ type ServerHandler interface {
 	// All funcs here as documented in EndpointClient. These are simply the entry points
 	// for the middlware receiving the request(s) to call down into the main server
 	// and business logic.
-	CreateCollection(string) (string, error)
+	CreateCollection(*wyc.Collection) (string, error)
 	CreateItem(*wyc.Item) (string, error)
 	CreateVersion(*wyc.Version) (string, int32, error)
 	CreateResource(*wyc.Resource) (string, error)

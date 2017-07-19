@@ -182,6 +182,9 @@ func toCollectionQueryString(desc *wyc.QueryDesc) string {
 	if desc.Name != "" {
 		sq = append(sq, fmt.Sprintf("+Name:%s", b64encode(desc.Name)))
 	}
+	if desc.Parent != "" {
+		sq = append(sq, fmt.Sprintf("+Parent:%s", desc.Parent))
+	}
 	return strings.Join(sq, " ")
 }
 

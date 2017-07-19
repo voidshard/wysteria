@@ -22,7 +22,7 @@ syntax = "proto3";
 package wysteria_grpc;
 
 service WysteriaGrpc {
-    rpc CreateCollection(Text) returns (Id) {}
+    rpc CreateCollection(Collection) returns (Id) {}
     rpc CreateItem(Item) returns (Id) {}
     rpc CreateVersion(Version) returns (IdAndNum) {}
     rpc CreateResource(Resource) returns (Id) {}
@@ -67,6 +67,7 @@ message Text {
 }
 
 message Collection {
+    string Parent = 95;
     string Id = 6;
     string Name = 7;
     Text error = 82;

@@ -142,7 +142,7 @@ func (e *elasticSearch) emptyQuery(limit, from int, table string) ([]string, err
 		base.Size(limit)
 	}
 
-	matchAll := elastic.NewBoolQuery().Must(elastic.NewMatchAllQuery())
+	matchAll := elastic.NewMatchAllQuery()
 	results := []string{}
 
 	res, err := base.Query(matchAll).Do() // perform the query
@@ -320,6 +320,9 @@ func elasticTermsCollection(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 	}
 	if qd.Name != "" {
 		q = append(q, elastic.NewTermQuery("Name", b64encode(qd.Name)))
+	}
+	if qd.Parent != "" {
+		q = append(q, elastic.NewTermQuery("Parent", qd.Parent))
 	}
 	return q
 }

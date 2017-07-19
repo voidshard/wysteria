@@ -32,7 +32,9 @@ func (mj *Collection) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{"Name":`)
+	buf.WriteString(`{"Parent":`)
+	fflib.WriteJsonString(buf, string(mj.Parent))
+	buf.WriteString(`,"Name":`)
 	fflib.WriteJsonString(buf, string(mj.Name))
 	buf.WriteString(`,"Id":`)
 	fflib.WriteJsonString(buf, string(mj.Id))
@@ -44,10 +46,14 @@ const (
 	ffj_t_Collectionbase = iota
 	ffj_t_Collectionno_such_key
 
+	ffj_t_Collection_Parent
+
 	ffj_t_Collection_Name
 
 	ffj_t_Collection_Id
 )
+
+var ffj_key_Collection_Parent = []byte("Parent")
 
 var ffj_key_Collection_Name = []byte("Name")
 
@@ -128,6 +134,14 @@ mainparse:
 						goto mainparse
 					}
 
+				case 'P':
+
+					if bytes.Equal(ffj_key_Collection_Parent, kn) {
+						currentKey = ffj_t_Collection_Parent
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
 				}
 
 				if fflib.SimpleLetterEqualFold(ffj_key_Collection_Id, kn) {
@@ -138,6 +152,12 @@ mainparse:
 
 				if fflib.SimpleLetterEqualFold(ffj_key_Collection_Name, kn) {
 					currentKey = ffj_t_Collection_Name
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.SimpleLetterEqualFold(ffj_key_Collection_Parent, kn) {
+					currentKey = ffj_t_Collection_Parent
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -159,6 +179,9 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
+				case ffj_t_Collection_Parent:
+					goto handle_Parent
+
 				case ffj_t_Collection_Name:
 					goto handle_Name
 
@@ -178,6 +201,32 @@ mainparse:
 			}
 		}
 	}
+
+handle_Parent:
+
+	/* handler: uj.Parent type=string kind=string quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			outBuf := fs.Output.Bytes()
+
+			uj.Parent = string(string(outBuf))
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
 
 handle_Name:
 

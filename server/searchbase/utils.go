@@ -21,6 +21,7 @@ func copyCollection(in *wyc.Collection) *wyc.Collection {
 	return &wyc.Collection{
 		Id:   in.Id,
 		Name: in.Name,
+		Parent: in.Parent,
 	}
 }
 

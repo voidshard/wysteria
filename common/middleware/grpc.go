@@ -56,10 +56,13 @@ func (c *grpcClient) Close() error {
 
 // Call the server side CreateCollection func with the given 'name'
 // That is, create a new Collection with the name given
-func (c *grpcClient) CreateCollection(name string) (string, error) {
+func (c *grpcClient) CreateCollection(in *wyc.Collection) (string, error) {
 	result, err := c.client.CreateCollection(
 		context.Background(),
-		&wrpc.Text{Text: name},
+		&wrpc.Collection{
+			Name: in.Name,
+			Parent: in.Parent,
+		},
 	)
 	if err != nil {
 		return "", err
@@ -523,8 +526,8 @@ func (s *grpcServer) UpdateItemFacets(_ context.Context, in *wrpc.IdAndDict) (*w
 }
 
 // Given the name of the collection to create, call server side CreateCollection, return result
-func (s *grpcServer) CreateCollection(_ context.Context, in *wrpc.Text) (*wrpc.Id, error) {
-	created_id, err := s.handler.CreateCollection(in.Text)
+func (s *grpcServer) CreateCollection(_ context.Context, in *wrpc.Collection) (*wrpc.Id, error) {
+	created_id, err := s.handler.CreateCollection(&wyc.Collection{Name: in.Name, Parent: in.Parent})
 	if err != nil {
 		return nullWrpcId, err
 	}

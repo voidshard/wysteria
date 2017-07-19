@@ -88,6 +88,17 @@ And all child items of a collection via
 items, _ := collection.Items()
 ```
 
+You many also create child collections to help you organise your data better like so
+```Go
+foo, _ := client.CreateCollection("foo")
+mapsOfFoo, _ := foo.CreateCollection("maps")
+```
+And fetch children of a collection.
+```
+children, _ := foo.Collections()
+```
+All collections of a given parent are still required to have unique names.
+
 ## Items
 A collection can have any number of items, with the constraint that there is at most one item of each 'item type' and 'variant'.
 The 'item type' and 'variant' are simply strings that are passed in when an item is created. 

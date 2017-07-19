@@ -145,7 +145,7 @@ func (e *elasticSearch) emptyQuery(limit, from int, table string) ([]string, err
 	matchAll := elastic.NewBoolQuery().Must(elastic.NewMatchAllQuery())
 	results := []string{}
 
-	res, err := base.Query(matchAll).Do()  // perform the query
+	res, err := base.Query(matchAll).Do() // perform the query
 	if err != nil {
 		return results, err
 	} else {

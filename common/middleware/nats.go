@@ -111,8 +111,8 @@ func stringError(in string) error {
 
 // Create new collection with given name, return new Id
 //   - Collection name is required to be unique among collections
-func (c *natsClient) CreateCollection(name string) (id string, err error) {
-	req := &codec.CreateReqCollection{Name: name}
+func (c *natsClient) CreateCollection(in *wyc.Collection) (id string, err error) {
+	req := &codec.CreateReqCollection{Collection: *in}
 	data, err := req.MarshalJSON()
 	if err != nil {
 		return
@@ -612,7 +612,7 @@ func (s *natsServer) createCollection(msg *nats.Msg) wyc.Marshalable {
 
 	if err == nil {
 		// Call handler
-		id, err = s.handler.CreateCollection(req.Name)
+		id, err = s.handler.CreateCollection(&req.Collection)
 	}
 	return &codec.CreateReply{
 		Id:    id,

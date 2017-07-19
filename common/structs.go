@@ -15,8 +15,9 @@ package wysteria_common
 // Each collection has a unique name and is used mostly to form logical groupings
 // and help divide the search space for items into hopefully even-ish chunks.
 type Collection struct {
-	Name string `json:"Name"`
-	Id   string `json:"Id"`
+	Parent string `json:"Parent"`
+	Name   string `json:"Name"`
+	Id     string `json:"Id"`
 }
 
 // Items are the second tier of object in wysteria. Each has a parent collection

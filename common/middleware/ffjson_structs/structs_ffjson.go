@@ -7,7 +7,6 @@ package ffjson_structs
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/voidshard/wysteria/common"
@@ -563,8 +562,16 @@ func (mj *CreateReqCollection) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{"Name":`)
-	fflib.WriteJsonString(buf, string(mj.Name))
+	buf.WriteString(`{"Collection":`)
+
+	{
+
+		err = mj.Collection.MarshalJSONBuf(buf)
+		if err != nil {
+			return err
+		}
+
+	}
 	buf.WriteByte('}')
 	return nil
 }
@@ -573,10 +580,10 @@ const (
 	ffj_t_CreateReqCollectionbase = iota
 	ffj_t_CreateReqCollectionno_such_key
 
-	ffj_t_CreateReqCollection_Name
+	ffj_t_CreateReqCollection_Collection
 )
 
-var ffj_key_CreateReqCollection_Name = []byte("Name")
+var ffj_key_CreateReqCollection_Collection = []byte("Collection")
 
 func (uj *CreateReqCollection) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -637,18 +644,18 @@ mainparse:
 			} else {
 				switch kn[0] {
 
-				case 'N':
+				case 'C':
 
-					if bytes.Equal(ffj_key_CreateReqCollection_Name, kn) {
-						currentKey = ffj_t_CreateReqCollection_Name
+					if bytes.Equal(ffj_key_CreateReqCollection_Collection, kn) {
+						currentKey = ffj_t_CreateReqCollection_Collection
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_CreateReqCollection_Name, kn) {
-					currentKey = ffj_t_CreateReqCollection_Name
+				if fflib.SimpleLetterEqualFold(ffj_key_CreateReqCollection_Collection, kn) {
+					currentKey = ffj_t_CreateReqCollection_Collection
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -670,8 +677,8 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_CreateReqCollection_Name:
-					goto handle_Name
+				case ffj_t_CreateReqCollection_Collection:
+					goto handle_Collection
 
 				case ffj_t_CreateReqCollectionno_such_key:
 					err = fs.SkipField(tok)
@@ -687,27 +694,22 @@ mainparse:
 		}
 	}
 
-handle_Name:
+handle_Collection:
 
-	/* handler: uj.Name type=string kind=string quoted=false*/
+	/* handler: uj.Collection type=wysteria_common.Collection kind=struct quoted=false*/
 
 	{
-
-		{
-			if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
-				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
-			}
-		}
-
 		if tok == fflib.FFTok_null {
 
-		} else {
-
-			outBuf := fs.Output.Bytes()
-
-			uj.Name = string(string(outBuf))
-
+			state = fflib.FFParse_after_value
+			goto mainparse
 		}
+
+		err = uj.Collection.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		if err != nil {
+			return err
+		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value
@@ -752,11 +754,15 @@ func (mj *CreateReqItem) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	/* Struct fall back. type=wysteria_common.Item kind=struct */
 	buf.WriteString(`{"Item":`)
-	err = buf.Encode(&mj.Item)
-	if err != nil {
-		return err
+
+	{
+
+		err = mj.Item.MarshalJSONBuf(buf)
+		if err != nil {
+			return err
+		}
+
 	}
 	buf.WriteByte('}')
 	return nil
@@ -885,16 +891,17 @@ handle_Item:
 	/* handler: uj.Item type=wysteria_common.Item kind=struct quoted=false*/
 
 	{
-		/* Falling back. type=wysteria_common.Item kind=struct */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+
+			state = fflib.FFParse_after_value
+			goto mainparse
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Item)
+		err = uj.Item.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value
@@ -939,11 +946,15 @@ func (mj *CreateReqLink) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	/* Struct fall back. type=wysteria_common.Link kind=struct */
 	buf.WriteString(`{"Link":`)
-	err = buf.Encode(&mj.Link)
-	if err != nil {
-		return err
+
+	{
+
+		err = mj.Link.MarshalJSONBuf(buf)
+		if err != nil {
+			return err
+		}
+
 	}
 	buf.WriteByte('}')
 	return nil
@@ -1072,16 +1083,17 @@ handle_Link:
 	/* handler: uj.Link type=wysteria_common.Link kind=struct quoted=false*/
 
 	{
-		/* Falling back. type=wysteria_common.Link kind=struct */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+
+			state = fflib.FFParse_after_value
+			goto mainparse
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Link)
+		err = uj.Link.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value
@@ -1126,11 +1138,15 @@ func (mj *CreateReqResource) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	/* Struct fall back. type=wysteria_common.Resource kind=struct */
 	buf.WriteString(`{"Resource":`)
-	err = buf.Encode(&mj.Resource)
-	if err != nil {
-		return err
+
+	{
+
+		err = mj.Resource.MarshalJSONBuf(buf)
+		if err != nil {
+			return err
+		}
+
 	}
 	buf.WriteByte('}')
 	return nil
@@ -1259,16 +1275,17 @@ handle_Resource:
 	/* handler: uj.Resource type=wysteria_common.Resource kind=struct quoted=false*/
 
 	{
-		/* Falling back. type=wysteria_common.Resource kind=struct */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+
+			state = fflib.FFParse_after_value
+			goto mainparse
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Resource)
+		err = uj.Resource.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value
@@ -1313,11 +1330,15 @@ func (mj *CreateReqVersion) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	/* Struct fall back. type=wysteria_common.Version kind=struct */
 	buf.WriteString(`{"Version":`)
-	err = buf.Encode(&mj.Version)
-	if err != nil {
-		return err
+
+	{
+
+		err = mj.Version.MarshalJSONBuf(buf)
+		if err != nil {
+			return err
+		}
+
 	}
 	buf.WriteByte('}')
 	return nil
@@ -1446,16 +1467,17 @@ handle_Version:
 	/* handler: uj.Version type=wysteria_common.Version kind=struct quoted=false*/
 
 	{
-		/* Falling back. type=wysteria_common.Version kind=struct */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+
+			state = fflib.FFParse_after_value
+			goto mainparse
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Version)
+		err = uj.Version.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value
@@ -1885,10 +1907,14 @@ func (mj *FindReplyCollection) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			if i != 0 {
 				buf.WriteString(`,`)
 			}
-			/* Struct fall back. type=wysteria_common.Collection kind=struct */
-			err = buf.Encode(&v)
-			if err != nil {
-				return err
+
+			{
+
+				err = v.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
+
 			}
 		}
 		buf.WriteString(`]`)
@@ -2086,16 +2112,17 @@ handle_All:
 				/* handler: tmp_uj__All type=wysteria_common.Collection kind=struct quoted=false*/
 
 				{
-					/* Falling back. type=wysteria_common.Collection kind=struct */
-					tbuf, err := fs.CaptureField(tok)
-					if err != nil {
-						return fs.WrapErr(err)
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
 					}
 
-					err = json.Unmarshal(tbuf, &tmp_uj__All)
+					err = tmp_uj__All.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 					if err != nil {
-						return fs.WrapErr(err)
+						return err
 					}
+					state = fflib.FFParse_after_value
 				}
 
 				uj.All = append(uj.All, tmp_uj__All)
@@ -2180,10 +2207,14 @@ func (mj *FindReplyItem) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			if i != 0 {
 				buf.WriteString(`,`)
 			}
-			/* Struct fall back. type=wysteria_common.Item kind=struct */
-			err = buf.Encode(&v)
-			if err != nil {
-				return err
+
+			{
+
+				err = v.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
+
 			}
 		}
 		buf.WriteString(`]`)
@@ -2381,16 +2412,17 @@ handle_All:
 				/* handler: tmp_uj__All type=wysteria_common.Item kind=struct quoted=false*/
 
 				{
-					/* Falling back. type=wysteria_common.Item kind=struct */
-					tbuf, err := fs.CaptureField(tok)
-					if err != nil {
-						return fs.WrapErr(err)
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
 					}
 
-					err = json.Unmarshal(tbuf, &tmp_uj__All)
+					err = tmp_uj__All.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 					if err != nil {
-						return fs.WrapErr(err)
+						return err
 					}
+					state = fflib.FFParse_after_value
 				}
 
 				uj.All = append(uj.All, tmp_uj__All)
@@ -2475,10 +2507,14 @@ func (mj *FindReplyLink) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			if i != 0 {
 				buf.WriteString(`,`)
 			}
-			/* Struct fall back. type=wysteria_common.Link kind=struct */
-			err = buf.Encode(&v)
-			if err != nil {
-				return err
+
+			{
+
+				err = v.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
+
 			}
 		}
 		buf.WriteString(`]`)
@@ -2676,16 +2712,17 @@ handle_All:
 				/* handler: tmp_uj__All type=wysteria_common.Link kind=struct quoted=false*/
 
 				{
-					/* Falling back. type=wysteria_common.Link kind=struct */
-					tbuf, err := fs.CaptureField(tok)
-					if err != nil {
-						return fs.WrapErr(err)
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
 					}
 
-					err = json.Unmarshal(tbuf, &tmp_uj__All)
+					err = tmp_uj__All.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 					if err != nil {
-						return fs.WrapErr(err)
+						return err
 					}
+					state = fflib.FFParse_after_value
 				}
 
 				uj.All = append(uj.All, tmp_uj__All)
@@ -2770,10 +2807,14 @@ func (mj *FindReplyResource) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			if i != 0 {
 				buf.WriteString(`,`)
 			}
-			/* Struct fall back. type=wysteria_common.Resource kind=struct */
-			err = buf.Encode(&v)
-			if err != nil {
-				return err
+
+			{
+
+				err = v.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
+
 			}
 		}
 		buf.WriteString(`]`)
@@ -2971,16 +3012,17 @@ handle_All:
 				/* handler: tmp_uj__All type=wysteria_common.Resource kind=struct quoted=false*/
 
 				{
-					/* Falling back. type=wysteria_common.Resource kind=struct */
-					tbuf, err := fs.CaptureField(tok)
-					if err != nil {
-						return fs.WrapErr(err)
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
 					}
 
-					err = json.Unmarshal(tbuf, &tmp_uj__All)
+					err = tmp_uj__All.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 					if err != nil {
-						return fs.WrapErr(err)
+						return err
 					}
+					state = fflib.FFParse_after_value
 				}
 
 				uj.All = append(uj.All, tmp_uj__All)
@@ -3065,10 +3107,14 @@ func (mj *FindReplyVersion) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			if i != 0 {
 				buf.WriteString(`,`)
 			}
-			/* Struct fall back. type=wysteria_common.Version kind=struct */
-			err = buf.Encode(&v)
-			if err != nil {
-				return err
+
+			{
+
+				err = v.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
+
 			}
 		}
 		buf.WriteString(`]`)
@@ -3266,16 +3312,17 @@ handle_All:
 				/* handler: tmp_uj__All type=wysteria_common.Version kind=struct quoted=false*/
 
 				{
-					/* Falling back. type=wysteria_common.Version kind=struct */
-					tbuf, err := fs.CaptureField(tok)
-					if err != nil {
-						return fs.WrapErr(err)
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
 					}
 
-					err = json.Unmarshal(tbuf, &tmp_uj__All)
+					err = tmp_uj__All.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 					if err != nil {
-						return fs.WrapErr(err)
+						return err
 					}
+					state = fflib.FFParse_after_value
 				}
 
 				uj.All = append(uj.All, tmp_uj__All)
@@ -3360,10 +3407,14 @@ func (mj *FindReq) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			if i != 0 {
 				buf.WriteString(`,`)
 			}
-			/* Struct fall back. type=wysteria_common.QueryDesc kind=struct */
-			err = buf.Encode(&v)
-			if err != nil {
-				return err
+
+			{
+
+				err = v.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
+
 			}
 		}
 		buf.WriteString(`]`)
@@ -3584,16 +3635,17 @@ handle_Query:
 				/* handler: tmp_uj__Query type=wysteria_common.QueryDesc kind=struct quoted=false*/
 
 				{
-					/* Falling back. type=wysteria_common.QueryDesc kind=struct */
-					tbuf, err := fs.CaptureField(tok)
-					if err != nil {
-						return fs.WrapErr(err)
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
 					}
 
-					err = json.Unmarshal(tbuf, &tmp_uj__Query)
+					err = tmp_uj__Query.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 					if err != nil {
-						return fs.WrapErr(err)
+						return err
 					}
+					state = fflib.FFParse_after_value
 				}
 
 				uj.Query = append(uj.Query, tmp_uj__Query)
@@ -3707,11 +3759,15 @@ func (mj *GetPublishedReply) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	_ = err
 	buf.WriteString(`{"Error":`)
 	fflib.WriteJsonString(buf, string(mj.Error))
-	/* Struct fall back. type=wysteria_common.Version kind=struct */
 	buf.WriteString(`,"Version":`)
-	err = buf.Encode(&mj.Version)
-	if err != nil {
-		return err
+
+	{
+
+		err = mj.Version.MarshalJSONBuf(buf)
+		if err != nil {
+			return err
+		}
+
 	}
 	buf.WriteByte('}')
 	return nil
@@ -3887,16 +3943,17 @@ handle_Version:
 	/* handler: uj.Version type=wysteria_common.Version kind=struct quoted=false*/
 
 	{
-		/* Falling back. type=wysteria_common.Version kind=struct */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+
+			state = fflib.FFParse_after_value
+			goto mainparse
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Version)
+		err = uj.Version.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value

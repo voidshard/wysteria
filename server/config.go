@@ -5,6 +5,7 @@ import (
 	common "github.com/voidshard/wysteria/common"
 	wcm "github.com/voidshard/wysteria/common/middleware"
 	wdb "github.com/voidshard/wysteria/server/database"
+	wsi "github.com/voidshard/wysteria/server/instrumentation"
 	wsb "github.com/voidshard/wysteria/server/searchbase"
 	"log"
 	"os"
@@ -14,9 +15,11 @@ import (
 var Config *configuration
 
 type configuration struct {
-	Database   wdb.Settings
-	Searchbase wsb.Settings
-	Middleware wcm.Settings
+	Database        wdb.Settings
+	Searchbase      wsb.Settings
+	Middleware      wcm.Settings
+	Health          wsi.WebserverConfig
+	Instrumentation map[string]*wsi.Settings
 }
 
 // Load the server side configuration from somewhere.
@@ -71,6 +74,19 @@ func makeDefaults() *configuration {
 			SSLVerify:    false,
 			SSLCert:      "",
 			SSLKey:       "",
+		},
+
+		wsi.WebserverConfig{
+			Port:           8150,
+			EndpointHealth: "/health",
+		},
+
+		map[string]*wsi.Settings{
+			"default": &wsi.Settings{
+				Driver:   wsi.DriverLogfile,
+				Location: filepath.Join(os.TempDir(), "wysteria_logs"),
+				Target:   "out.log",
+			},
 		},
 	}
 }

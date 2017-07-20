@@ -53,7 +53,7 @@ go build -o wysteria ./server
 
 * Go: https://godoc.org/github.com/voidshard/wysteria/client
 * Python 2.7: https://github.com/voidshard/pywysteria (implements nats.io middleware)
-    
+
 ## Connecting
 Once you're set up, opening a connection to the server is reasonably simple
 ```Go
@@ -212,6 +212,10 @@ That is, this search will return all items from any collection(s) that have eith
 - id of "abc123" and item type of "a"
 - item type of "b"
 
+
+## Viewer
+
+* Go & ReactJS: https://github.com/voidshard/wysteria (simple read-only viewer used in development)
 
 ## Notes
 

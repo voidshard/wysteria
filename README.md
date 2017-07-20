@@ -215,7 +215,7 @@ That is, this search will return all items from any collection(s) that have eith
 
 ## Viewer
 
-* Go & ReactJS: https://github.com/voidshard/wysteria (simple read-only viewer used in development)
+* Go & ReactJS: https://github.com/voidshard/muninn (simple read-only viewer used in development)
 
 ## Notes
 

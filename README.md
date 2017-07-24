@@ -13,7 +13,7 @@ An open source asset tracking, versioning & publishing system written in Go.
 
 ## Before You Start
 
-There are three components that a wysteria server uses in conjunction on to work, they are:
+There are three components that a wysteria server uses in conjunction to work, they are:
 - A database for long term storage
 - A 'searchbase' for indexing and running queries against
 - A middleware for ferrying data back and forth between server(s) and client(s)

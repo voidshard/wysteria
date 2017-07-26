@@ -88,7 +88,7 @@ And all child items of a collection via
 items, _ := collection.Items()
 ```
 
-You many also create child collections to help you organise your data better like so
+You may also create child collections to help you organise your data better like so
 ```Go
 foo, _ := client.CreateCollection("foo")
 mapsOfFoo, _ := foo.CreateCollection("maps")

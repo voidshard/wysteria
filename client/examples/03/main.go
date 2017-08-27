@@ -93,12 +93,45 @@ func main() {
 	fmt.Println("--resources--")
 	resources, _ = client.Search().FindResources()
 	for _, r := range resources {
-		fmt.Println(r.Name(), r.Type(), r.Name())
+		fmt.Println(r.Name(), r.Type(), r.Location())
 	}
 
 	fmt.Println("--links--")
 	links, _ := client.Search().FindLinks()
 	for _, l := range links {
 		fmt.Println(l.Name(), l.SourceId(), l.DestinationId())
+	}
+
+	// Now we'll setup a search for stuff with facets that label them as created by batman (see example 01)
+	fsearch := client.Search(wysteria.HasFacets(map[string]string{"createdby": "batman"}))
+
+	fmt.Println("--facet search: collections--")
+	collections, _ = fsearch.FindCollections()
+	for _, c := range collections {
+		fmt.Println(c.Name(), c.Facets())
+	}
+
+	fmt.Println("--facet search: items--")
+	items, _ = fsearch.FindItems()
+	for _, c := range items {
+		fmt.Println(c.Type(), c.Variant(), c.Facets())
+	}
+
+	fmt.Println("--facet search: versions--")
+	versions, _ = fsearch.FindVersions()
+	for _, c := range versions {
+		fmt.Println(c.Version(), c.Facets())
+	}
+
+	fmt.Println("--facet search: resources--")
+	resources, _ = fsearch.FindResources()
+	for _, r := range resources {
+		fmt.Println(r.Name(), r.Type(), r.Location(), r.Facets())
+	}
+
+	fmt.Println("--facet search: links--")
+	links, _ = fsearch.FindLinks()
+	for _, c := range links {
+		fmt.Println(c.Name(), c.SourceId(), c.DestinationId(), c.Facets())
 	}
 }

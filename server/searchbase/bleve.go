@@ -212,6 +212,9 @@ func toCollectionQueryString(desc *wyc.QueryDesc) string {
 	if desc.Parent != "" {
 		sq = append(sq, fmt.Sprintf("+Parent:%s", desc.Parent))
 	}
+	for k, v := range desc.Facets {
+		sq = append(sq, fmt.Sprintf("+Facets.%s:%s", b64encode(k), b64encode(v)))
+	}
 	return strings.Join(sq, " ")
 }
 
@@ -272,6 +275,9 @@ func toResourceQueryString(desc *wyc.QueryDesc) string {
 	if desc.Location != "" {
 		sq = append(sq, fmt.Sprintf("+Location:%s", b64encode(desc.Location)))
 	}
+	for k, v := range desc.Facets {
+		sq = append(sq, fmt.Sprintf("+Facets.%s:%s", b64encode(k), b64encode(v)))
+	}
 	return strings.Join(sq, " ")
 }
 
@@ -289,6 +295,9 @@ func toLinkQueryString(desc *wyc.QueryDesc) string {
 	}
 	if desc.LinkDst != "" {
 		sq = append(sq, fmt.Sprintf("+Dst:%s", desc.LinkDst))
+	}
+	for k, v := range desc.Facets {
+		sq = append(sq, fmt.Sprintf("+Facets.%s:%s", b64encode(k), b64encode(v)))
 	}
 	return strings.Join(sq, " ")
 }

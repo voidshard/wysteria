@@ -75,7 +75,7 @@ By default wysteria will check for an ini file in the current directory, then it
 At the highest level are collections. Collections are straight forward enough - each has a unique name and can be created via
 
 ```Go
-client.CreateCollection("spriteSets")
+client.CreateCollection("spriteSets", nil)
 ```
 
 You can easily fetch a collection via either the name or id
@@ -90,8 +90,8 @@ items, _ := collection.Items()
 
 You may also create child collections to help you organise your data better like so
 ```Go
-foo, _ := client.CreateCollection("foo")
-mapsOfFoo, _ := foo.CreateCollection("maps")
+foo, _ := client.CreateCollection("foo", nil)
+mapsOfFoo, _ := foo.CreateCollection("maps", nil)
 ```
 And fetch children of a collection.
 ```Go
@@ -107,7 +107,7 @@ item1, _ := collection.CreateItem("2dSprite", "alice", nil)
 item2, _ := collection.CreateItem("2dSprite", "bob", nil)
 item3, _ := collection.CreateItem("spriteSheet", "batman", nil)
 ```
-They also have facets so that one can add custom searchable metadata to them for easy finding later. 
+They also have facets so that one can add custom searchable metadata to them for easy finding later.
 ```Go
 item1.SetFacets(map[string]string{"colour": "white", "publisher": "batman"})
 ```
@@ -121,7 +121,7 @@ maps, _ := client.Collection("maps")
 yew_tree_tiles, _ := tilesets.CreateItem("forest", "yew01", nil)
 forest_scene, _ := maps.CreateItem("exterior", "sherwoodForest", nil)
 
-forest_scene.LinkTo("input", yew_tree_tiles)
+forest_scene.LinkTo("input", yew_tree_tiles, nil)
 ```
 That is, the forest_scene item has a link called "input" that connects to our yew_tree_tiles item.
 
@@ -165,11 +165,15 @@ Lastly they are also able to have Resources attached to them. Which brings us to
 ## Resources
 Resources each have a name, type and location, all strings. Any number of them can be attached to a version.
 ```Go
-myVersion.AddResource("floorA", "image", "/path/to/image.0001.png")
-myVersion.AddResource("floorB", "image", "/path/to/image.0002.png")
-myVersion.AddResource("statsFile", "xml", "/path/to/floor.3.xml")
-myVersion.AddResource("batmanSettings", "url", "http://cdn.mystuff/batman.json")
-myVersion.AddResource("somethingElse", "other", "/path/to/foo.bar")
+myVersion.AddResource("floorA", "image", "/path/to/image.0001.png", nil)
+myVersion.AddResource("floorB", "image", "/path/to/image.0002.png", nil)
+myVersion.AddResource("statsFile", "xml", "/path/to/floor.3.xml", nil)
+```
+Like with all wysteria structs, you can add your own facets at creation time too if you want to
+```Go
+customFacet := map[string]string{"creator": "batman"}
+myVersion.AddResource("batmanSettings", "url", "http://cdn.mystuff/batman.json", customFacet)
+myVersion.AddResource("somethingElse", "other", "/path/to/foo.bar", customFacet)
 ```
 
 As you might expect, you can easily retrieve a versions' resources, with optional extra parameters
@@ -232,8 +236,7 @@ Also, if (when) you find bugs, let me know.
 
 
 ## ToDo List
-- unittests for business logic
-- logging & live statistics gathering functionality
+- more unittests for business logic
 - admin console 
   - extend the wysteria server chan to allow realtime management of live server(s)
     - allow / disallow certain client requests
@@ -244,4 +247,3 @@ Also, if (when) you find bugs, let me know.
 - implement system for deterministic ids
 - ability to write to backup db / sb (might be useful for hot swapping or dev dataset)
 - ability to swap over to backup db without server restart
-- some kind of UI to view / search / explore wysteria data perhaps

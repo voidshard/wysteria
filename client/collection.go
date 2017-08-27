@@ -104,17 +104,23 @@ func (c *Collection) CreateCollection(name string, facets map[string]string) (*C
 
 // Create a new collection with the given name & parent id (if any)
 func (w *Client) createCollection(name, parent string, facets map[string]string) (*Collection, error) {
-	col := &wyc.Collection{Id: "", Name: name, Parent: parent}
+	col := &wyc.Collection{Id: "", Name: name, Parent: parent, Facets: map[string]string{}}
 	collection_id, err := w.middleware.CreateCollection(col)
 	if err != nil {
 		return nil, err
 	}
 
 	col.Id = collection_id
-	return &Collection{
+	result := &Collection{
 		conn: w,
 		data: col,
-	}, nil
+	}
+
+	if facets != nil {
+		col.Facets = facets
+		return result, result.SetFacets(facets)
+	}
+	return result, nil
 }
 
 // Create a new collection & return it (that is, a collection with no parent)

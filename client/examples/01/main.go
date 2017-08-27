@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// Create collection
-	col, err := client.CreateCollection("tiles")
+	col, err := client.CreateCollection("tiles", nil)
 	if err != nil {
 		panic(err)
 	}
@@ -35,27 +35,27 @@ func main() {
 	}
 
 	// Add some kind of resource(s) to our tree
-	err = oak01.AddResource("default", "png", "url://images/oak01.png")
+	err = oak01.AddResource("default", "png", "url://images/oak01.png", nil)
 	if err != nil {
 		panic(err)
 	}
-	oak01.AddResource("stats", "xml", "/path/to/file.xml")
+	oak01.AddResource("stats", "xml", "/path/to/file.xml", nil)
 
 	// Throw in some more trees
 	elm, _ := col.CreateItem("tree", "elm", nil)
 	elm01, _ := elm.CreateVersion(nil)
-	elm01.AddResource("default", "png", "/path/to/elm01.png")
-	elm01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg")
+	elm01.AddResource("default", "png", "/path/to/elm01.png", nil)
+	elm01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg", nil)
 
 	pine, _ := col.CreateItem("tree", "pine", nil)
 	pine01, _ := pine.CreateVersion(nil)
-	pine01.AddResource("default", "png", "/path/to/pine01.png")
-	pine01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg")
-	pine01.AddResource("stats", "json", "url://file.json")
+	pine01.AddResource("default", "png", "/path/to/pine01.png", nil)
+	pine01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg", nil)
+	pine01.AddResource("stats", "json", "url://file.json", nil)
 
 	// Shoot. Our oak tree looks awful. Let's redo it
 	oak02, _ := oak.CreateVersion(nil)
-	oak02.AddResource("default", "png", "/other/images/oak02.png")
+	oak02.AddResource("default", "png", "/other/images/oak02.png", nil)
 
 	// Ok sweet. Let's publish the things
 	err = oak02.Publish()
@@ -67,26 +67,31 @@ func main() {
 
 	// One more oak (note that oak02 is still the "published" version -> important later)
 	oak03, _ := oak.CreateVersion(nil)
-	oak03.AddResource("default", "png", "/other/images/oak03.png")
+	oak03.AddResource("default", "png", "/other/images/oak03.png", nil)
 
 	// We'll create some links for later examples too, first, something to link to
-	maps, _ := client.CreateCollection("maps")
-	forest, _ := maps.CreateItem("map", "forest", nil)
-	forest_map_01, _ := forest.CreateVersion(nil)
+	// Just for kicks, we'll create some of these with an extra custom facet(s) too (more on this later)
+	customFacets := map[string]string{
+		"createdby": "batman",
+	}
+	maps, _ := client.CreateCollection("maps", customFacets)
+	forest, _ := maps.CreateItem("map", "forest", customFacets)
+	forest_map_01, _ := forest.CreateVersion(customFacets)
+	forest_map_01.AddResource("sherwood", "exterior", "url:/foo/bar.map", customFacets)
 	forest_map_01.Publish()
 
 	// Now, let's create links on our forest to it's constituent trees
-	err = forest_map_01.LinkTo("oak", oak02)
+	err = forest_map_01.LinkTo("oak", oak02, customFacets)
 	if err != nil {
 		panic(err)
 	}
-	forest_map_01.LinkTo("elm", elm01)
-	forest_map_01.LinkTo("pine", pine01)
+	forest_map_01.LinkTo("elm", elm01, nil)
+	forest_map_01.LinkTo("pine", pine01, nil)
 
 	// We can link the other way too
-	oak02.LinkTo("usedby", forest_map_01)
-	elm01.LinkTo("usedby", forest_map_01)
-	pine01.LinkTo("usedby", forest_map_01)
+	oak02.LinkTo("usedby", forest_map_01, nil)
+	elm01.LinkTo("usedby", forest_map_01, nil)
+	pine01.LinkTo("usedby", forest_map_01, nil)
 
 	fmt.Println("Done creating example objects.")
 }

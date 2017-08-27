@@ -27,6 +27,22 @@ func (c *Collection) Parent() string {
 	return c.data.Parent
 }
 
+// Get the facet value and a bool indicating if the value exists for the given key.
+func (i *Collection) Facet(key string) (string, bool) {
+	val, ok := i.data.Facets[key]
+	return val, ok
+}
+
+// Get all facets
+func (i *Collection) Facets() map[string]string {
+	return i.data.Facets
+}
+
+// Set all the key:value pairs given on this Collection's facets.
+func (i *Collection) SetFacets(in map[string]string) error {
+	return i.conn.middleware.UpdateCollectionFacets(i.data.Id, in)
+}
+
 // Delete this collection.
 // Warning: Any & all child Items and their children will be deleted too.
 func (c *Collection) Delete() error {
@@ -78,12 +94,16 @@ func (c *Collection) CreateItem(itemtype, variant string, facets map[string]stri
 }
 
 // Create a child collection of this collection
-func (c *Collection) CreateCollection(name string) (*Collection, error) {
-	return c.conn.createCollection(name, c.Id())
+func (c *Collection) CreateCollection(name string, facets map[string]string) (*Collection, error) {
+	if facets == nil {
+		facets = map[string]string{}
+	}
+	facets[wyc.FacetCollection] = c.Name()
+	return c.conn.createCollection(name, c.Id(), facets)
 }
 
 // Create a new collection with the given name & parent id (if any)
-func (w *Client) createCollection(name, parent string) (*Collection, error) {
+func (w *Client) createCollection(name, parent string, facets map[string]string) (*Collection, error) {
 	col := &wyc.Collection{Id: "", Name: name, Parent: parent}
 	collection_id, err := w.middleware.CreateCollection(col)
 	if err != nil {
@@ -99,8 +119,8 @@ func (w *Client) createCollection(name, parent string) (*Collection, error) {
 
 // Create a new collection & return it (that is, a collection with no parent)
 //  - The collection name is required to be unique among all collections
-func (w *Client) CreateCollection(name string) (*Collection, error) {
-	return w.createCollection(name, "")
+func (w *Client) CreateCollection(name string, facets map[string]string) (*Collection, error) {
+	return w.createCollection(name, "", facets)
 }
 
 // Collection is a helpful wrapper that looks for a single collection

@@ -67,10 +67,19 @@ type Searchbase interface {
 	// Insert link into the sb with the given Id
 	InsertLink(string, *wyc.Link) error
 
-	// Update the facets of the item with the given id with the facets of the given item
+	// Update the facets of the collection with the given id with the given facets
+	UpdateCollection(string, *wyc.Collection) error
+
+	// Update the facets of the resource with the given id with the given facets
+	UpdateResource(string, *wyc.Resource) error
+
+	// Update the facets of the link with the given id with the given facets
+	UpdateLink(string, *wyc.Link) error
+
+	// Update the facets of the item with the given id with the given facets
 	UpdateItem(string, *wyc.Item) error
 
-	// Update the facets of the version with the given id with the facets of the given version
+	// Update the facets of the version with the given id with the given facets
 	UpdateVersion(string, *wyc.Version) error
 
 	// Delete collection search data by Id(s)

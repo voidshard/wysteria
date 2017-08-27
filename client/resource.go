@@ -32,6 +32,22 @@ func (i *Resource) Id() string {
 	return i.data.Id
 }
 
+// Get the facet value and a bool indicating if the value exists for the given key.
+func (i *Resource) Facet(key string) (string, bool) {
+	val, ok := i.data.Facets[key]
+	return val, ok
+}
+
+// Get all facets
+func (i *Resource) Facets() map[string]string {
+	return i.data.Facets
+}
+
+// Set all the key:value pairs given on this Resource's facets.
+func (i *Resource) SetFacets(in map[string]string) error {
+	return i.conn.middleware.UpdateResourceFacets(i.data.Id, in)
+}
+
 // Return the location string
 func (i *Resource) Location() string {
 	return i.data.Location

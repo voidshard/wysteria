@@ -19,9 +19,10 @@ func b64encode(path string) string {
 // facilitate searching / matching against later. Avoids use of reflection.
 func copyCollection(in *wyc.Collection) *wyc.Collection {
 	return &wyc.Collection{
-		Id:   in.Id,
-		Name: in.Name,
+		Id:     in.Id,
+		Name:   in.Name,
 		Parent: in.Parent,
+		Facets: map[string]string{},
 	}
 }
 
@@ -60,6 +61,7 @@ func copyResource(in *wyc.Resource) *wyc.Resource {
 		Name:         in.Name,
 		ResourceType: in.ResourceType,
 		Location:     in.Location,
+		Facets:       map[string]string{},
 	}
 }
 
@@ -68,9 +70,10 @@ func copyResource(in *wyc.Resource) *wyc.Resource {
 // facilitate searching / matching against later. Avoids use of reflection.
 func copyLink(in *wyc.Link) *wyc.Link {
 	return &wyc.Link{
-		Id:   in.Id,
-		Name: in.Name,
-		Src:  in.Src,
-		Dst:  in.Dst,
+		Id:     in.Id,
+		Name:   in.Name,
+		Src:    in.Src,
+		Dst:    in.Dst,
+		Facets: map[string]string{},
 	}
 }

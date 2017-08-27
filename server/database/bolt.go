@@ -383,7 +383,12 @@ func (b *boltDb) RetrieveLink(ids ...string) (result []*wyc.Link, err error) {
 	return
 }
 
-// Update all facets of the version matching the given Id
+// Update all facets of the collection matching the given Id
+func (b *boltDb) UpdateCollection(id string, in *wyc.Collection) error {
+	return b.genericInsert(id, in, bucketCollection)
+}
+
+// Update all facets of the item matching the given Id
 func (b *boltDb) UpdateItem(id string, in *wyc.Item) error {
 	return b.genericInsert(id, in, bucketItem)
 }
@@ -391,6 +396,16 @@ func (b *boltDb) UpdateItem(id string, in *wyc.Item) error {
 // Update all facets of the item matching the given Id
 func (b *boltDb) UpdateVersion(id string, in *wyc.Version) error {
 	return b.genericInsert(id, in, bucketVersion)
+}
+
+// Update all facets of the resource matching the given Id
+func (b *boltDb) UpdateResource(id string, in *wyc.Resource) error {
+	return b.genericInsert(id, in, bucketResource)
+}
+
+// Update all facets of the link matching the given Id
+func (b *boltDb) UpdateLink(id string, in *wyc.Link) error {
+	return b.genericInsert(id, in, bucketLink)
 }
 
 // Generic util func to call delete by Id(s) on some bucket

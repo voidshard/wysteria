@@ -179,3 +179,24 @@ func (s *Shim) UpdateItemFacets(in string, m map[string]string) error {
 	s.log(err, ts, wsi.IsUpdate(), wsi.TargetItem(), wsi.Note(in))
 	return err
 }
+
+func (s *Shim) UpdateCollectionFacets(in string, m map[string]string) error {
+	ts := time.Now().UnixNano()
+	err := s.server.UpdateCollection(in, m)
+	s.log(err, ts, wsi.IsUpdate(), wsi.TargetItem(), wsi.Note(in))
+	return err
+}
+
+func (s *Shim) UpdateResourceFacets(in string, m map[string]string) error {
+	ts := time.Now().UnixNano()
+	err := s.server.UpdateResource(in, m)
+	s.log(err, ts, wsi.IsUpdate(), wsi.TargetItem(), wsi.Note(in))
+	return err
+}
+
+func (s *Shim) UpdateLinkFacets(in string, m map[string]string) error {
+	ts := time.Now().UnixNano()
+	err := s.server.UpdateResource(in, m)
+	s.log(err, ts, wsi.IsUpdate(), wsi.TargetItem(), wsi.Note(in))
+	return err
+}

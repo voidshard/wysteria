@@ -55,6 +55,87 @@ var (
 	reservedVerFacets  = []string{wyc.FacetCollection, wyc.FacetItemType, wyc.FacetItemVariant}
 )
 
+// Update facets on the collection with the given ID
+//
+func (s *WysteriaServer) UpdateCollection(id string, update map[string]string) error {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
+
+	results, err := s.database.RetrieveCollection(id)
+	if err != nil {
+		return err
+	}
+	if len(results) != 1 {
+		return errors.New(fmt.Sprintf("No Collection found with id %s", id))
+	}
+
+	for key, value := range update {
+		results[0].Facets[key] = value
+	}
+
+	err = s.database.UpdateCollection(id, results[0])
+	if err != nil {
+		return err
+	}
+	return s.searchbase.UpdateCollection(id, results[0])
+}
+
+// Update facets on the resource with the given ID
+//
+func (s *WysteriaServer) UpdateResource(id string, update map[string]string) error {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
+
+	results, err := s.database.RetrieveResource(id)
+	if err != nil {
+		return err
+	}
+	if len(results) != 1 {
+		return errors.New(fmt.Sprintf("No Resource found with id %s", id))
+	}
+
+	for key, value := range update {
+		results[0].Facets[key] = value
+	}
+
+	err = s.database.UpdateResource(id, results[0])
+	if err != nil {
+		return err
+	}
+	return s.searchbase.UpdateResource(id, results[0])
+}
+
+// Update facets on the link with the given ID
+//
+func (s *WysteriaServer) UpdateLink(id string, update map[string]string) error {
+	err := s.shouldServeRequest()
+	if err != nil {
+		return err
+	}
+
+	results, err := s.database.RetrieveLink(id)
+	if err != nil {
+		return err
+	}
+	if len(results) != 1 {
+		return errors.New(fmt.Sprintf("No Link found with id %s", id))
+	}
+
+	for key, value := range update {
+		results[0].Facets[key] = value
+	}
+
+	err = s.database.UpdateLink(id, results[0])
+	if err != nil {
+		return err
+	}
+	return s.searchbase.UpdateLink(id, results[0])
+}
+
 // Update facets on the version with the given ID
 //
 func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string) error {

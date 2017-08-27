@@ -38,6 +38,19 @@ func (mj *Collection) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	fflib.WriteJsonString(buf, string(mj.Name))
 	buf.WriteString(`,"Id":`)
 	fflib.WriteJsonString(buf, string(mj.Id))
+	if mj.Facets == nil {
+		buf.WriteString(`,"Facets":null`)
+	} else {
+		buf.WriteString(`,"Facets":{ `)
+		for key, value := range mj.Facets {
+			fflib.WriteJsonString(buf, key)
+			buf.WriteString(`:`)
+			fflib.WriteJsonString(buf, string(value))
+			buf.WriteByte(',')
+		}
+		buf.Rewind(1)
+		buf.WriteByte('}')
+	}
 	buf.WriteByte('}')
 	return nil
 }
@@ -51,6 +64,8 @@ const (
 	ffj_t_Collection_Name
 
 	ffj_t_Collection_Id
+
+	ffj_t_Collection_Facets
 )
 
 var ffj_key_Collection_Parent = []byte("Parent")
@@ -58,6 +73,8 @@ var ffj_key_Collection_Parent = []byte("Parent")
 var ffj_key_Collection_Name = []byte("Name")
 
 var ffj_key_Collection_Id = []byte("Id")
+
+var ffj_key_Collection_Facets = []byte("Facets")
 
 func (uj *Collection) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -118,6 +135,14 @@ mainparse:
 			} else {
 				switch kn[0] {
 
+				case 'F':
+
+					if bytes.Equal(ffj_key_Collection_Facets, kn) {
+						currentKey = ffj_t_Collection_Facets
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
 				case 'I':
 
 					if bytes.Equal(ffj_key_Collection_Id, kn) {
@@ -142,6 +167,12 @@ mainparse:
 						goto mainparse
 					}
 
+				}
+
+				if fflib.EqualFoldRight(ffj_key_Collection_Facets, kn) {
+					currentKey = ffj_t_Collection_Facets
+					state = fflib.FFParse_want_colon
+					goto mainparse
 				}
 
 				if fflib.SimpleLetterEqualFold(ffj_key_Collection_Id, kn) {
@@ -187,6 +218,9 @@ mainparse:
 
 				case ffj_t_Collection_Id:
 					goto handle_Id
+
+				case ffj_t_Collection_Facets:
+					goto handle_Facets
 
 				case ffj_t_Collectionno_such_key:
 					err = fs.SkipField(tok)
@@ -273,6 +307,111 @@ handle_Id:
 			outBuf := fs.Output.Bytes()
 
 			uj.Id = string(string(outBuf))
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Facets:
+
+	/* handler: uj.Facets type=map[string]string kind=map quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_left_bracket && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+			uj.Facets = nil
+		} else {
+
+			uj.Facets = make(map[string]string, 0)
+
+			wantVal := true
+
+			for {
+
+				var k string
+
+				var tmp_uj__Facets string
+
+				tok = fs.Scan()
+				if tok == fflib.FFTok_error {
+					goto tokerror
+				}
+				if tok == fflib.FFTok_right_bracket {
+					break
+				}
+
+				if tok == fflib.FFTok_comma {
+					if wantVal == true {
+						// TODO(pquerna): this isn't an ideal error message, this handles
+						// things like [,,,] as an array value.
+						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+					}
+					continue
+				} else {
+					wantVal = true
+				}
+
+				/* handler: k type=string kind=string quoted=false*/
+
+				{
+
+					{
+						if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+							return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+						}
+					}
+
+					if tok == fflib.FFTok_null {
+
+					} else {
+
+						outBuf := fs.Output.Bytes()
+
+						k = string(string(outBuf))
+
+					}
+				}
+
+				// Expect ':' after key
+				tok = fs.Scan()
+				if tok != fflib.FFTok_colon {
+					return fs.WrapErr(fmt.Errorf("wanted colon token, but got token: %v", tok))
+				}
+
+				tok = fs.Scan()
+				/* handler: tmp_uj__Facets type=string kind=string quoted=false*/
+
+				{
+
+					{
+						if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+							return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+						}
+					}
+
+					if tok == fflib.FFTok_null {
+
+					} else {
+
+						outBuf := fs.Output.Bytes()
+
+						tmp_uj__Facets = string(string(outBuf))
+
+					}
+				}
+
+				uj.Facets[k] = tmp_uj__Facets
+
+				wantVal = false
+			}
 
 		}
 	}
@@ -799,6 +938,19 @@ func (mj *Link) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	fflib.WriteJsonString(buf, string(mj.Src))
 	buf.WriteString(`,"Dst":`)
 	fflib.WriteJsonString(buf, string(mj.Dst))
+	if mj.Facets == nil {
+		buf.WriteString(`,"Facets":null`)
+	} else {
+		buf.WriteString(`,"Facets":{ `)
+		for key, value := range mj.Facets {
+			fflib.WriteJsonString(buf, key)
+			buf.WriteString(`:`)
+			fflib.WriteJsonString(buf, string(value))
+			buf.WriteByte(',')
+		}
+		buf.Rewind(1)
+		buf.WriteByte('}')
+	}
 	buf.WriteByte('}')
 	return nil
 }
@@ -814,6 +966,8 @@ const (
 	ffj_t_Link_Src
 
 	ffj_t_Link_Dst
+
+	ffj_t_Link_Facets
 )
 
 var ffj_key_Link_Name = []byte("Name")
@@ -823,6 +977,8 @@ var ffj_key_Link_Id = []byte("Id")
 var ffj_key_Link_Src = []byte("Src")
 
 var ffj_key_Link_Dst = []byte("Dst")
+
+var ffj_key_Link_Facets = []byte("Facets")
 
 func (uj *Link) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -891,6 +1047,14 @@ mainparse:
 						goto mainparse
 					}
 
+				case 'F':
+
+					if bytes.Equal(ffj_key_Link_Facets, kn) {
+						currentKey = ffj_t_Link_Facets
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
 				case 'I':
 
 					if bytes.Equal(ffj_key_Link_Id, kn) {
@@ -915,6 +1079,12 @@ mainparse:
 						goto mainparse
 					}
 
+				}
+
+				if fflib.EqualFoldRight(ffj_key_Link_Facets, kn) {
+					currentKey = ffj_t_Link_Facets
+					state = fflib.FFParse_want_colon
+					goto mainparse
 				}
 
 				if fflib.EqualFoldRight(ffj_key_Link_Dst, kn) {
@@ -969,6 +1139,9 @@ mainparse:
 
 				case ffj_t_Link_Dst:
 					goto handle_Dst
+
+				case ffj_t_Link_Facets:
+					goto handle_Facets
 
 				case ffj_t_Linkno_such_key:
 					err = fs.SkipField(tok)
@@ -1081,6 +1254,111 @@ handle_Dst:
 			outBuf := fs.Output.Bytes()
 
 			uj.Dst = string(string(outBuf))
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Facets:
+
+	/* handler: uj.Facets type=map[string]string kind=map quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_left_bracket && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+			uj.Facets = nil
+		} else {
+
+			uj.Facets = make(map[string]string, 0)
+
+			wantVal := true
+
+			for {
+
+				var k string
+
+				var tmp_uj__Facets string
+
+				tok = fs.Scan()
+				if tok == fflib.FFTok_error {
+					goto tokerror
+				}
+				if tok == fflib.FFTok_right_bracket {
+					break
+				}
+
+				if tok == fflib.FFTok_comma {
+					if wantVal == true {
+						// TODO(pquerna): this isn't an ideal error message, this handles
+						// things like [,,,] as an array value.
+						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+					}
+					continue
+				} else {
+					wantVal = true
+				}
+
+				/* handler: k type=string kind=string quoted=false*/
+
+				{
+
+					{
+						if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+							return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+						}
+					}
+
+					if tok == fflib.FFTok_null {
+
+					} else {
+
+						outBuf := fs.Output.Bytes()
+
+						k = string(string(outBuf))
+
+					}
+				}
+
+				// Expect ':' after key
+				tok = fs.Scan()
+				if tok != fflib.FFTok_colon {
+					return fs.WrapErr(fmt.Errorf("wanted colon token, but got token: %v", tok))
+				}
+
+				tok = fs.Scan()
+				/* handler: tmp_uj__Facets type=string kind=string quoted=false*/
+
+				{
+
+					{
+						if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+							return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+						}
+					}
+
+					if tok == fflib.FFTok_null {
+
+					} else {
+
+						outBuf := fs.Output.Bytes()
+
+						tmp_uj__Facets = string(string(outBuf))
+
+					}
+				}
+
+				uj.Facets[k] = tmp_uj__Facets
+
+				wantVal = false
+			}
 
 		}
 	}
@@ -1898,6 +2176,19 @@ func (mj *Resource) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	fflib.WriteJsonString(buf, string(mj.Id))
 	buf.WriteString(`,"Location":`)
 	fflib.WriteJsonString(buf, string(mj.Location))
+	if mj.Facets == nil {
+		buf.WriteString(`,"Facets":null`)
+	} else {
+		buf.WriteString(`,"Facets":{ `)
+		for key, value := range mj.Facets {
+			fflib.WriteJsonString(buf, key)
+			buf.WriteString(`:`)
+			fflib.WriteJsonString(buf, string(value))
+			buf.WriteByte(',')
+		}
+		buf.Rewind(1)
+		buf.WriteByte('}')
+	}
 	buf.WriteByte('}')
 	return nil
 }
@@ -1915,6 +2206,8 @@ const (
 	ffj_t_Resource_Id
 
 	ffj_t_Resource_Location
+
+	ffj_t_Resource_Facets
 )
 
 var ffj_key_Resource_Parent = []byte("Parent")
@@ -1926,6 +2219,8 @@ var ffj_key_Resource_ResourceType = []byte("ResourceType")
 var ffj_key_Resource_Id = []byte("Id")
 
 var ffj_key_Resource_Location = []byte("Location")
+
+var ffj_key_Resource_Facets = []byte("Facets")
 
 func (uj *Resource) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -1986,6 +2281,14 @@ mainparse:
 			} else {
 				switch kn[0] {
 
+				case 'F':
+
+					if bytes.Equal(ffj_key_Resource_Facets, kn) {
+						currentKey = ffj_t_Resource_Facets
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
 				case 'I':
 
 					if bytes.Equal(ffj_key_Resource_Id, kn) {
@@ -2026,6 +2329,12 @@ mainparse:
 						goto mainparse
 					}
 
+				}
+
+				if fflib.EqualFoldRight(ffj_key_Resource_Facets, kn) {
+					currentKey = ffj_t_Resource_Facets
+					state = fflib.FFParse_want_colon
+					goto mainparse
 				}
 
 				if fflib.SimpleLetterEqualFold(ffj_key_Resource_Location, kn) {
@@ -2089,6 +2398,9 @@ mainparse:
 
 				case ffj_t_Resource_Location:
 					goto handle_Location
+
+				case ffj_t_Resource_Facets:
+					goto handle_Facets
 
 				case ffj_t_Resourceno_such_key:
 					err = fs.SkipField(tok)
@@ -2227,6 +2539,111 @@ handle_Location:
 			outBuf := fs.Output.Bytes()
 
 			uj.Location = string(string(outBuf))
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Facets:
+
+	/* handler: uj.Facets type=map[string]string kind=map quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_left_bracket && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+			uj.Facets = nil
+		} else {
+
+			uj.Facets = make(map[string]string, 0)
+
+			wantVal := true
+
+			for {
+
+				var k string
+
+				var tmp_uj__Facets string
+
+				tok = fs.Scan()
+				if tok == fflib.FFTok_error {
+					goto tokerror
+				}
+				if tok == fflib.FFTok_right_bracket {
+					break
+				}
+
+				if tok == fflib.FFTok_comma {
+					if wantVal == true {
+						// TODO(pquerna): this isn't an ideal error message, this handles
+						// things like [,,,] as an array value.
+						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+					}
+					continue
+				} else {
+					wantVal = true
+				}
+
+				/* handler: k type=string kind=string quoted=false*/
+
+				{
+
+					{
+						if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+							return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+						}
+					}
+
+					if tok == fflib.FFTok_null {
+
+					} else {
+
+						outBuf := fs.Output.Bytes()
+
+						k = string(string(outBuf))
+
+					}
+				}
+
+				// Expect ':' after key
+				tok = fs.Scan()
+				if tok != fflib.FFTok_colon {
+					return fs.WrapErr(fmt.Errorf("wanted colon token, but got token: %v", tok))
+				}
+
+				tok = fs.Scan()
+				/* handler: tmp_uj__Facets type=string kind=string quoted=false*/
+
+				{
+
+					{
+						if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+							return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+						}
+					}
+
+					if tok == fflib.FFTok_null {
+
+					} else {
+
+						outBuf := fs.Output.Bytes()
+
+						tmp_uj__Facets = string(string(outBuf))
+
+					}
+				}
+
+				uj.Facets[k] = tmp_uj__Facets
+
+				wantVal = false
+			}
 
 		}
 	}

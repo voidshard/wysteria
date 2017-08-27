@@ -34,15 +34,20 @@ func (i *Item) Delete() error {
 }
 
 // Link this item with a link described by 'name' to some other item.
-func (i *Item) LinkTo(name string, other *Item) error {
+func (i *Item) LinkTo(name string, other *Item, facets map[string]string) error {
 	if i.Id() == other.Id() { // Prevent linking to oneself
 		return nil
 	}
 
+	if facets == nil {
+		facets = map[string]string{}
+	}
+
 	lnk := &wyc.Link{
-		Name: name,
-		Src:  i.data.Id,
-		Dst:  other.data.Id,
+		Name:   name,
+		Src:    i.data.Id,
+		Dst:    other.data.Id,
+		Facets: facets,
 	}
 	_, err := i.conn.middleware.CreateLink(lnk)
 	return err

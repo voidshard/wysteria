@@ -93,15 +93,20 @@ func (i *Version) Linked(opts ...SearchParam) (map[string][]*Version, error) {
 }
 
 // Link this Version with a link described by 'name' to some other Version.
-func (i *Version) LinkTo(name string, other *Version) error {
+func (i *Version) LinkTo(name string, other *Version, facets map[string]string) error {
 	if i.Id() == other.Id() { // Prevent linking to oneself
 		return nil
 	}
 
+	if facets == nil {
+		facets = map[string]string{}
+	}
+
 	lnk := &wyc.Link{
-		Name: name,
-		Src:  i.Id(),
-		Dst:  other.Id(),
+		Name:   name,
+		Src:    i.Id(),
+		Dst:    other.Id(),
+		Facets: facets,
 	}
 	_, err := i.conn.middleware.CreateLink(lnk)
 	return err
@@ -114,12 +119,16 @@ func (i *Version) Publish() error {
 }
 
 // Add a resource with the given name, type and location to this version.
-func (i *Version) AddResource(name, rtype, location string) error {
+func (i *Version) AddResource(name, rtype, location string, facets map[string]string) error {
+	if facets == nil {
+		facets = map[string]string{}
+	}
 	res := &wyc.Resource{
 		Parent:       i.data.Id,
 		Name:         name,
 		ResourceType: rtype,
 		Location:     location,
+		Facets:       facets,
 	}
 
 	id, err := i.conn.middleware.CreateResource(res)

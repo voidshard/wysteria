@@ -120,7 +120,7 @@ type SetPublishedReply struct {
 	Error string
 }
 
-// Update facets request (for Items or Versions) both send the Id and the Facets
+// Update facets request both send the Id and the Facets
 // to update.
 type UpdateFacetsReq struct {
 	Id     string

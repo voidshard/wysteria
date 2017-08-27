@@ -15,9 +15,10 @@ package wysteria_common
 // Each collection has a unique name and is used mostly to form logical groupings
 // and help divide the search space for items into hopefully even-ish chunks.
 type Collection struct {
-	Parent string `json:"Parent"`
-	Name   string `json:"Name"`
-	Id     string `json:"Id"`
+	Parent string            `json:"Parent"`
+	Name   string            `json:"Name"`
+	Id     string            `json:"Id"`
+	Facets map[string]string `json:"Facets"`
 }
 
 // Items are the second tier of object in wysteria. Each has a parent collection
@@ -51,20 +52,22 @@ type Version struct {
 // Location is the actual URI to the resource
 // For example, an image resource might have name:thumbnail type:url location:www.foo.com/bar.jpg
 type Resource struct {
-	Parent       string `json:"Parent"`
-	Name         string `json:"Name"`
-	ResourceType string `json:"ResourceType"`
-	Id           string `json:"Id"`
-	Location     string `json:"Location"`
+	Parent       string            `json:"Parent"`
+	Name         string            `json:"Name"`
+	ResourceType string            `json:"ResourceType"`
+	Id           string            `json:"Id"`
+	Location     string            `json:"Location"`
+	Facets       map[string]string `json:"Facets"`
 }
 
 // A Link is an abstract named link "the thing of Id Src relates to the thing of Id Dst"
 // The name is intended to convey the nature of the relationship.
 type Link struct {
-	Name string `json:"Name"`
-	Id   string `json:"Id"`
-	Src  string `json:"Src"`
-	Dst  string `json:"Dst"`
+	Name   string            `json:"Name"`
+	Id     string            `json:"Id"`
+	Src    string            `json:"Src"`
+	Dst    string            `json:"Dst"`
+	Facets map[string]string `json:"Facets"`
 }
 
 // A QueryDesc is a generic way to describe what one is searching for.

@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// Create collection
-	col, err := client.CreateCollection("tiles", nil)
+	col, err := client.CreateCollection("tiles")
 	if err != nil {
 		panic(err)
 	}
@@ -29,33 +29,33 @@ func main() {
 	}
 
 	// Create the first version of our oak tree
-	oak01, err := oak.CreateVersion(nil)
+	oak01, err := oak.CreateVersion()
 	if err != nil {
 		panic(err)
 	}
 
 	// Add some kind of resource(s) to our tree
-	err = oak01.AddResource("default", "png", "url://images/oak01.png", nil)
+	err = oak01.AddResource("default", "png", "url://images/oak01.png")
 	if err != nil {
 		panic(err)
 	}
-	oak01.AddResource("stats", "xml", "/path/to/file.xml", nil)
+	oak01.AddResource("stats", "xml", "/path/to/file.xml")
 
 	// Throw in some more trees
-	elm, _ := col.CreateItem("tree", "elm", nil)
+	elm, _ := col.CreateItem("tree", "elm")
 	elm01, _ := elm.CreateVersion(nil)
-	elm01.AddResource("default", "png", "/path/to/elm01.png", nil)
-	elm01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg", nil)
+	elm01.AddResource("default", "png", "/path/to/elm01.png")
+	elm01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg")
 
-	pine, _ := col.CreateItem("tree", "pine", nil)
+	pine, _ := col.CreateItem("tree", "pine")
 	pine01, _ := pine.CreateVersion(nil)
-	pine01.AddResource("default", "png", "/path/to/pine01.png", nil)
-	pine01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg", nil)
-	pine01.AddResource("stats", "json", "url://file.json", nil)
+	pine01.AddResource("default", "png", "/path/to/pine01.png")
+	pine01.AddResource("lowres", "jpeg", "/path/lowres/image.jpeg")
+	pine01.AddResource("stats", "json", "url://file.json")
 
 	// Shoot. Our oak tree looks awful. Let's redo it
 	oak02, _ := oak.CreateVersion(nil)
-	oak02.AddResource("default", "png", "/other/images/oak02.png", nil)
+	oak02.AddResource("default", "png", "/other/images/oak02.png")
 
 	// Ok sweet. Let's publish the things
 	err = oak02.Publish()
@@ -66,8 +66,8 @@ func main() {
 	pine01.Publish()
 
 	// One more oak (note that oak02 is still the "published" version -> important later)
-	oak03, _ := oak.CreateVersion(nil)
-	oak03.AddResource("default", "png", "/other/images/oak03.png", nil)
+	oak03, _ := oak.CreateVersion()
+	oak03.AddResource("default", "png", "/other/images/oak03.png")
 
 	// We'll create some links for later examples too, first, something to link to
 	// Just for kicks, we'll create some of these with an extra custom facet(s) too (more on this later)
@@ -85,13 +85,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	forest_map_01.LinkTo("elm", elm01, nil)
-	forest_map_01.LinkTo("pine", pine01, nil)
+	forest_map_01.LinkTo("elm", elm01)
+	forest_map_01.LinkTo("pine", pine01)
 
 	// We can link the other way too
-	oak02.LinkTo("usedby", forest_map_01, nil)
-	elm01.LinkTo("usedby", forest_map_01, nil)
-	pine01.LinkTo("usedby", forest_map_01, nil)
+	oak02.LinkTo("usedby", forest_map_01)
+	elm01.LinkTo("usedby", forest_map_01)
+	pine01.LinkTo("usedby", forest_map_01)
 
 	fmt.Println("Done creating example objects.")
 }

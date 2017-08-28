@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	FacetCollection  = "collection"
-	FacetItemType    = "itemtype"
-	FacetItemVariant = "variant"
+	FacetRootCollection = "/"
+	FacetCollection     = "collection"
+	FacetItemType       = "itemtype"
+	FacetItemVariant    = "variant"
 
 	defaultServerConfig = "wysteria-server.ini"
 	defaultClientConfig = "wysteria-client.ini"

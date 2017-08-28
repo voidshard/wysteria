@@ -34,20 +34,16 @@ func (i *Item) Delete() error {
 }
 
 // Link this item with a link described by 'name' to some other item.
-func (i *Item) LinkTo(name string, other *Item, facets map[string]string) error {
+func (i *Item) LinkTo(name string, other *Item, facets ...map[string]string) error {
 	if i.Id() == other.Id() { // Prevent linking to oneself
 		return nil
-	}
-
-	if facets == nil {
-		facets = map[string]string{}
 	}
 
 	lnk := &wyc.Link{
 		Name:   name,
 		Src:    i.data.Id,
 		Dst:    other.data.Id,
-		Facets: facets,
+		Facets: mergeMaps(facets...),
 	}
 	_, err := i.conn.middleware.CreateLink(lnk)
 	return err
@@ -138,13 +134,8 @@ func (i *Item) SetFacets(in map[string]string) error {
 //  - create a version whose parent is this item's id
 //  - set the reserved Facets for Collection, ItemType and ItemVariant accordingly
 //  - the server will allocate us a Version number
-func (i *Item) CreateVersion(facets map[string]string) (*Version, error) {
-	all_facets := map[string]string{}
-	if all_facets != nil {
-		for key, value := range facets {
-			all_facets[key] = value
-		}
-	}
+func (i *Item) CreateVersion(facets ...map[string]string) (*Version, error) {
+	all_facets := mergeMaps(facets...)
 
 	parentCol, ok := i.data.Facets[wyc.FacetCollection]
 	if ok {

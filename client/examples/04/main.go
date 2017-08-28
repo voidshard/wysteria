@@ -9,7 +9,7 @@ func main() {
 	// Example 04: Adding metadata
 	//  Default searching can get you a long way, but let's assume you've got custom
 	//  stuff that you want to be able to search for.
-	//  Here's how you'd set that on existing items / versions.
+	//  Here's how you'd set that on existing items / versions (this is the same for Collections, Links & Resources).
 
 	client, err := wysteria.New()
 	if err != nil {

@@ -51,6 +51,7 @@ type WysteriaServer struct {
 }
 
 var (
+	reservedColFacets  = []string{wyc.FacetCollection}
 	reservedItemFacets = []string{wyc.FacetCollection}
 	reservedVerFacets  = []string{wyc.FacetCollection, wyc.FacetItemType, wyc.FacetItemVariant}
 )
@@ -72,6 +73,9 @@ func (s *WysteriaServer) UpdateCollection(id string, update map[string]string) e
 	}
 
 	for key, value := range update {
+		if ListContains(strings.ToLower(key), reservedColFacets) {
+			continue
+		}
 		results[0].Facets[key] = value
 	}
 
@@ -211,6 +215,13 @@ func (s *WysteriaServer) CreateCollection(in *wyc.Collection) (string, error) {
 
 	if in.Name == "" { // Check required field
 		return "", errors.New("Name required for Collection")
+	}
+
+	parentName, ok := in.Facets[wyc.FacetCollection]
+	if ok { // Disallow use of root collection name if a parent ID is set
+		if parentName == wyc.FacetRootCollection && in.Parent != "" {
+			return "", errors.New(fmt.Sprintf("Parent ID cannot be set for parent collection with name %s", wyc.FacetRootCollection))
+		}
 	}
 
 	id := NewId()

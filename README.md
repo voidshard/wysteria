@@ -75,7 +75,7 @@ By default wysteria will check for an ini file in the current directory, then it
 At the highest level are collections. Collections are straight forward enough - each has a unique name and can be created via
 
 ```Go
-client.CreateCollection("spriteSets", nil)
+client.CreateCollection("spriteSets")
 ```
 
 You can easily fetch a collection via either the name or id
@@ -90,8 +90,8 @@ items, _ := collection.Items()
 
 You may also create child collections to help you organise your data better like so
 ```Go
-foo, _ := client.CreateCollection("foo", nil)
-mapsOfFoo, _ := foo.CreateCollection("maps", nil)
+foo, _ := client.CreateCollection("foo")
+mapsOfFoo, _ := foo.CreateCollection("maps")
 ```
 And fetch children of a collection.
 ```Go
@@ -103,9 +103,9 @@ All collections of a given parent are still required to have unique names.
 A collection can have any number of items, with the constraint that there is at most one item of each 'item type' and 'variant'.
 The 'item type' and 'variant' are simply strings that are passed in when an item is created. 
 ```Go
-item1, _ := collection.CreateItem("2dSprite", "alice", nil)
-item2, _ := collection.CreateItem("2dSprite", "bob", nil)
-item3, _ := collection.CreateItem("spriteSheet", "batman", nil)
+item1, _ := collection.CreateItem("2dSprite", "alice")
+item2, _ := collection.CreateItem("2dSprite", "bob")
+item3, _ := collection.CreateItem("spriteSheet", "batman")
 ```
 They also have facets so that one can add custom searchable metadata to them for easy finding later.
 ```Go
@@ -118,10 +118,10 @@ Part of the usefulness of items is their ability to be linked together, you migh
 tilesets, _ := client.Collection("tilesets")
 maps, _ := client.Collection("maps")
 
-yew_tree_tiles, _ := tilesets.CreateItem("forest", "yew01", nil)
-forest_scene, _ := maps.CreateItem("exterior", "sherwoodForest", nil)
+yew_tree_tiles, _ := tilesets.CreateItem("forest", "yew01")
+forest_scene, _ := maps.CreateItem("exterior", "sherwoodForest")
 
-forest_scene.LinkTo("input", yew_tree_tiles, nil)
+forest_scene.LinkTo("input", yew_tree_tiles)
 ```
 That is, the forest_scene item has a link called "input" that connects to our yew_tree_tiles item.
 
@@ -144,8 +144,8 @@ Wysteria is about asset tracking and versioning. So far we have a 'sherwoodFores
 Now we consider different iterations of the asset, which we call versions. Each item has any number of versions which are numbered automatically, starting at 1. Naturally, there is only one version of each number belonging to a given item.
 
 ```Go
-version1, _ := forest_scene.CreateVersion(nil)
-version2, _ := forest_scene.CreateVersion(nil)
+version1, _ := forest_scene.CreateVersion()
+version2, _ := forest_scene.CreateVersion()
 ```
 Versions are linkable and carry facets, exactly like items. They also have a few other unique properties.
 
@@ -165,9 +165,9 @@ Lastly they are also able to have Resources attached to them. Which brings us to
 ## Resources
 Resources each have a name, type and location, all strings. Any number of them can be attached to a version.
 ```Go
-myVersion.AddResource("floorA", "image", "/path/to/image.0001.png", nil)
-myVersion.AddResource("floorB", "image", "/path/to/image.0002.png", nil)
-myVersion.AddResource("statsFile", "xml", "/path/to/floor.3.xml", nil)
+myVersion.AddResource("floorA", "image", "/path/to/image.0001.png")
+myVersion.AddResource("floorB", "image", "/path/to/image.0002.png")
+myVersion.AddResource("statsFile", "xml", "/path/to/floor.3.xml")
 ```
 Like with all wysteria structs, you can add your own facets at creation time too if you want to
 ```Go

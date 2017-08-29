@@ -14,12 +14,12 @@ func main() {
 	}
 
 	// Collections may have sub collections to help you organise things
-	projectCollection, err := client.CreateCollection("theFooProject", nil)
+	projectCollection, err := client.CreateCollection("theFooProject")
 	if err != nil {
 		panic(err)
 	}
 
-	mapsOfFoo, err := projectCollection.CreateCollection("maps", nil)
+	mapsOfFoo, err := projectCollection.CreateCollection("maps")
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +28,7 @@ func main() {
 	fmt.Println(mapsOfFoo.Name(), "child of", mapsOfFoo.Parent())
 
 	// Two collections with the same parent still may not have the same name
-	_, err = projectCollection.CreateCollection("maps", nil)
+	_, err = projectCollection.CreateCollection("maps")
 	if err == nil {
 		panic("We shouldn't be able to get here!")
 	}

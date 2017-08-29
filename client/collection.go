@@ -64,16 +64,23 @@ func (c *Collection) Collections(opts ...SearchParam) ([]*Collection, error) {
 // Create a new Item with the given fields & return it.
 //  - The item type & variant fields must be unique within a given collection.
 //  - The reserved facet FacetCollection is set as a facet automatically.
-func (c *Collection) CreateItem(itemtype, variant string, facets ...map[string]string) (*Item, error) {
-	all_facets := mergeMaps(facets...)
-	all_facets[wyc.FacetCollection] = c.data.Name
-
+func (c *Collection) CreateItem(itemtype, variant string, opts ...CreateOption) (*Item, error) {
 	cmn_item := &wyc.Item{
 		Parent:   c.data.Id,
 		ItemType: itemtype,
 		Variant:  variant,
-		Facets:   all_facets,
+		Facets:   map[string]string{},
 	}
+	child := &Item{
+		conn: c.conn,
+		data: cmn_item,
+	}
+
+	for _, opt := range opts {
+		opt(c, child)
+	}
+
+	cmn_item.Facets[wyc.FacetCollection] = c.data.Name
 
 	item_id, err := c.conn.middleware.CreateItem(cmn_item)
 	if err != nil {
@@ -81,42 +88,45 @@ func (c *Collection) CreateItem(itemtype, variant string, facets ...map[string]s
 	}
 	cmn_item.Id = item_id
 
-	return &Item{
-		conn: c.conn,
-		data: cmn_item,
-	}, nil
+	return child, nil
 }
 
 // Create a child collection of this collection
-func (c *Collection) CreateCollection(name string, facets ...map[string]string) (*Collection, error) {
-	toSet := mergeMaps(facets...)
-	toSet[wyc.FacetCollection] = c.Name()
-	return c.conn.createCollection(name, c.Id(), toSet)
+func (c *Collection) CreateCollection(name string, opts ...CreateOption) (*Collection, error) {
+	return c.conn.createCollection(name, c, opts...)
 }
 
 // Create a new collection with the given name & parent id (if any)
-func (w *Client) createCollection(name, parent string, facets map[string]string) (*Collection, error) {
-	col := &wyc.Collection{Id: "", Name: name, Parent: parent, Facets: facets}
-	collection_id, err := w.middleware.CreateCollection(col)
-	if err != nil {
-		return nil, err
-	}
-
-	col.Id = collection_id
-	result := &Collection{
+func (w *Client) createCollection(name string, parent *Collection, opts ...CreateOption) (*Collection, error) {
+	col := &wyc.Collection{Id: "", Name: name, Parent: "", Facets: map[string]string{}}
+	child := &Collection{
 		conn: w,
 		data: col,
 	}
 
-	return result, result.SetFacets(facets)
+	for _, opt := range opts {
+		opt(parent, child)
+	}
+
+	if parent == nil { // Nb this will overwrite facets set by users that we're going to use -> this is intentional
+		col.Facets[wyc.FacetCollection] = wyc.FacetRootCollection
+	} else {
+		col.Parent = parent.Id()
+		col.Facets[wyc.FacetCollection] = parent.Name()
+	}
+
+	collection_id, err := w.middleware.CreateCollection(col)
+	if err != nil {
+		return nil, err
+	}
+	col.Id = collection_id
+	return child, child.SetFacets(child.Facets())
 }
 
 // Create a new collection & return it (that is, a collection with no parent)
 //  - The collection name is required to be unique among all collections
-func (w *Client) CreateCollection(name string, facets ...map[string]string) (*Collection, error) {
-	toSet := mergeMaps(facets...)
-	toSet[wyc.FacetCollection] = wyc.FacetRootCollection
-	return w.createCollection(name, "", toSet)
+func (w *Client) CreateCollection(name string, opts ...CreateOption) (*Collection, error) {
+	return w.createCollection(name,  nil, opts...)
 }
 
 // Collection is a helpful wrapper that looks for a single collection
@@ -133,17 +143,7 @@ func (w *Client) Collection(identifier string) (*Collection, error) {
 	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %d", len(results)))
 }
 
-// trivial util to merge multiple maps together
-func mergeMaps(in ...map[string]string) map[string]string {
-	out := map[string]string{}
-	for _, m := range in {
-		if m == nil {
-			continue
-		}
-
-		for key, value := range m {
-			out[key] = value
-		}
-	}
-	return out
+// Set initial user defined facets
+func (c *Collection) initUserFacets(in map[string]string) {
+	c.data.Facets = in
 }

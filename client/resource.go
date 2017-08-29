@@ -48,6 +48,11 @@ func (i *Resource) SetFacets(in map[string]string) error {
 	return i.conn.middleware.UpdateResourceFacets(i.data.Id, in)
 }
 
+// Set initial user defined facets
+func (i *Resource) initUserFacets(in map[string]string) {
+	i.data.Facets = in
+}
+
 // Return the location string
 func (i *Resource) Location() string {
 	return i.data.Location

@@ -93,7 +93,7 @@ func (i *Version) Linked(opts ...SearchParam) (map[string][]*Version, error) {
 }
 
 // Link this Version with a link described by 'name' to some other Version.
-func (i *Version) LinkTo(name string, other *Version, facets ...map[string]string) error {
+func (i *Version) LinkTo(name string, other *Version, opts ...CreateOption) error {
 	if i.Id() == other.Id() { // Prevent linking to oneself
 		return nil
 	}
@@ -102,8 +102,14 @@ func (i *Version) LinkTo(name string, other *Version, facets ...map[string]strin
 		Name:   name,
 		Src:    i.Id(),
 		Dst:    other.Id(),
-		Facets: mergeMaps(facets...),
+		Facets: map[string]string{},
 	}
+
+	child := &Link{conn: i.conn, data: lnk}
+	for _, opt := range opts {
+		opt(i, child)
+	}
+
 	_, err := i.conn.middleware.CreateLink(lnk)
 	return err
 }
@@ -115,13 +121,18 @@ func (i *Version) Publish() error {
 }
 
 // Add a resource with the given name, type and location to this version.
-func (i *Version) AddResource(name, rtype, location string, facets ...map[string]string) error {
+func (i *Version) AddResource(name, rtype, location string, opts ...CreateOption) error {
 	res := &wyc.Resource{
 		Parent:       i.data.Id,
 		Name:         name,
 		ResourceType: rtype,
 		Location:     location,
-		Facets:       mergeMaps(facets...),
+		Facets:       map[string]string{},
+	}
+
+	child := &Resource{conn: i.conn, data: res}
+	for _, opt := range opts {
+		opt(i, child)
 	}
 
 	id, err := i.conn.middleware.CreateResource(res)
@@ -163,4 +174,9 @@ func (i *Version) Parent() (*Item, error) {
 		conn: i.conn,
 		data: items[0],
 	}, nil
+}
+
+// Set initial user defined facets
+func (i *Version) initUserFacets(in map[string]string) {
+	i.data.Facets = in
 }

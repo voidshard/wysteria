@@ -47,3 +47,8 @@ func (i *Link) SourceId() string {
 func (i *Link) DestinationId() string {
 	return i.data.Dst
 }
+
+// Set initial user defined facets
+func (i *Link) initUserFacets(in map[string]string) {
+	i.data.Facets = in
+}

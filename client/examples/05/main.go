@@ -28,22 +28,17 @@ func main() {
 	redwood, err := tiles.CreateItem(
 		"tree",
 		"redwood",
-		facets,
+		wysteria.Facets(facets),
 	)
 	if err != nil {
 		panic(err)
 	}
 
 	// Add a version
-	_, err = redwood.CreateVersion(facets)
+	_, err = redwood.CreateVersion(wysteria.Facets(facets))
 	if err != nil {
 		panic(err)
 	}
-
-	// You can throw in multiple lots of facets on creation too if you want to.
-	// In the case of duplicate keys, the last key appearance wins.
-	// This allows you to have default facets of your own that can be overwritten.. or not specify facets at all
-	redwood.CreateVersion(facets, map[string]string{"notesby": "spiderman"})
 
 	fmt.Println("Created with metadata")
 }

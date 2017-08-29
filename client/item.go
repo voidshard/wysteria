@@ -34,7 +34,7 @@ func (i *Item) Delete() error {
 }
 
 // Link this item with a link described by 'name' to some other item.
-func (i *Item) LinkTo(name string, other *Item, facets ...map[string]string) error {
+func (i *Item) LinkTo(name string, other *Item, opts ...CreateOption) error {
 	if i.Id() == other.Id() { // Prevent linking to oneself
 		return nil
 	}
@@ -43,8 +43,14 @@ func (i *Item) LinkTo(name string, other *Item, facets ...map[string]string) err
 		Name:   name,
 		Src:    i.data.Id,
 		Dst:    other.data.Id,
-		Facets: mergeMaps(facets...),
+		Facets: map[string]string{},
 	}
+	child := &Link{conn: i.conn, data: lnk}
+
+	for _, opt := range opts {
+		opt(i, child)
+	}
+
 	_, err := i.conn.middleware.CreateLink(lnk)
 	return err
 }
@@ -134,31 +140,35 @@ func (i *Item) SetFacets(in map[string]string) error {
 //  - create a version whose parent is this item's id
 //  - set the reserved Facets for Collection, ItemType and ItemVariant accordingly
 //  - the server will allocate us a Version number
-func (i *Item) CreateVersion(facets ...map[string]string) (*Version, error) {
-	all_facets := mergeMaps(facets...)
+func (i *Item) CreateVersion(opts ...CreateOption) (*Version, error) {
+	ver := &wyc.Version{
+		Parent: i.data.Id,
+		Facets: map[string]string{},
+	}
+	child := &Version{
+		data: ver,
+		conn: i.conn,
+	}
+
+	for _, opt := range opts {
+		opt(i, child)
+	}
 
 	parentCol, ok := i.data.Facets[wyc.FacetCollection]
 	if ok {
-		all_facets[wyc.FacetCollection] = parentCol
+		ver.Facets[wyc.FacetCollection] = parentCol
 	}
-	all_facets[wyc.FacetItemType] = i.data.ItemType
-	all_facets[wyc.FacetItemVariant] = i.data.Variant
-
-	ver := &wyc.Version{
-		Parent: i.data.Id,
-		Facets: all_facets,
-	}
+	ver.Facets[wyc.FacetItemType] = i.data.ItemType
+	ver.Facets[wyc.FacetItemVariant] = i.data.Variant
 
 	version_id, version_num, err := i.conn.middleware.CreateVersion(ver)
 	if err != nil {
 		return nil, err
 	}
+
 	ver.Id = version_id
 	ver.Number = version_num
-	return &Version{
-		data: ver,
-		conn: i.conn,
-	}, nil
+	return child, nil
 }
 
 // Return the Id of the parent of this Item
@@ -169,4 +179,9 @@ func (i *Item) ParentId() string {
 // Lookup and return the parent Collection of this Item
 func (i *Item) Parent() (*Collection, error) {
 	return i.conn.Collection(i.data.Parent)
+}
+
+// Set initial user defined facets
+func (i *Item) initUserFacets(in map[string]string) {
+	i.data.Facets = in
 }

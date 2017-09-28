@@ -23,6 +23,7 @@ const (
 	// The driver names that we accept
 	DriverLogfile = "logfile"
 	DriverElastic = "elastic"
+	DriverStdout  = "stdout"
 
 	// Call types
 	callFind      = "find"
@@ -45,6 +46,7 @@ var (
 	connectors = map[string]func(*Settings) (MonitorOutput, error){
 		DriverLogfile: newFileLogger,
 		DriverElastic: newElasticLogger,
+		DriverStdout:  newStdoutLogger,
 	}
 )
 

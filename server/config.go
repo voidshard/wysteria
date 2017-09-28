@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 )
 
-var Config *configuration
 
 type configuration struct {
 	Database        wdb.Settings
@@ -28,24 +27,31 @@ type configuration struct {
 //    - .ini filepath given by wysteria os.Env variable, if set
 //    - default values
 //
-func init() {
-	Config = makeDefaults()
-	configSet := false
-	configFilepath, err := common.ChooseServerConfig()
-	if err == nil {
-		cnf := &configuration{}
-		err := common.ReadConfig(configFilepath, cnf)
-		log.Println("Attempting to read", configFilepath, cnf, err)
+func loadConfig(in string) *configuration {
+	cnf := &configuration{}
+	if in != "" {
+		err := common.ReadConfig(in, cnf)
 		if err != nil {
-			log.Println(fmt.Sprintf("Unable to read config '%s' %s", configFilepath, err))
+			panic(err)  // We can't read the config explicitly given to us by the user -> panic
+		}
+		return cnf
+	}
+
+	// Otherwise, try to find a suitable config
+	fpath, err := common.ChooseServerConfig()
+	if err == nil {
+		log.Println("Attempting to read", fpath, cnf, err)
+		err := common.ReadConfig(fpath, cnf)
+		if err != nil {
+			log.Println(fmt.Sprintf("Unable to read config '%s' %s", fpath, err))
 		} else {
-			configSet = true
-			Config = cnf
+			return cnf
 		}
 	}
-	if !configSet {
-		log.Println("WARNING: No config found, using OS temporary folders for storage.")
-	}
+
+	// If that fails, use default settings
+	log.Println("WARNING: No config found, using OS temporary folders for storage.")
+	return makeDefaults()
 }
 
 // Get the default settings.

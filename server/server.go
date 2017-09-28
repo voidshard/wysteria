@@ -501,10 +501,15 @@ func (s *WysteriaServer) FindCollections(limit, offset int32, qs []*wyc.QueryDes
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryCollection(int(limit), int(offset), qs...)
-	if err != nil {
-		return nil, err
+	ids, queries := ExtractIdQueries(qs)
+	if len(queries) > 0 || len(ids) == 0 {
+		found, err := s.searchbase.QueryCollection(int(limit), int(offset), queries...)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, found...)
 	}
+
 	if len(ids) < 1 {
 		return []*wyc.Collection{}, nil
 	}
@@ -518,10 +523,15 @@ func (s *WysteriaServer) FindItems(limit, offset int32, qs []*wyc.QueryDesc) ([]
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryItem(int(limit), int(offset), qs...)
-	if err != nil {
-		return nil, err
+	ids, queries := ExtractIdQueries(qs)
+	if len(queries) > 0 || len(ids) == 0 {
+		found, err := s.searchbase.QueryItem(int(limit), int(offset), queries...)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, found...)
 	}
+
 	if len(ids) < 1 {
 		return []*wyc.Item{}, nil
 	}
@@ -535,10 +545,15 @@ func (s *WysteriaServer) FindVersions(limit, offset int32, qs []*wyc.QueryDesc) 
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryVersion(int(limit), int(offset), qs...)
-	if err != nil {
-		return nil, err
+	ids, queries := ExtractIdQueries(qs)
+	if len(queries) > 0 || len(ids) == 0 {
+		found, err := s.searchbase.QueryVersion(int(limit), int(offset), queries...)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, found...)
 	}
+
 	if len(ids) < 1 {
 		return []*wyc.Version{}, nil
 	}
@@ -552,10 +567,15 @@ func (s *WysteriaServer) FindResources(limit, offset int32, qs []*wyc.QueryDesc)
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryResource(int(limit), int(offset), qs...)
-	if err != nil {
-		return nil, err
+	ids, queries := ExtractIdQueries(qs)
+	if len(queries) > 0 || len(ids) == 0 {
+		found, err := s.searchbase.QueryResource(int(limit), int(offset), queries...)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, found...)
 	}
+
 	if len(ids) < 1 {
 		return []*wyc.Resource{}, nil
 	}
@@ -569,10 +589,15 @@ func (s *WysteriaServer) FindLinks(limit, offset int32, qs []*wyc.QueryDesc) ([]
 		return nil, err
 	}
 
-	ids, err := s.searchbase.QueryLink(int(limit), int(offset), qs...)
-	if err != nil {
-		return nil, err
+	ids, queries := ExtractIdQueries(qs)
+	if len(queries) > 0 || len(ids) == 0 {
+		found, err := s.searchbase.QueryLink(int(limit), int(offset), queries...)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, found...)
 	}
+
 	if len(ids) < 1 {
 		return []*wyc.Link{}, nil
 	}

@@ -171,7 +171,7 @@ myVersion.AddResource("statsFile", "xml", "/path/to/floor.3.xml")
 ```
 Like with all wysteria structs, you can add your own facets at creation time too if you want to
 ```Go
-customFacet := map[string]string{"creator": "batman"}
+customFacet := wysteria.Facets(map[string]string{"creator": "batman"})
 myVersion.AddResource("batmanSettings", "url", "http://cdn.mystuff/batman.json", customFacet)
 myVersion.AddResource("somethingElse", "other", "/path/to/foo.bar", customFacet)
 ```

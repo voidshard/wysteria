@@ -93,6 +93,8 @@ type clientStruct interface {
 //  Note that you still cannot overwrite client reserved facets this way
 func Facets(in map[string]string) CreateOption {
 	return func(parent, child clientStruct) {
-		child.initUserFacets(in)
+		if in != nil {
+			child.initUserFacets(in)
+		}
 	}
 }

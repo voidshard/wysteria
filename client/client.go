@@ -10,6 +10,8 @@ package wysteria_client
 import (
 	wyc "github.com/voidshard/wysteria/common"
 	wcm "github.com/voidshard/wysteria/common/middleware"
+	"fmt"
+	"errors"
 )
 
 const (
@@ -74,6 +76,32 @@ func New(opts ...ClientOption) (*Client, error) {
 	}
 	client.middleware = middleware
 	return client, middleware.Connect(&client.settings.Middleware)
+}
+
+// Collection is a helpful wrapper that looks for a single collection
+// with either the name or Id of the given 'identifier' and returns it if found
+func (w *Client) Collection(identifier string) (*Collection, error) {
+	results, err := w.Search(Id(identifier)).Or(Name(identifier)).FindCollections(Limit(1))
+	if err != nil {
+		return nil, err
+	}
+
+	if len(results) == 1 {
+		return results[0], nil
+	}
+	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %d", len(results)))
+}
+
+// Item is a helpful wrapper that looks up an Item by ID and returns it (if found).
+func (w *Client) Item(in string) (*Item, error) {
+	results, err := w.Search(Id(in)).FindItems(Limit(1))
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 1 {
+		return results[0], nil
+	}
+	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %d", len(results)))
 }
 
 // Close any open server connection(s)

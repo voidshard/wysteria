@@ -80,3 +80,21 @@ func New(opts ...ClientOption) (*Client, error) {
 func (w *Client) Close() {
 	w.middleware.Close()
 }
+
+// Definition of an option that can be passed in a Create function call.
+type CreateOption func(clientStruct, clientStruct) // func(parent, child)
+
+// Required internal functions to apply our CreateOption(s) below
+type clientStruct interface {
+	initUserFacets(map[string]string)
+}
+
+// Set the inital Facets on the soon to be created child
+//  Note that you still cannot overwrite client reserved facets this way
+func Facets(in map[string]string) CreateOption {
+	return func(parent, child clientStruct) {
+		if in != nil {
+			child.initUserFacets(in)
+		}
+	}
+}

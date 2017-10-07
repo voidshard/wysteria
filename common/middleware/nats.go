@@ -48,8 +48,11 @@ const (
 	callGetPublished = "gp"
 	callSetPublished = "sp"
 
-	callUpdateVersion = "uv"
-	callUpdateItem    = "ui"
+	callUpdateCollection = "uc"
+	callUpdateVersion    = "uv"
+	callUpdateItem       = "ui"
+	callUpdateResource   = "ur"
+	callUpdateLink       = "ul"
 
 	// The server carves this number of chars off the end of the route
 	// message to determine which func is being called by the suffix (above)
@@ -489,6 +492,11 @@ func (c *natsClient) genericUpdateFacets(id, subject string, facets map[string]s
 	return stringError(rep.Error)
 }
 
+// Given Collection Id update item facets with given facets
+func (c *natsClient) UpdateCollectionFacets(id string, facets map[string]string) error {
+	return c.genericUpdateFacets(id, callUpdateCollection, facets)
+}
+
 // Given Item Id update item facets with given facets
 func (c *natsClient) UpdateItemFacets(id string, facets map[string]string) error {
 	return c.genericUpdateFacets(id, callUpdateItem, facets)
@@ -497,6 +505,16 @@ func (c *natsClient) UpdateItemFacets(id string, facets map[string]string) error
 // Given Version Id update version facets with given facets
 func (c *natsClient) UpdateVersionFacets(id string, facets map[string]string) error {
 	return c.genericUpdateFacets(id, callUpdateVersion, facets)
+}
+
+// Given Resource Id update item facets with given facets
+func (c *natsClient) UpdateResourceFacets(id string, facets map[string]string) error {
+	return c.genericUpdateFacets(id, callUpdateResource, facets)
+}
+
+// Given Link Id update item facets with given facets
+func (c *natsClient) UpdateLinkFacets(id string, facets map[string]string) error {
+	return c.genericUpdateFacets(id, callUpdateLink, facets)
 }
 
 // wrapper for the server side connection to a nats.io server
@@ -974,6 +992,11 @@ func (s *natsServer) genericUpdateFacets(msg *nats.Msg, call func(string, map[st
 	return rep
 }
 
+// Update collection facets from client request msg
+func (s *natsServer) updateCollection(msg *nats.Msg) wyc.Marshalable {
+	return s.genericUpdateFacets(msg, s.handler.UpdateCollectionFacets)
+}
+
 // Update version facets from client request msg
 func (s *natsServer) updateVersion(msg *nats.Msg) wyc.Marshalable {
 	return s.genericUpdateFacets(msg, s.handler.UpdateVersionFacets)
@@ -982,6 +1005,16 @@ func (s *natsServer) updateVersion(msg *nats.Msg) wyc.Marshalable {
 // Update item facets from client request msg
 func (s *natsServer) updateItem(msg *nats.Msg) wyc.Marshalable {
 	return s.genericUpdateFacets(msg, s.handler.UpdateItemFacets)
+}
+
+// Update resource facets from client request msg
+func (s *natsServer) updateResource(msg *nats.Msg) wyc.Marshalable {
+	return s.genericUpdateFacets(msg, s.handler.UpdateResourceFacets)
+}
+
+// Update link facets from client request msg
+func (s *natsServer) updateLink(msg *nats.Msg) wyc.Marshalable {
+	return s.genericUpdateFacets(msg, s.handler.UpdateLinkFacets)
 }
 
 // Send reply to client ..
@@ -1048,10 +1081,17 @@ func (s *natsServer) chooseClientHandler(subject string) func(*nats.Msg) wyc.Mar
 		handler = s.publishedVersion
 	case callSetPublished:
 		handler = s.setPublished
+
+	case callUpdateCollection:
+		handler = s.updateCollection
 	case callUpdateItem:
 		handler = s.updateItem
 	case callUpdateVersion:
 		handler = s.updateVersion
+	case callUpdateResource:
+		handler = s.updateResource
+	case callUpdateLink:
+		handler = s.updateLink
 	}
 
 	return handler

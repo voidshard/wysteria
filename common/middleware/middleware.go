@@ -131,6 +131,15 @@ type EndpointClient interface {
 
 	// Given Item Id update item facets with given facets
 	UpdateItemFacets(string, map[string]string) error
+
+	// Given Collection Id update item facets with given facets
+	UpdateCollectionFacets(string, map[string]string) error
+
+	// Given Item Id update item facets with given facets
+	UpdateResourceFacets(string, map[string]string) error
+
+	// Given Item Id update item facets with given facets
+	UpdateLinkFacets(string, map[string]string) error
 }
 
 // The server side middleware needs to handle starting up, listening, shutting down
@@ -172,6 +181,9 @@ type ServerHandler interface {
 
 	UpdateVersionFacets(string, map[string]string) error
 	UpdateItemFacets(string, map[string]string) error
+	UpdateCollectionFacets(string, map[string]string) error
+	UpdateResourceFacets(string, map[string]string) error
+	UpdateLinkFacets(string, map[string]string) error
 }
 
 // Generic middleware settings struct, holding the diver name and the config string.

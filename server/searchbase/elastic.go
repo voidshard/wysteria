@@ -52,6 +52,9 @@ type elasticSearch struct {
 func (e *elasticSearch) InsertCollection(id string, in *wyc.Collection) error {
 	doc := copyCollection(in)      // make copy so we don't modify the original
 	doc.Name = b64encode(doc.Name) // mutate string so we aren't thrown by special chars
+	for k, v := range in.Facets {
+		doc.Facets[b64encode(k)] = b64encode(v)
+	}
 	return e.insert(tableCollection, id, doc)
 }
 
@@ -85,6 +88,9 @@ func (e *elasticSearch) InsertResource(id string, in *wyc.Resource) error {
 	doc.Name = b64encode(doc.Name)
 	doc.ResourceType = b64encode(doc.ResourceType)
 	doc.Location = b64encode(doc.Location)
+	for k, v := range in.Facets {
+		doc.Facets[b64encode(k)] = b64encode(v)
+	}
 	return e.insert(tableResource, id, doc)
 }
 
@@ -92,7 +98,16 @@ func (e *elasticSearch) InsertResource(id string, in *wyc.Resource) error {
 func (e *elasticSearch) InsertLink(id string, in *wyc.Link) error {
 	doc := copyLink(in)
 	doc.Name = b64encode(doc.Name)
+	for k, v := range in.Facets {
+		doc.Facets[b64encode(k)] = b64encode(v)
+	}
 	return e.insert(tableLink, id, doc)
+}
+
+// Update collection with given id
+func (e *elasticSearch) UpdateCollection(id string, doc *wyc.Collection) error {
+	// Explicit insert to ID deletes & replaces doc
+	return e.InsertCollection(id, doc)
 }
 
 // Update item with given id
@@ -101,10 +116,22 @@ func (e *elasticSearch) UpdateItem(id string, doc *wyc.Item) error {
 	return e.InsertItem(id, doc)
 }
 
-// Update item with given id
+// Update version with given id
 func (e *elasticSearch) UpdateVersion(id string, doc *wyc.Version) error {
 	// Explicit insert to ID deletes & replaces doc
 	return e.InsertVersion(id, doc)
+}
+
+// Update resource with given id
+func (e *elasticSearch) UpdateResource(id string, doc *wyc.Resource) error {
+	// Explicit insert to ID deletes & replaces doc
+	return e.InsertResource(id, doc)
+}
+
+// Update link with given id
+func (e *elasticSearch) UpdateLink(id string, doc *wyc.Link) error {
+	// Explicit insert to ID deletes & replaces doc
+	return e.InsertLink(id, doc)
 }
 
 // Delete collections by ID(s)
@@ -292,7 +319,11 @@ func elasticTermsResource(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 	if qd.Location != "" {
 		q = append(q, elastic.NewTermQuery("Location", b64encode(qd.Location)))
 	}
-
+	for k, v := range qd.Facets {
+		key_encoded := b64encode(k)
+		val_encoded := b64encode(v)
+		q = append(q, elastic.NewTermQuery(fmt.Sprintf("Facets.%s", key_encoded), val_encoded))
+	}
 	return q
 }
 
@@ -310,6 +341,11 @@ func elasticTermsLink(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 	if qd.LinkDst != "" {
 		q = append(q, elastic.NewTermQuery("Dst", qd.LinkDst))
 	}
+	for k, v := range qd.Facets {
+		key_encoded := b64encode(k)
+		val_encoded := b64encode(v)
+		q = append(q, elastic.NewTermQuery(fmt.Sprintf("Facets.%s", key_encoded), val_encoded))
+	}
 	return q
 }
 
@@ -320,6 +356,11 @@ func elasticTermsCollection(qd *wyc.QueryDesc) (q []elastic.TermQuery) {
 	}
 	if qd.Name != "" {
 		q = append(q, elastic.NewTermQuery("Name", b64encode(qd.Name)))
+	}
+	for k, v := range qd.Facets {
+		key_encoded := b64encode(k)
+		val_encoded := b64encode(v)
+		q = append(q, elastic.NewTermQuery(fmt.Sprintf("Facets.%s", key_encoded), val_encoded))
 	}
 	if qd.Parent != "" {
 		q = append(q, elastic.NewTermQuery("Parent", qd.Parent))

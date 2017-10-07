@@ -81,6 +81,9 @@ func (b *bleveSearchbase) Close() error {
 func (b *bleveSearchbase) InsertCollection(id string, doc *wyc.Collection) error {
 	in := copyCollection(doc)    // create copy so we don't modify the original
 	in.Name = b64encode(in.Name) // encode name so we aren't tripped up by spaces / bleve control chars
+	for k, v := range doc.Facets {
+		in.Facets[b64encode(k)] = b64encode(v)
+	}
 	return b.collections.Index(id, in)
 }
 
@@ -115,6 +118,9 @@ func (b *bleveSearchbase) InsertResource(id string, doc *wyc.Resource) error {
 	in.Name = b64encode(in.Name)
 	in.ResourceType = b64encode(in.ResourceType)
 	in.Location = b64encode(in.Location)
+	for k, v := range doc.Facets {
+		in.Facets[b64encode(k)] = b64encode(v)
+	}
 	return b.resources.Index(id, in)
 }
 
@@ -122,7 +128,16 @@ func (b *bleveSearchbase) InsertResource(id string, doc *wyc.Resource) error {
 func (b *bleveSearchbase) InsertLink(id string, doc *wyc.Link) error {
 	in := copyLink(doc)
 	in.Name = b64encode(in.Name)
+	for k, v := range doc.Facets {
+		in.Facets[b64encode(k)] = b64encode(v)
+	}
 	return b.links.Index(id, in)
+}
+
+// Update collection with given id
+func (b *bleveSearchbase) UpdateCollection(id string, in *wyc.Collection) error {
+	// For bleve, updating and inserting are the same thing
+	return b.InsertCollection(id, in)
 }
 
 // Update item with given id
@@ -135,6 +150,18 @@ func (b *bleveSearchbase) UpdateItem(id string, in *wyc.Item) error {
 func (b *bleveSearchbase) UpdateVersion(id string, in *wyc.Version) error {
 	// For bleve, updating and inserting are the same thing
 	return b.InsertVersion(id, in)
+}
+
+// Update resource with given id
+func (b *bleveSearchbase) UpdateResource(id string, in *wyc.Resource) error {
+	// For bleve, updating and inserting are the same thing
+	return b.InsertResource(id, in)
+}
+
+// Update link with given id
+func (b *bleveSearchbase) UpdateLink(id string, in *wyc.Link) error {
+	// For bleve, updating and inserting are the same thing
+	return b.InsertLink(id, in)
 }
 
 // Iterate over given IDs and delete from given index
@@ -184,6 +211,9 @@ func toCollectionQueryString(desc *wyc.QueryDesc) string {
 	}
 	if desc.Parent != "" {
 		sq = append(sq, fmt.Sprintf("+Parent:%s", desc.Parent))
+	}
+	for k, v := range desc.Facets {
+		sq = append(sq, fmt.Sprintf("+Facets.%s:%s", b64encode(k), b64encode(v)))
 	}
 	return strings.Join(sq, " ")
 }
@@ -245,6 +275,9 @@ func toResourceQueryString(desc *wyc.QueryDesc) string {
 	if desc.Location != "" {
 		sq = append(sq, fmt.Sprintf("+Location:%s", b64encode(desc.Location)))
 	}
+	for k, v := range desc.Facets {
+		sq = append(sq, fmt.Sprintf("+Facets.%s:%s", b64encode(k), b64encode(v)))
+	}
 	return strings.Join(sq, " ")
 }
 
@@ -262,6 +295,9 @@ func toLinkQueryString(desc *wyc.QueryDesc) string {
 	}
 	if desc.LinkDst != "" {
 		sq = append(sq, fmt.Sprintf("+Dst:%s", desc.LinkDst))
+	}
+	for k, v := range desc.Facets {
+		sq = append(sq, fmt.Sprintf("+Facets.%s:%s", b64encode(k), b64encode(v)))
 	}
 	return strings.Join(sq, " ")
 }

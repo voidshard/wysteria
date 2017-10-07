@@ -44,6 +44,9 @@ service WysteriaGrpc {
 
     rpc UpdateVersionFacets(IdAndDict) returns (Text) {}
     rpc UpdateItemFacets(IdAndDict) returns (Text) {}
+    rpc UpdateCollectionFacets(IdAndDict) returns (Text) {}
+    rpc UpdateResourceFacets(IdAndDict) returns (Text) {}
+    rpc UpdateLinkFacets(IdAndDict) returns (Text) {}
 }
 
 message IdAndNum {

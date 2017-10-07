@@ -103,11 +103,11 @@ All collections of a given parent are still required to have unique names.
 A collection can have any number of items, with the constraint that there is at most one item of each 'item type' and 'variant'.
 The 'item type' and 'variant' are simply strings that are passed in when an item is created. 
 ```Go
-item1, _ := collection.CreateItem("2dSprite", "alice", nil)
-item2, _ := collection.CreateItem("2dSprite", "bob", nil)
-item3, _ := collection.CreateItem("spriteSheet", "batman", nil)
+item1, _ := collection.CreateItem("2dSprite", "alice")
+item2, _ := collection.CreateItem("2dSprite", "bob")
+item3, _ := collection.CreateItem("spriteSheet", "batman")
 ```
-They also have facets so that one can add custom searchable metadata to them for easy finding later. 
+They also have facets so that one can add custom searchable metadata to them for easy finding later.
 ```Go
 item1.SetFacets(map[string]string{"colour": "white", "publisher": "batman"})
 ```
@@ -118,8 +118,8 @@ Part of the usefulness of items is their ability to be linked together, you migh
 tilesets, _ := client.Collection("tilesets")
 maps, _ := client.Collection("maps")
 
-yew_tree_tiles, _ := tilesets.CreateItem("forest", "yew01", nil)
-forest_scene, _ := maps.CreateItem("exterior", "sherwoodForest", nil)
+yew_tree_tiles, _ := tilesets.CreateItem("forest", "yew01")
+forest_scene, _ := maps.CreateItem("exterior", "sherwoodForest")
 
 forest_scene.LinkTo("input", yew_tree_tiles)
 ```
@@ -144,8 +144,8 @@ Wysteria is about asset tracking and versioning. So far we have a 'sherwoodFores
 Now we consider different iterations of the asset, which we call versions. Each item has any number of versions which are numbered automatically, starting at 1. Naturally, there is only one version of each number belonging to a given item.
 
 ```Go
-version1, _ := forest_scene.CreateVersion(nil)
-version2, _ := forest_scene.CreateVersion(nil)
+version1, _ := forest_scene.CreateVersion()
+version2, _ := forest_scene.CreateVersion()
 ```
 Versions are linkable and carry facets, exactly like items. They also have a few other unique properties.
 
@@ -168,8 +168,12 @@ Resources each have a name, type and location, all strings. Any number of them c
 myVersion.AddResource("floorA", "image", "/path/to/image.0001.png")
 myVersion.AddResource("floorB", "image", "/path/to/image.0002.png")
 myVersion.AddResource("statsFile", "xml", "/path/to/floor.3.xml")
-myVersion.AddResource("batmanSettings", "url", "http://cdn.mystuff/batman.json")
-myVersion.AddResource("somethingElse", "other", "/path/to/foo.bar")
+```
+Like with all wysteria structs, you can add your own facets at creation time too if you want to
+```Go
+customFacet := wysteria.Facets(map[string]string{"creator": "batman"})
+myVersion.AddResource("batmanSettings", "url", "http://cdn.mystuff/batman.json", customFacet)
+myVersion.AddResource("somethingElse", "other", "/path/to/foo.bar", customFacet)
 ```
 
 As you might expect, you can easily retrieve a versions' resources, with optional extra parameters
@@ -232,8 +236,7 @@ Also, if (when) you find bugs, let me know.
 
 
 ## ToDo List
-- unittests for business logic
-- logging & live statistics gathering functionality
+- more unittests for business logic
 - admin console 
   - extend the wysteria server chan to allow realtime management of live server(s)
     - allow / disallow certain client requests
@@ -244,4 +247,3 @@ Also, if (when) you find bugs, let me know.
 - implement system for deterministic ids
 - ability to write to backup db / sb (might be useful for hot swapping or dev dataset)
 - ability to swap over to backup db without server restart
-- some kind of UI to view / search / explore wysteria data perhaps

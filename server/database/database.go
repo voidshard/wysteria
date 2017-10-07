@@ -93,6 +93,15 @@ type Database interface {
 	// Save the updated facets on the given item
 	UpdateVersion(string, *wyc.Version) error
 
+	// Save the updated facets on the given collection
+	UpdateCollection(string, *wyc.Collection) error
+
+	// Save the updated facets on the given resource
+	UpdateResource(string, *wyc.Resource) error
+
+	// Save the updated facets on the given link
+	UpdateLink(string, *wyc.Link) error
+
 	// Delete collection(s) with the given Id(s)
 	DeleteCollection(...string) error
 

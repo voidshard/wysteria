@@ -257,6 +257,11 @@ func (e *mongoEndpoint) RetrieveLink(ids ...string) (res []*wyc.Link, err error)
 	return
 }
 
+// Update the facets of the collection with the given Id
+func (e *mongoEndpoint) UpdateCollection(id string, d *wyc.Collection) error {
+	return e.update(tableCollection, id, d)
+}
+
 // Update the facets of the item with the given Id
 func (e *mongoEndpoint) UpdateItem(id string, d *wyc.Item) error {
 	return e.update(tableItem, id, d)
@@ -265,6 +270,16 @@ func (e *mongoEndpoint) UpdateItem(id string, d *wyc.Item) error {
 // Update the facets of the version with the given Id
 func (e *mongoEndpoint) UpdateVersion(id string, d *wyc.Version) error {
 	return e.update(tableVersion, id, d)
+}
+
+// Update the facets of the resource with the given Id
+func (e *mongoEndpoint) UpdateResource(id string, d *wyc.Resource) error {
+	return e.update(tableFileresource, id, d)
+}
+
+// Update the facets of the link with the given Id
+func (e *mongoEndpoint) UpdateLink(id string, d *wyc.Link) error {
+	return e.update(tableLink, id, d)
 }
 
 // Delete collections matching given Id(s)

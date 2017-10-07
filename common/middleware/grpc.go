@@ -60,7 +60,7 @@ func (c *grpcClient) CreateCollection(in *wyc.Collection) (string, error) {
 	result, err := c.client.CreateCollection(
 		context.Background(),
 		&wrpc.Collection{
-			Name: in.Name,
+			Name:   in.Name,
 			Parent: in.Parent,
 		},
 	)
@@ -422,6 +422,11 @@ func callUpdate(id string, facets map[string]string, call func(context.Context, 
 	return nil
 }
 
+// Update the facets of the Collection with the given Id with the given facets
+func (c *grpcClient) UpdateCollectionFacets(id string, to_update map[string]string) error {
+	return callUpdate(id, to_update, c.client.UpdateCollectionFacets)
+}
+
 // Update the facets of the Version with the given Id with the given facets
 func (c *grpcClient) UpdateVersionFacets(id string, to_update map[string]string) error {
 	return callUpdate(id, to_update, c.client.UpdateVersionFacets)
@@ -430,6 +435,16 @@ func (c *grpcClient) UpdateVersionFacets(id string, to_update map[string]string)
 // Update the facets of the Item with the given Id with the given facets
 func (c *grpcClient) UpdateItemFacets(id string, to_update map[string]string) error {
 	return callUpdate(id, to_update, c.client.UpdateItemFacets)
+}
+
+// Update the facets of the Resource with the given Id with the given facets
+func (c *grpcClient) UpdateResourceFacets(id string, to_update map[string]string) error {
+	return callUpdate(id, to_update, c.client.UpdateResourceFacets)
+}
+
+// Update the facets of the Link with the given Id with the given facets
+func (c *grpcClient) UpdateLinkFacets(id string, to_update map[string]string) error {
+	return callUpdate(id, to_update, c.client.UpdateLinkFacets)
 }
 
 // Create a new gRPC client and return it
@@ -507,6 +522,15 @@ func (s *grpcServer) Shutdown() error {
 	return s.conn.Close()
 }
 
+// Given the Id and Facets to update, call the server side UpdateCollectionFacets func, return result
+func (s *grpcServer) UpdateCollectionFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
+	err := s.handler.UpdateCollectionFacets(in.Id, in.Facets)
+	if err != nil {
+		return &wrpc.Text{Text: err.Error()}, err
+	}
+	return nullWrpcText, nil
+}
+
 // Given the Id and Facets to update, call the server side UpdateVersionFacets func, return result
 func (s *grpcServer) UpdateVersionFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
 	err := s.handler.UpdateVersionFacets(in.Id, in.Facets)
@@ -519,6 +543,24 @@ func (s *grpcServer) UpdateVersionFacets(_ context.Context, in *wrpc.IdAndDict) 
 // Given the Id and Facets to update, call the server side UpdateItemFacets func, return result
 func (s *grpcServer) UpdateItemFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
 	err := s.handler.UpdateItemFacets(in.Id, in.Facets)
+	if err != nil {
+		return &wrpc.Text{Text: err.Error()}, err
+	}
+	return nullWrpcText, nil
+}
+
+// Given the Id and Facets to update, call the server side UpdateResourceFacets func, return result
+func (s *grpcServer) UpdateResourceFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
+	err := s.handler.UpdateResourceFacets(in.Id, in.Facets)
+	if err != nil {
+		return &wrpc.Text{Text: err.Error()}, err
+	}
+	return nullWrpcText, nil
+}
+
+// Given the Id and Facets to update, call the server side UpdateLinkFacets func, return result
+func (s *grpcServer) UpdateLinkFacets(_ context.Context, in *wrpc.IdAndDict) (*wrpc.Text, error) {
+	err := s.handler.UpdateLinkFacets(in.Id, in.Facets)
 	if err != nil {
 		return &wrpc.Text{Text: err.Error()}, err
 	}

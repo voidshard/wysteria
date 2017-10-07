@@ -7,7 +7,7 @@ import (
 
 func main() {
 	// Example 05: Adding metadata: the sequel
-	//  Alternatively, creating items / versions with metadata out of the box is more efficient
+	//  Alternatively, creating things with metadata out of the box is more efficient
 	//  as we don't have to make two round trips - handy if we know all the facets we want up front!
 
 	client, err := wysteria.New()
@@ -28,14 +28,14 @@ func main() {
 	redwood, err := tiles.CreateItem(
 		"tree",
 		"redwood",
-		facets,
+		wysteria.Facets(facets),
 	)
 	if err != nil {
 		panic(err)
 	}
 
 	// Add a version
-	_, err = redwood.CreateVersion(facets)
+	_, err = redwood.CreateVersion(wysteria.Facets(facets))
 	if err != nil {
 		panic(err)
 	}

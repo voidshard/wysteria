@@ -1,8 +1,6 @@
 package wysteria_client
 
 import (
-	"errors"
-	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
 )
 
@@ -23,8 +21,13 @@ func (c *Collection) Id() string {
 }
 
 // Return the Id of this collection's parent (if any)
-func (c *Collection) Parent() string {
+func (c *Collection) ParentId() string {
 	return c.data.Parent
+}
+
+// Return the parent collection of this collection (if any)
+func (c *Collection) Parent() (*Collection, error) {
+	return c.conn.Collection(c.ParentId())
 }
 
 // Get the facet value and a bool indicating if the value exists for the given key.
@@ -127,20 +130,6 @@ func (w *Client) createCollection(name string, parent *Collection, opts ...Creat
 //  - The collection name is required to be unique among all collections
 func (w *Client) CreateCollection(name string, opts ...CreateOption) (*Collection, error) {
 	return w.createCollection(name,  nil, opts...)
-}
-
-// Collection is a helpful wrapper that looks for a single collection
-// with either the name or Id of the given 'identifier' and returns it if found
-func (w *Client) Collection(identifier string) (*Collection, error) {
-	results, err := w.Search(Id(identifier)).Or(Name(identifier)).FindCollections()
-	if err != nil {
-		return nil, err
-	}
-
-	if len(results) == 1 {
-		return results[0], nil
-	}
-	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %d", len(results)))
 }
 
 // Set initial user defined facets

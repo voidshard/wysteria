@@ -14,6 +14,7 @@ package database
 import (
 	"errors"
 	"fmt"
+	"time"
 	wyc "github.com/voidshard/wysteria/common"
 )
 
@@ -21,6 +22,7 @@ const (
 	// The database driver names that we accept
 	DriverMongo = "mongo"
 	DriverBolt  = "bolt"
+	maxAttempts = 3
 )
 
 var (
@@ -38,7 +40,23 @@ func Connect(settings *Settings) (Database, error) {
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("Connector not found for %s", settings.Driver))
 	}
-	return connector(settings)
+
+	// Attempt to connect to the given db, if something goes wrong, we'll re-attempt a few times
+	// before quitting. Mostly this helps in docker setups / test situations where a
+	// container may not have spun up yet.
+	attempts := 0
+	for {
+		db, err := connector(settings)
+		if err != nil {
+			attempts += 1
+			if attempts >= maxAttempts {
+				return db, err
+			}
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		return db, err
+	}
 }
 
 // Datastore whose primary goal is long term storage, not searching said data

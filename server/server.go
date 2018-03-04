@@ -736,7 +736,9 @@ func (s *WysteriaServer) Run() error {
 	}
 	s.middleware_server = mware_server
 
-	log.Println("Spinning up middleware & waiting for connections")
+	log.Println("[Booting]")
+	// Insert the shim layer between the server proper & server side middleware.
+	// This makes the shim transparent to both sides, and gives it the power to track each request in & out
 	shim := Shim{}
 	return shim.ListenAndServe(&s.settings.Middleware, s)
 }

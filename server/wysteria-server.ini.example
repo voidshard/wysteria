@@ -1,0 +1,104 @@
+# Example config file
+#
+#  By default the server is looking for a 'wysteria-server.ini' file in the current working directory
+#  failing that it'll try to find a file given by the "WYSTERIA_SERVER_INI" environment variable.
+#  If both methods fail wysteria will fall back to some default hardcoded values and write data to temporary
+#  folders provided by the OS.
+#
+# ---
+#
+# On default values
+#
+#  By default if no config is found wysteria uses some hard coded default values: local nats, boltdb and bleve.
+#
+#  WARNING: with no config data will be written to temp folders which WILL be cleaned up by the OS at some point.
+#  If you're setting up wysteria outside of a pure test environment you will need to provide some form of config.
+#
+# ---
+#
+# Client configuration
+#
+# Clients also read config files in the same manner, except they only need to know about middleware settings.
+# By default the client will attempt to connect to nats on localhost, port 4222 (default nats port).
+#
+# --
+#
+# Examples of various possible settings
+#
+#  At present, you may only supply one of each type of driver (Database, Searchbase and Middleware).
+#
+#  For developers:
+#   If you add an interface, please add an example config here to show how it might be configured.
+#
+#  [Middleware]  # use a specific nats server for transport (highly recommended)
+#  Driver=nats
+#  Config=nats://derek:pass@localhost:4222
+#
+#  [Middleware]  # use gRPC for transport
+#  Driver="grpc"
+#  Config=":12345"
+#
+#  [Database]  # use mongo as a backend store
+#  Driver=mongo
+#  Host=192.168.2.100
+#  Port=27017
+#  User=foo
+#  Pass=bar
+#  Database=mycollection
+#  PemFile=/path/to/some/file.pem  # On mongo & ssl https://docs.mongodb.com/manual/tutorial/configure-ssl/
+#
+#  [Searchbase]  # use elastic as the backend search prodivder
+#  Driver=elastic
+#  Host=192.168.2.101
+#  Port=9200
+#  User=
+#  Pass=
+#  Database=myindex
+#  PemFile=/path/to/some/file.pem
+#
+#  [Database]  # use boltdb as local datastore, will work in single server setup only
+#  Driver=bolt
+#  Database=/path/to/folder/data
+#
+#  [Searchbase] # use bleve as local search provider, will work in single server setup only
+#  Driver=bleve
+#  Database=/path/to/folder/search
+#
+#  [Health]  # config settings for the http endpoint - allows other services to ping us & see if we're alive
+#  Port=8080
+#  EndpointHealth=/health
+#
+#
+#  Note that one can define multiple outputs (of the same or different types) and the server will
+#  write to each.
+#
+#  [Instrumentation "someName"]  # define somewhere we want wysteria to record events to
+#  Driver=logfile
+#  Location=/folder/to/log/to
+#  Target=logfile.log
+#
+#  [Instrumentation "anotherName"]
+#  Driver=elastic
+#  Location=http://123.123.123.123:9200
+#  Target=logIndex
+#
+
+[Database]
+Driver=bolt
+Database=wys_db
+
+[Searchbase]
+Driver=bleve
+Database=wys_sb
+
+[Middleware]
+Driver=nats
+
+[Health]
+Port=8150
+EndpointHealth=/health
+
+[Instrumentation "logfile"]
+Driver=logfile
+Location=wys_logs
+Target=wysteria.log

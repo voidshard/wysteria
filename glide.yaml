@@ -38,3 +38,5 @@ import:
   subpackages:
   - bson
 - package: gopkg.in/olivere/elastic.v2
+- package: gopkg.in/alecthomas/kingpin.v2
+  version: ^2.2.6

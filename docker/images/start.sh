@@ -15,5 +15,7 @@ envsubst < wysteria-server.ini.template > ./wysteria-server.ini
 # remove lines containing the null string (INI parser doesn't seem to like placeholder lines)
 sed -i '/null/d' ./wysteria-server.ini
 
+cat ./wysteria-server.ini
+
 # kick off wysteria proper
 ./server $@

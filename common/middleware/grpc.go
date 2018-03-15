@@ -15,6 +15,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
+	"time"
+	"google.golang.org/grpc/keepalive"
 )
 
 var (
@@ -36,7 +38,18 @@ func (c *grpcClient) Connect(config *Settings) error {
 	if config.Config == "" {
 		config.Config = "localhost:50051"
 	}
-	conn, err := grpc.Dial(config.Config, grpc.WithInsecure())
+
+	opts := []grpc.DialOption{
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Timeout: 60 * time.Second,
+			Time: 10 * time.Second,
+			PermitWithoutStream: true,
+
+		}),
+		grpc.WithInsecure(),
+	}
+
+	conn, err := grpc.Dial(config.Config, opts...)
 	if err != nil {
 		return err
 	}

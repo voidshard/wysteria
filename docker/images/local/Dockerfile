@@ -12,17 +12,17 @@ RUN curl https://glide.sh/get | sh
 RUN apt-get update
 RUN apt-get install -y gettext
 
-# whack in local wysteria files
+# make dir & install depends
 RUN mkdir -p $GOPATH/src/github.com/voidshard/wysteria
 WORKDIR $GOPATH/src/github.com/voidshard/wysteria
+ADD glide.lock .
+ADD glide.yaml .
+RUN glide install
+
+# whack in local wysteria files
 ADD server server
 ADD client client
 ADD common common
-ADD glide.lock .
-ADD glide.yaml .
-
-# install dependencies via glide
-RUN glide install
 
 # build server
 WORKDIR $GOPATH/src/github.com/voidshard/wysteria/server

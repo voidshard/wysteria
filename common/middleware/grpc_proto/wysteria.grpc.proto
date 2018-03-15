@@ -73,6 +73,7 @@ message Collection {
     string Parent = 95;
     string Id = 6;
     string Name = 7;
+    map<string, string> Facets = 94;
     Text error = 82;
 }
 

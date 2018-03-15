@@ -23,7 +23,7 @@ type Shim struct {
 //
 func (s *Shim) ListenAndServe(config *wym.Settings, server *WysteriaServer) error {
 	s.server = server
-	return server.middleware_server.ListenAndServe(config, s)
+	return server.middlewareServer.ListenAndServe(config, s)
 }
 
 // Time is up, kill everything and shutdown the server, kill all connections

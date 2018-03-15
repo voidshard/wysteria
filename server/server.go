@@ -44,10 +44,10 @@ type WysteriaServer struct {
 
 	settings *configuration
 
-	database          wdb.Database
-	searchbase        wsb.Searchbase
-	middleware_server wcm.EndpointServer
-	monitor           *wsi.Monitor
+	database         wdb.Database
+	searchbase       wsb.Searchbase
+	middlewareServer wcm.EndpointServer
+	monitor          *wsi.Monitor
 }
 
 var (
@@ -70,6 +70,10 @@ func (s *WysteriaServer) UpdateCollection(id string, update map[string]string) e
 	}
 	if len(results) != 1 {
 		return errors.New(fmt.Sprintf("No Collection found with id %s", id))
+	}
+
+	if results[0].Facets == nil {
+		results[0].Facets = make(map[string]string)
 	}
 
 	for key, value := range update {
@@ -102,6 +106,10 @@ func (s *WysteriaServer) UpdateResource(id string, update map[string]string) err
 		return errors.New(fmt.Sprintf("No Resource found with id %s", id))
 	}
 
+	if results[0].Facets == nil {
+		results[0].Facets = make(map[string]string)
+	}
+
 	for key, value := range update {
 		results[0].Facets[key] = value
 	}
@@ -127,6 +135,10 @@ func (s *WysteriaServer) UpdateLink(id string, update map[string]string) error {
 	}
 	if len(results) != 1 {
 		return errors.New(fmt.Sprintf("No Link found with id %s", id))
+	}
+
+	if results[0].Facets == nil {
+		results[0].Facets = make(map[string]string)
 	}
 
 	for key, value := range update {
@@ -157,6 +169,10 @@ func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string
 	}
 
 	version := vers[0]
+	if version.Facets == nil {
+		version.Facets = make(map[string]string)
+	}
+
 	for key, value := range update {
 		// prevent the updating of reserved keys
 		if ListContains(strings.ToLower(key), reservedVerFacets) {
@@ -189,6 +205,10 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 	}
 
 	item := vers[0]
+	if item.Facets == nil {
+		item.Facets = make(map[string]string)
+	}
+
 	for key, value := range update {
 		// prevent the updating of reserved keys
 		if ListContains(strings.ToLower(key), reservedItemFacets) {
@@ -215,6 +235,9 @@ func (s *WysteriaServer) CreateCollection(in *wyc.Collection) (string, error) {
 
 	if in.Name == "" { // Check required field
 		return "", errors.New("Name required for Collection")
+	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
 	}
 
 	parentName, ok := in.Facets[wyc.FacetCollection]
@@ -248,6 +271,9 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	if in.Parent == "" || in.ItemType == "" || in.Variant == "" {
 		return "", errors.New("Require Parent, ItemType, Variant to be set")
 	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
+	}
 
 	_, ok := in.Facets[wyc.FacetCollection]
 	if !ok {
@@ -277,6 +303,9 @@ func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 
 	if in.Parent == "" {
 		return "", 0, errors.New("Require Parent to be set")
+	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
 	}
 
 	for _, facet_key := range reservedVerFacets {
@@ -309,6 +338,9 @@ func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {
 	if in.Parent == "" || in.Location == "" {
 		return "", errors.New("Require Parent, Location to be set")
 	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
+	}
 
 	in.Id = NewId()
 	err = s.database.InsertResource(in.Id, in)
@@ -336,6 +368,9 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 	// It shouldn't break anything it's just ... pointless.
 	if in.Src == in.Dst {
 		return "", errors.New("You may not link something to itself")
+	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
 	}
 
 	// We're good to create our link
@@ -624,7 +659,7 @@ func (s *WysteriaServer) SetPublishedVersion(version_id string) error {
 
 // Shutdown the main server
 func (s *WysteriaServer) Shutdown() {
-	s.middleware_server.Shutdown()
+	s.middlewareServer.Shutdown()
 	s.database.Close()
 	s.searchbase.Close()
 }
@@ -730,11 +765,11 @@ func (s *WysteriaServer) Run() error {
 
 	// [4] Spin up or connect to whatever is bring us requests
 	log.Println(fmt.Sprintf("Initializing middleware %s", s.settings.Middleware.Driver))
-	mware_server, err := wcm.NewServer(s.settings.Middleware.Driver)
+	mwareServer, err := wcm.NewServer(s.settings.Middleware.Driver)
 	if err != nil {
 		return err
 	}
-	s.middleware_server = mware_server
+	s.middlewareServer = mwareServer
 
 	log.Println("[Booting]")
 	// Insert the shim layer between the server proper & server side middleware.

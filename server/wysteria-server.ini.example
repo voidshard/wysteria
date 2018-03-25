@@ -14,6 +14,10 @@
 #  WARNING: with no config data will be written to temp folders which WILL be cleaned up by the OS at some point.
 #  If you're setting up wysteria outside of a pure test environment you will need to provide some form of config.
 #
+#  WARNING (new): Searchbase has an added 'ReindexOnWrite' flag. This enforces a reindex when a write is done so that
+#  you can immediately search the change(s). This will likely introduce a large performance hit, and is generally
+#  discouraged for use outside of testing.
+#
 # ---
 #
 # Client configuration
@@ -55,6 +59,7 @@
 #  Pass=
 #  Database=myindex
 #  PemFile=/path/to/some/file.pem
+#  ReindexOnWrite=false
 #
 #  [Database]  # use boltdb as local datastore, will work in single server setup only
 #  Driver=bolt

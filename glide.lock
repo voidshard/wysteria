@@ -1,5 +1,5 @@
-hash: dcafe41770320a5b4eb0bbe1ef874ad2c0c53d8fc5ac733034c9e54b879fdcc9
-updated: 2018-03-03T13:33:11.095277313Z
+hash: 25bbe74813e445c3895c73faafede9896411720d8fa5faf5a7003304a77c4a87
+updated: 2018-03-24T15:51:56.757994475Z
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -8,7 +8,7 @@ imports:
 - name: github.com/alecthomas/units
   version: 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
 - name: github.com/blevesearch/bleve
-  version: 4ebf3f1d4445e866f8385f45ceca34dcec786a18
+  version: 1f7faf7e0186a260740ce38665c3c3eb2697f728
   subpackages:
   - analysis
   - analysis/analyzer/standard
@@ -25,7 +25,6 @@ imports:
   - index/scorch
   - index/scorch/mergeplan
   - index/scorch/segment
-  - index/scorch/segment/mem
   - index/scorch/segment/zap
   - index/store
   - index/store/boltdb
@@ -45,6 +44,7 @@ imports:
   - search/query
   - search/scorer
   - search/searcher
+  - size
 - name: github.com/blevesearch/go-porterstemmer
   version: 23a2c8e5cf1f380f27722c6d2ae8896431dc7d0e
   repo: https://github.com/blevesearch/go-porterstemmer
@@ -54,14 +54,16 @@ imports:
 - name: github.com/boltdb/bolt
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
 - name: github.com/couchbase/vellum
-  version: 9e4f15ba220601e0546afe6718d189ebbf60e143
+  version: 5083a469fcef50a4705e3c90652246ecd6806f2a
   subpackages:
   - regexp
   - utf8
 - name: github.com/edsrzf/mmap-go
   version: 935e0e8a636ca4ba70b713f3e38a19e1b77739e8
+- name: github.com/fgrid/uuid
+  version: 6f72a2d331c927473b9b19f590d43ccb5018c844
 - name: github.com/glycerine/go-unsnap-stream
-  version: 62a9a9eb44fd8932157b1a8ace2149eff5971af6
+  version: 9f0cb55181dd3a0a4c168d3dbc72d4aca4853126
 - name: github.com/golang/protobuf
   version: bbd03ef6da3a115852eaf24c8a1c46aeb39aa175
   subpackages:
@@ -74,6 +76,12 @@ imports:
 - name: github.com/golang/snappy
   version: cef980a12b316c5b7e5bb3a8e168eb43ae999a88
   repo: https://github.com/golang/snappy
+- name: github.com/mailru/easyjson
+  version: 8b799c424f57fa123fc63a99d6383bc6e4c02578
+  subpackages:
+  - buffer
+  - jlexer
+  - jwriter
 - name: github.com/mschoch/smat
   version: 90eadee771aeab36e8bf796039b8c261bebebe4f
 - name: github.com/nats-io/gnatsd
@@ -84,24 +92,30 @@ imports:
   - server
   - server/pse
   - util
-- name: github.com/nats-io/go-nats
-  version: 0718c1ca33e1241468625341ef25b317b08341cd
+- name: github.com/nats-io/nats
+  version: 61923ed1eaf8398000991fbbee2ef11ab5a5be0d
   subpackages:
   - encoders/builtin
   - util
-- name: github.com/nats-io/nats
-  version: 61923ed1eaf8398000991fbbee2ef11ab5a5be0d
 - name: github.com/nats-io/nuid
-  version: 33c603157d6fd1b0ac2599bcc4a286b36479a06d
+  version: 3e58d42c9cfe5cd9429f1a21ad8f35cd859ba829
+- name: github.com/olivere/elastic
+  version: d78530f6439d6cd674892320b6917d7c4cb25f7f
+  subpackages:
+  - config
+  - uritemplates
 - name: github.com/philhofer/fwd
   version: bb6d471dc95d4fe11e432687f8b70ff496cf3136
+- name: github.com/pkg/errors
+  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/pquerna/ffjson
   version: d49c2bc1aa135aad0c6f4fc2056623ec78f5d5ac
   subpackages:
   - fflib/v1
   - fflib/v1/internal
 - name: github.com/RoaringBitmap/roaring
-  version: a530db3013d436368a87a84daed053b911ccbe15
+  version: 01d244c43a7e8d1191a4f369f5908ea9eb9bc9ac
+  repo: https://github.com/RoaringBitmap/roaring
 - name: github.com/Smerity/govarint
   version: 7265e41f48f15fd61751e16da866af3c704bb3ab
 - name: github.com/steveyen/gtreap
@@ -114,13 +128,8 @@ imports:
 - name: github.com/willf/bitset
   version: 2e6e8094ef4745224150c88c16191c7dceaad16f
   repo: https://github.com/willf/bitset
-- name: golang.org/x/crypto
-  version: 91a49db82a88618983a78a06c1cbd4e00ab749ab
-  subpackages:
-  - bcrypt
-  - blowfish
 - name: golang.org/x/net
-  version: 22ae77b79946ea320088417e4d50825671d82d57
+  version: 6078986fec03a1dcc236c34816c71b0e05018fda
   subpackages:
   - context
   - http2
@@ -130,26 +139,22 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/sys
-  version: dd2ff4accc098aceecb86b36eaa7829b2a17b1c9
+  version: 91ee8cde435411ca3f1cd365e8f20131aed4d0a1
   subpackages:
   - unix
-  - windows
-  - windows/svc
-  - windows/svc/debug
-  - windows/svc/mgr
 - name: golang.org/x/text
-  version: b7ef84aaf62aa3e70962625c80a571ae7c17cb40
+  version: ab48842968a66deafa354805a8b031924668e059
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
 - name: google.golang.org/genproto
-  version: 2c5e7ac708aaa719366570dd82bda44541ca2a63
+  version: ab0870e398d5dd054b868c0db1481ab029b9a9f2
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: 7c5299d71e2b8d403195f6071eecea690bf5622a
+  version: bdb0727fa72e9f94e0b23df2b8c17561956811cd
   subpackages:
   - balancer
   - balancer/base
@@ -190,11 +195,6 @@ imports:
   - internal/json
   - internal/sasl
   - internal/scram
-- name: gopkg.in/olivere/elastic.v2
-  version: cdc8c0afbe6aeeb1b4a99aacb1a8ce9d6f985203
-  subpackages:
-  - backoff
-  - uritemplates
 - name: gopkg.in/warnings.v0
   version: ec4a0fea49c7b46c2aeb0b51aac55779c607e52b
 testImports: []

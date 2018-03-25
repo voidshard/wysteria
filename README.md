@@ -217,14 +217,11 @@ That is, this search will return all items from any collection(s) that have eith
 - item type of "b"
 
 
-## Viewer
-
-* Go & ReactJS: https://github.com/voidshard/muninn (simple read-only viewer used in development)
-
 ## Notes
 
-- There will be a delay between when something is created in wysteria, and when it is returnable via a search. This delay should be measured in seconds at most, depending on the 'searchbase' being used. It's possible that different searchbase implementations will overcome this in the future
-- "Moving" and/or "renaming" are foreign concepts to wysteria, if you need to move something you should delete and recreate it. Part of this is because of the complications it introduces, and part of this is to be able to support deterministic ids (in a later version). That is, most objects and fields are immutable after creation.
+- Unless you are searching by Id, there will be a delay between when something is created in wysteria, and when it is returnable via a search. This delay should be measured in seconds at most, depending on the 'searchbase' being used.
+    - There is a searchbase config 'ReindexOnWrite' to mitigate this but this is expensive to do: Using this should be considered very carefully.
+- "Moving" and/or "renaming" are foreign concepts to wysteria, if you need to move something you should delete and recreate it (or enforce some kind of naming scheme so you don't screw up names..). That is, most objects and fields are immutable after creation.
 - Wysteria makes no attempt to understand the links you set or sanitize strings given. The meaning behind the resource 'location' for example is left entirely to the user -- it could be a filepath, a url, an id into another system or something else entirely.
 - There is no maximum number of facets, links or resources that one can attach that is enforced by the system. Practical limits of the underlying systems will begin to apply at some point however.
 
@@ -236,7 +233,6 @@ Also, if (when) you find bugs, let me know.
 
 
 ## ToDo List
-- more unittests for business logic
 - admin console 
   - extend the wysteria server chan to allow realtime management of live server(s)
     - allow / disallow certain client requests
@@ -244,6 +240,34 @@ Also, if (when) you find bugs, let me know.
     - allow changing of configuration option(s) 
     - add alerts for certain events or server statuses
     - allow temporary rerouting of client requests
-- implement system for deterministic ids
-- ability to write to backup db / sb (might be useful for hot swapping or dev dataset)
-- ability to swap over to backup db without server restart
+- viewer
+
+## v1.1
+- Elasticsearch v2 support dropped from master
+- Elasticsearch v6 (latest) support added
+- Searching for an object(s) by Id(s) bypasses the searchbase, meaning ID searches are faster & have no delay.
+- Created IDs are now deterministic, and are the same regardless of the database backend used.
+- monitor that writes to stdout now writes time taken in call in millis to be more human readable.
+- Docker & docker compose support for
+    - local builds (compiled using the local wysteria src)
+    - master builds (compiled by cloning github repo)
+    - multi container (nats-elastic-mongo) & all in one (gRPC-bleve-bolt) builds
+- Integration test suite added using all of the above docker builds
+- gRPC fixes & timeout improvements
+- SSL support added to gRPC middleware
+- added some sugar to set a 'FacetLinkType' on a Link obj when created - it's either FacetVersionLink or FacetItemLink
+- clientside now sets facets on local objects on a SetFacets() call(s)
+- Removed random extra SetFacets() call when a collection is created
+- Fixed a few misc nil pointer fixes that could occur on the server
+- Removal of cascading deletes -> only links & resources are deleted when their parent goes
+    - The server should now block deletes if it has children (links & resources do not apply to this)
+- Delete calls no longer spawn extra routines
+- Renamed lots of funcs & vars so they fit the Go style
+- more doc strings
+- links are now returned when LinkTo is called. The return signature of item and version .LinkTo is now (*Link, error)
+- resources are now returned when AddResource is called. Return signature of version.AddResource is (*Resource, error)
+- increased monitoring. There is now monitoring around middleware (enter / exit), database and searchbase calls
+- resource uniqueness is enforced for a given location, name, type & parent
+- Added config var 'ReindexOnWrite' that ensures that written data is immediately searchable. This is useful in tests
+  where we want to immediately fetch things and the performance hit isn't considered a problem.
+  Setting this to true for any prod system should be considered carefully as it's expected to be very costly.

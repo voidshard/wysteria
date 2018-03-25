@@ -37,6 +37,7 @@ import:
 - package: gopkg.in/mgo.v2
   subpackages:
   - bson
-- package: gopkg.in/olivere/elastic.v2
+- package: github.com/olivere/elastic
+  version: ^6.0.0
 - package: gopkg.in/alecthomas/kingpin.v2
   version: ^2.2.6

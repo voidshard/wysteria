@@ -155,23 +155,24 @@ func (e *mongoEndpoint) Published(item_id string) (*wyc.Version, error) {
 }
 
 // Insert a collection into the db with the given Id
-func (e *mongoEndpoint) InsertCollection(id string, d *wyc.Collection) error {
+func (e *mongoEndpoint) InsertCollection(d *wyc.Collection) (string, error) {
 	collection := e.getCollection(tableCollection)
 
 	var res []interface{}
 	err := collection.Find(bson.M{"name": d.Name, "parent": d.Parent}).All(&res)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if len(res) > 0 {
-		return errors.New("Unable to create: Would cause duplicate Collection")
+		return "", errors.New("Unable to create: Would cause duplicate Collection")
 	}
 
-	return e.insert(tableCollection, id, d)
+	d.Id = NewCollectionId(d)
+	return d.Id, e.insert(tableCollection, d.Id, d)
 }
 
 // Insert a item into the db with the given Id
-func (e *mongoEndpoint) InsertItem(id string, d *wyc.Item) error {
+func (e *mongoEndpoint) InsertItem(d *wyc.Item) (string, error) {
 	key := fmt.Sprintf("%s:%s:%s:%s", tableItem, d.Parent, d.ItemType, d.Variant)
 
 	change := mgo.Change{
@@ -184,18 +185,18 @@ func (e *mongoEndpoint) InsertItem(id string, d *wyc.Item) error {
 	col := e.getCollection(countersCollection)
 	details, err := col.Find(bson.M{"CounterFor": key}).Apply(change, &doc)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if details.Updated > 0 {
-		return errors.New(fmt.Sprintf("Unable to insert Item %s %s it exists in collection already", d.ItemType, d.Variant))
+		return "", errors.New(fmt.Sprintf("Unable to insert Item %s %s it exists in collection already", d.ItemType, d.Variant))
 	}
-
-	return e.insert(tableItem, id, d)
+	d.Id = NewItemId(d)
+	return d.Id, e.insert(tableItem, d.Id, d)
 }
 
 // Insert a version into the db with the given Id & set version number
-func (e *mongoEndpoint) InsertNextVersion(id string, d *wyc.Version) (int32, error) {
+func (e *mongoEndpoint) InsertNextVersion(d *wyc.Version) (string, int32, error) {
 	change := mgo.Change{
 		Update:    bson.M{"$inc": bson.M{"Count": 1}, "$set": bson.M{"CounterFor": d.Parent}},
 		ReturnNew: true,
@@ -210,21 +211,62 @@ func (e *mongoEndpoint) InsertNextVersion(id string, d *wyc.Version) (int32, err
 	// Atomic findAndModify call
 	_, err := col.Find(bson.M{"CounterFor": d.Parent}).Apply(change, &doc)
 	if err != nil {
-		return -1, err
+		return "", -1, err
 	}
 
 	d.Number = int32(doc["Count"].(int))
-	return d.Number, e.insert(tableVersion, id, d)
+	d.Id = NewVersionId(d)
+	return d.Id, d.Number, e.insert(tableVersion, d.Id, d)
 }
 
 // Insert a resource into the db with the given Id
-func (e *mongoEndpoint) InsertResource(id string, d *wyc.Resource) error {
-	return e.insert(tableFileresource, id, d)
+func (e *mongoEndpoint) InsertResource(d *wyc.Resource) (string, error) {
+	key := fmt.Sprintf("%s:%s:%s:%s:%s", tableFileresource, d.Parent, d.Name, d.ResourceType, d.Location)
+
+	change := mgo.Change{
+		Update:    bson.M{"$set": bson.M{"CounterFor": key}},
+		ReturnNew: true,
+		Upsert:    true,
+	}
+
+	var doc counter
+	col := e.getCollection(countersCollection)
+	details, err := col.Find(bson.M{"CounterFor": key}).Apply(change, &doc)
+	if err != nil {
+		return "", err
+	}
+
+	if details.Updated > 0 {
+		return "", errors.New(fmt.Sprintf("Unable to insert Resource %s %s %s %s it exists already", d.Parent, d.Name, d.ResourceType, d.Location))
+	}
+
+	d.Id = NewResourceId(d)
+	return d.Id, e.insert(tableFileresource, d.Id, d)
 }
 
 // Insert a link into the db with the given Id
-func (e *mongoEndpoint) InsertLink(id string, d *wyc.Link) error {
-	return e.insert(tableLink, id, d)
+func (e *mongoEndpoint) InsertLink(d *wyc.Link) (string, error) {
+	key := fmt.Sprintf("%s:%s:%s:%s", tableLink, d.Name, d.Src, d.Dst)
+
+	change := mgo.Change{
+		Update:    bson.M{"$set": bson.M{"CounterFor": key}},
+		ReturnNew: true,
+		Upsert:    true,
+	}
+
+	var doc counter
+	col := e.getCollection(countersCollection)
+	details, err := col.Find(bson.M{"CounterFor": key}).Apply(change, &doc)
+	if err != nil {
+		return "", err
+	}
+
+	if details.Updated > 0 {
+		return "", errors.New(fmt.Sprintf("Unable to insert Link %s %s %s it exists already", d.Name, d.Src, d.Dst))
+	}
+
+	d.Id = NewLinkId(d)
+	return d.Id, e.insert(tableLink, d.Id, d)
 }
 
 // Retrieve the collections indicated by the given Id(s)
@@ -325,28 +367,16 @@ func (e *mongoEndpoint) DeleteLink(ids ...string) error {
 
 // Generic insert of some document into a named column with the given id
 func (e *mongoEndpoint) insert(col string, sid string, data interface{}) error {
-	// First, we need to format the Id as a bson
-	// ToDo: Look at generic-izing the setting / creation of Ids
-	err := bsonIdCheck(sid)
-	if err != nil {
-		return err
-	}
-
 	// get the given collection
 	collection := e.getCollection(col)
 
 	// upsert our document into mongo, setting the id as desired
-	_, err = collection.Upsert(bson.M{"_id": bson.ObjectIdHex(sid)}, data)
+	_, err := collection.Upsert(bson.M{"_id": sid}, data)
 	return err
 }
 
 // Generic retrieve doc(s) by Id(s) from the named database collection
-func (e *mongoEndpoint) retrieve(col string, out interface{}, sids ...string) (err error) {
-	ids, err := toBsonIds(sids...)
-	if err != nil {
-		return err
-	}
-
+func (e *mongoEndpoint) retrieve(col string, out interface{}, ids ...string) (err error) {
 	collection := e.getCollection(col)
 	err = collection.Find(bson.M{
 		"_id": bson.M{
@@ -357,12 +387,7 @@ func (e *mongoEndpoint) retrieve(col string, out interface{}, sids ...string) (e
 }
 
 // Generic delete all from the named collection by Id(s)
-func (e *mongoEndpoint) deleteById(col string, sids ...string) (err error) {
-	ids, err := toBsonIds(sids...)
-	if err != nil {
-		return err
-	}
-
+func (e *mongoEndpoint) deleteById(col string, ids ...string) (err error) {
 	collection := e.getCollection(col)
 	_, err = collection.RemoveAll(bson.M{
 		"_id": bson.M{
@@ -374,26 +399,8 @@ func (e *mongoEndpoint) deleteById(col string, sids ...string) (err error) {
 
 // Generic update document from the named collection with the given Id
 func (e *mongoEndpoint) update(col, sid string, data interface{}) (err error) {
-	err = bsonIdCheck(sid)
-	if err != nil {
-		return
-	}
-
 	collection := e.getCollection(col)
-	return collection.UpdateId(bson.ObjectIdHex(sid), data)
-}
-
-// Convert Ids of type string (default) into our mongo format (bson.ObjectId)
-func toBsonIds(sids ...string) ([]bson.ObjectId, error) {
-	ids := []bson.ObjectId{}
-	for _, sid := range sids {
-		err := bsonIdCheck(sid)
-		if err != nil {
-			return nil, err
-		}
-		ids = append(ids, bson.ObjectIdHex(sid))
-	}
-	return ids, nil
+	return collection.UpdateId(sid, data)
 }
 
 // Form the mongo connection url given the database settings
@@ -409,14 +416,6 @@ func formMongoUrl(settings *Settings) string {
 	return url + settings.Host + ":" + strconv.Itoa(settings.Port) + "/" + settings.Database
 }
 
-// Check if a given Id in it's default string format is a valid mongo bson.ObjectId
-func bsonIdCheck(sid string) error {
-	if bson.IsObjectIdHex(sid) {
-		return nil
-	}
-
-	return errors.New(fmt.Sprintf("Invalid ID: %s", sid))
-}
 
 // Get named collection from the mongo database
 func (e *mongoEndpoint) getCollection(name string) *mgo.Collection {

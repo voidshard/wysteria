@@ -17,6 +17,8 @@ import (
 	"net"
 	"time"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/credentials"
+	"fmt"
 )
 
 var (
@@ -44,9 +46,17 @@ func (c *grpcClient) Connect(config *Settings) error {
 			Timeout: 60 * time.Second,
 			Time: 10 * time.Second,
 			PermitWithoutStream: true,
-
 		}),
-		grpc.WithInsecure(),
+	}
+
+	if config.SSLEnableTLS {
+		creds, err := config.TLSconfig()
+		if err != nil {
+			return fmt.Errorf("unable to load TLS keypair: %s", err)
+		}
+		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(creds)))
+	} else {
+		opts = append(opts, grpc.WithInsecure())
 	}
 
 	conn, err := grpc.Dial(config.Config, opts...)
@@ -75,6 +85,7 @@ func (c *grpcClient) CreateCollection(in *wyc.Collection) (string, error) {
 		&wrpc.Collection{
 			Name:   in.Name,
 			Parent: in.Parent,
+			Facets: in.Facets,
 		},
 	)
 	if err != nil {
@@ -147,6 +158,7 @@ func convWResource(in *wyc.Resource) *wrpc.Resource {
 		Name:         in.Name,
 		Location:     in.Location,
 		ResourceType: in.ResourceType,
+		Facets: 	  in.Facets,
 	}
 }
 
@@ -173,6 +185,7 @@ func convWLink(in *wyc.Link) *wrpc.Link {
 		Src:  in.Src,
 		Name: in.Name,
 		Dst:  in.Dst,
+		Facets: in.Facets,
 	}
 }
 
@@ -259,6 +272,8 @@ func convRCollections(in ...*wrpc.Collection) []*wyc.Collection {
 		result = append(result, &wyc.Collection{
 			Id:   i.Id,
 			Name: i.Name,
+			Facets: i.Facets,
+			Parent: i.Parent,
 		})
 	}
 	return result
@@ -342,6 +357,7 @@ func convRResources(in ...*wrpc.Resource) []*wyc.Resource {
 			Name:         i.Name,
 			ResourceType: i.ResourceType,
 			Location:     i.Location,
+			Facets: i.Facets,
 		})
 	}
 	return result
@@ -369,6 +385,7 @@ func convRLinks(in ...*wrpc.Link) []*wyc.Link {
 			Name: i.Name,
 			Src:  i.Src,
 			Dst:  i.Dst,
+			Facets: i.Facets,
 		})
 	}
 	return result
@@ -518,13 +535,24 @@ func (s *grpcServer) ListenAndServe(config *Settings, handler ServerHandler) err
 	s.conn = conn
 	s.handler = handler
 
-	rpc_server := grpc.NewServer()
-	wrpc.RegisterWysteriaGrpcServer(rpc_server, s)
+	var rpcServer *grpc.Server
+
+	if config.SSLEnableTLS {
+		creds, err := config.TLSconfig()
+		if err != nil {
+			return fmt.Errorf("unable to load TLS keypair: %s", err)
+		}
+		rpcServer = grpc.NewServer(grpc.Creds(credentials.NewTLS(creds)))
+	} else {
+		rpcServer = grpc.NewServer()
+	}
+
+	wrpc.RegisterWysteriaGrpcServer(rpcServer, s)
 
 	// Register reflection service on gRPC server.
-	reflection.Register(rpc_server)
+	reflection.Register(rpcServer)
 
-	return rpc_server.Serve(s.conn)
+	return rpcServer.Serve(s.conn)
 }
 
 // Close any and all connections
@@ -582,7 +610,7 @@ func (s *grpcServer) UpdateLinkFacets(_ context.Context, in *wrpc.IdAndDict) (*w
 
 // Given the name of the collection to create, call server side CreateCollection, return result
 func (s *grpcServer) CreateCollection(_ context.Context, in *wrpc.Collection) (*wrpc.Id, error) {
-	created_id, err := s.handler.CreateCollection(&wyc.Collection{Name: in.Name, Parent: in.Parent})
+	created_id, err := s.handler.CreateCollection(&wyc.Collection{Name: in.Name, Parent: in.Parent, Facets: in.Facets})
 	if err != nil {
 		return nullWrpcId, err
 	}
@@ -687,6 +715,8 @@ func convWCollections(in ...*wyc.Collection) *wrpc.Collections {
 			&wrpc.Collection{
 				Id:   i.Id,
 				Name: i.Name,
+				Parent: i.Parent,
+				Facets: i.Facets,
 			},
 		)
 	}

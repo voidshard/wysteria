@@ -1,9 +1,10 @@
 package instrumentation
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"gopkg.in/olivere/elastic.v2"
+	"github.com/olivere/elastic"
 )
 
 const defaultMapping = `{
@@ -58,7 +59,9 @@ func newElasticLogger(settings *Settings) (MonitorOutput, error) {
 
 // Checks if an index with the given name exists. If not, creates the index.
 func (l *elasticLogger) createIndexIfNotExists(index string) error {
-	exists, err := l.client.IndexExists(index).Do()
+	ctx := context.Background()
+
+	exists, err := l.client.IndexExists(index).Do(ctx)
 	if err != nil {
 		return err
 	}
@@ -66,7 +69,7 @@ func (l *elasticLogger) createIndexIfNotExists(index string) error {
 		return nil
 	}
 
-	createIndex, err := l.client.CreateIndex(index).BodyString(defaultMapping).Do()
+	createIndex, err := l.client.CreateIndex(index).BodyString(defaultMapping).Do(ctx)
 	if err != nil {
 		return err
 	}
@@ -78,7 +81,7 @@ func (l *elasticLogger) createIndexIfNotExists(index string) error {
 }
 
 func (l *elasticLogger) Log(doc *event) {
-	l.client.Index().Index(l.index).Type(l.index).BodyJson(doc).Do()
+	l.client.Index().Index(l.index).Type(l.index).BodyJson(doc).Do(context.Background())
 }
 
 func (l *elasticLogger) Close() {

@@ -27,20 +27,20 @@ func main() {
 
 	// Retrieve the current published version (we linked the Version, but we could have linked
 	// items in the same manner
-	forest_01, err := items[0].PublishedVersion()
+	forest01, err := items[0].PublishedVersion()
 	if err != nil {
 		panic(err)
 	}
 
 	// Retrieve all linked versions
-	linked_versions, err := forest_01.Linked()
+	linkedVersions, err := forest01.Linked()
 	if err != nil {
 		panic(err)
 	}
 
-	for link_name, found_versions := range linked_versions {
-		for _, version := range found_versions {
-			fmt.Println(link_name, version.Version())
+	for linkName, foundVersions := range linkedVersions {
+		for _, version := range foundVersions {
+			fmt.Println(linkName, version.Version())
 		}
 	}
 	//elm 1
@@ -48,13 +48,13 @@ func main() {
 	//oak 2
 
 	// We can also grab links with a specific name
-	desired_link_name := "elm"
-	linked, err := forest_01.Linked(wysteria.Name(desired_link_name))
+	desiredLinkName := "elm"
+	linked, err := forest01.Linked(wysteria.Name(desiredLinkName))
 	if err != nil {
 		panic(err)
 	}
-	for _, version := range linked[desired_link_name] {
-		fmt.Println(desired_link_name, version.Version())
+	for _, version := range linked[desiredLinkName] {
+		fmt.Println(desiredLinkName, version.Version())
 	}
 	//elm 1
 }

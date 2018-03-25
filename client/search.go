@@ -2,6 +2,7 @@ package wysteria_client
 
 import (
 	wyc "github.com/voidshard/wysteria/common"
+	"time"
 )
 
 // Search obj represents a query or set of queries that are about to be sent
@@ -13,6 +14,8 @@ type Search struct {
 	nextQValid bool
 	limit      int32
 	offset     int32
+	retries    int
+	retryDelay time.Duration
 }
 
 type SearchParam func(*Search)

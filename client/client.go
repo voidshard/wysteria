@@ -16,6 +16,16 @@ import (
 
 const (
 	defaultSearchLimit = 500
+
+	// These are copied over from github.com/voidshard/wysteria/common for convenience
+	//
+	FacetRootCollection = "/"
+	FacetCollection     = "collection"
+	FacetItemType       = "itemtype"
+	FacetItemVariant    = "variant"
+	FacetLinkType       = "linktype"
+	FacetVersionLink    = "version"
+	FacetItemLink       = "item"
 )
 
 // Client wraps the desired middleware and supplies a more user friendly interface to users
@@ -57,6 +67,39 @@ func Host(url string) ClientOption {
 func Driver(name string) ClientOption {
 	return func(i *Client) {
 		i.settings.Middleware.Driver = name
+	}
+}
+
+// Set SSL certificate to use
+//
+func SSLCert(in string) ClientOption {
+	return func(i *Client) {
+		i.settings.Middleware.SSLCert = in
+	}
+}
+
+// Set SSL key to use
+//
+func SSLKey(in string) ClientOption {
+	return func(i *Client) {
+		i.settings.Middleware.SSLKey = in
+	}
+}
+
+// Verify SSL certificates on connecting
+//  That is, if this is 'false' we'll accept insecure certificates (like self signed certs for example)
+//
+func SSLVerify(in bool) ClientOption {
+	return func(i *Client) {
+		i.settings.Middleware.SSLVerify = in
+	}
+}
+
+// Enable SSL
+//
+func SSLEnable(in bool) ClientOption {
+	return func(i *Client) {
+		i.settings.Middleware.SSLEnableTLS = in
 	}
 }
 
@@ -117,7 +160,7 @@ type clientStruct interface {
 	initUserFacets(map[string]string)
 }
 
-// Set the inital Facets on the soon to be created child
+// Set the initial Facets on the soon to be created child
 //  Note that you still cannot overwrite client reserved facets this way
 func Facets(in map[string]string) CreateOption {
 	return func(parent, child clientStruct) {

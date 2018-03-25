@@ -37,6 +37,12 @@ func (i *Version) Id() string {
 // Set all the key:value pairs given on this Item's facets.
 // Note that the server will ignore the setting of reserved facets.
 func (i *Version) SetFacets(in map[string]string) error {
+	if in == nil {
+		return nil
+	}
+	for k, v := range in {
+		i.data.Facets[k] = v
+	}
 	return i.conn.middleware.UpdateVersionFacets(i.data.Id, in)
 }
 
@@ -51,7 +57,7 @@ func (i *Version) Linked(opts ...SearchParam) (map[string][]*Version, error) {
 		return nil, err
 	}
 
-	version_id_to_link := map[string]*Link{}
+	versionIdToLinks := map[string]*Link{}
 	ids := []*wyc.QueryDesc{}
 	for _, link := range links {
 		id := link.SourceId()
@@ -60,7 +66,7 @@ func (i *Version) Linked(opts ...SearchParam) (map[string][]*Version, error) {
 			id = link.DestinationId()
 		}
 
-		version_id_to_link[id] = link
+		versionIdToLinks[id] = link
 		ids = append(ids, &wyc.QueryDesc{Id: id})
 	}
 
@@ -71,31 +77,31 @@ func (i *Version) Linked(opts ...SearchParam) (map[string][]*Version, error) {
 
 	result := map[string][]*Version{}
 	for _, ver := range items {
-		lnk, ok := version_id_to_link[ver.Id]
+		lnk, ok := versionIdToLinks[ver.Id]
 		if !ok {
 			continue
 		}
 
-		result_list, ok := result[lnk.Name()]
-		if result_list == nil {
-			result_list = []*Version{}
+		resultList, ok := result[lnk.Name()]
+		if resultList == nil {
+			resultList = []*Version{}
 		}
 
-		wrapped_item := &Version{
+		wrappedItem := &Version{
 			conn: i.conn,
 			data: ver,
 		}
 
-		result_list = append(result_list, wrapped_item)
-		result[lnk.Name()] = result_list
+		resultList = append(resultList, wrappedItem)
+		result[lnk.Name()] = resultList
 	}
 	return result, nil
 }
 
 // Link this Version with a link described by 'name' to some other Version.
-func (i *Version) LinkTo(name string, other *Version, opts ...CreateOption) error {
+func (i *Version) LinkTo(name string, other *Version, opts ...CreateOption) (*Link, error) {
 	if i.Id() == other.Id() { // Prevent linking to oneself
-		return nil
+		return nil,  errors.New("link src and dst IDs cannot be equal")
 	}
 
 	lnk := &wyc.Link{
@@ -109,9 +115,11 @@ func (i *Version) LinkTo(name string, other *Version, opts ...CreateOption) erro
 	for _, opt := range opts {
 		opt(i, child)
 	}
+	lnk.Facets[FacetLinkType] = FacetVersionLink
 
-	_, err := i.conn.middleware.CreateLink(lnk)
-	return err
+	id, err := i.conn.middleware.CreateLink(lnk)
+	lnk.Id = id
+	return child, err
 }
 
 // Mark this Version as the published version.
@@ -121,7 +129,7 @@ func (i *Version) Publish() error {
 }
 
 // Add a resource with the given name, type and location to this version.
-func (i *Version) AddResource(name, rtype, location string, opts ...CreateOption) error {
+func (i *Version) AddResource(name, rtype, location string, opts ...CreateOption) (*Resource, error) {
 	res := &wyc.Resource{
 		Parent:       i.data.Id,
 		Name:         name,
@@ -137,10 +145,10 @@ func (i *Version) AddResource(name, rtype, location string, opts ...CreateOption
 
 	id, err := i.conn.middleware.CreateResource(res)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	res.Id = id
-	return nil
+	return child, nil
 }
 
 // Retrieve all child resources of this Version with the given name & resource type

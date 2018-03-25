@@ -27,7 +27,11 @@ func (c *Collection) ParentId() string {
 
 // Return the parent collection of this collection (if any)
 func (c *Collection) Parent() (*Collection, error) {
-	return c.conn.Collection(c.ParentId())
+	found, err := c.conn.Search(Id(c.ParentId())).FindCollections(Limit(1))
+	if err != nil || len(found) != 1 {
+		return nil, err
+	}
+	return found[0], err
 }
 
 // Get the facet value and a bool indicating if the value exists for the given key.
@@ -43,6 +47,12 @@ func (i *Collection) Facets() map[string]string {
 
 // Set all the key:value pairs given on this Collection's facets.
 func (i *Collection) SetFacets(in map[string]string) error {
+	if in == nil {
+		return nil
+	}
+	for k, v := range in {
+		i.data.Facets[k] = v
+	}
 	return i.conn.middleware.UpdateCollectionFacets(i.data.Id, in)
 }
 
@@ -110,8 +120,7 @@ func (w *Client) createCollection(name string, parent *Collection, opts ...Creat
 	for _, opt := range opts {
 		opt(parent, child)
 	}
-
-	if parent == nil { // Nb this will overwrite facets set by users that we're going to use -> this is intentional
+	if parent == nil {
 		col.Facets[wyc.FacetCollection] = wyc.FacetRootCollection
 	} else {
 		col.Parent = parent.Id()
@@ -123,7 +132,7 @@ func (w *Client) createCollection(name string, parent *Collection, opts ...Creat
 		return nil, err
 	}
 	col.Id = collection_id
-	return child, child.SetFacets(child.Facets())
+	return child, nil
 }
 
 // Create a new collection & return it (that is, a collection with no parent)

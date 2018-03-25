@@ -45,6 +45,12 @@ func (i *Resource) Facets() map[string]string {
 
 // Set all the key:value pairs given on this Resource's facets.
 func (i *Resource) SetFacets(in map[string]string) error {
+	if in == nil {
+		return nil
+	}
+	for k, v := range in {
+		i.data.Facets[k] = v
+	}
 	return i.conn.middleware.UpdateResourceFacets(i.data.Id, in)
 }
 

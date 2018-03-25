@@ -2,6 +2,7 @@ package wysteria_client
 
 import (
 	wyc "github.com/voidshard/wysteria/common"
+	"errors"
 )
 
 // Wrapper around wysteria/common Item object
@@ -34,9 +35,9 @@ func (i *Item) Delete() error {
 }
 
 // Link this item with a link described by 'name' to some other item.
-func (i *Item) LinkTo(name string, other *Item, opts ...CreateOption) error {
+func (i *Item) LinkTo(name string, other *Item, opts ...CreateOption) (*Link, error) {
 	if i.Id() == other.Id() { // Prevent linking to oneself
-		return nil
+		return nil,  errors.New("link src and dst IDs cannot be equal")
 	}
 
 	lnk := &wyc.Link{
@@ -50,9 +51,11 @@ func (i *Item) LinkTo(name string, other *Item, opts ...CreateOption) error {
 	for _, opt := range opts {
 		opt(i, child)
 	}
+	lnk.Facets[FacetLinkType] = FacetItemLink
 
-	_, err := i.conn.middleware.CreateLink(lnk)
-	return err
+	id, err := i.conn.middleware.CreateLink(lnk)
+	lnk.Id = id
+	return child, err
 }
 
 // Find and return all linked items for which links exist that name this as the source.
@@ -60,13 +63,13 @@ func (i *Item) LinkTo(name string, other *Item, opts ...CreateOption) error {
 // gets all matching Items.
 // Since this would cause us to lose the link 'name' we return a map of link name -> []*Item
 func (i *Item) Linked(opts ...SearchParam) (map[string][]*Item, error) {
-	opts = append(opts, ChildOf(i.Id()))
+	opts = append(opts, LinkSource(i.Id()))
 	links, err := i.conn.Search(opts...).FindLinks()
 	if err != nil {
 		return nil, err
 	}
 
-	item_id_to_link := map[string]*Link{}
+	itemIdToLinks := map[string]*Link{}
 	ids := []*wyc.QueryDesc{}
 	for _, link := range links {
 		id := link.SourceId()
@@ -75,7 +78,7 @@ func (i *Item) Linked(opts ...SearchParam) (map[string][]*Item, error) {
 			id = link.DestinationId()
 		}
 
-		item_id_to_link[id] = link
+		itemIdToLinks[id] = link
 		ids = append(ids, &wyc.QueryDesc{Id: id})
 	}
 
@@ -87,23 +90,23 @@ func (i *Item) Linked(opts ...SearchParam) (map[string][]*Item, error) {
 
 	result := map[string][]*Item{}
 	for _, ver := range items {
-		lnk, ok := item_id_to_link[ver.Id]
+		lnk, ok := itemIdToLinks[ver.Id]
 		if !ok {
 			continue
 		}
 
-		result_list, ok := result[lnk.Name()]
-		if result_list == nil {
-			result_list = []*Item{}
+		resultLists, ok := result[lnk.Name()]
+		if resultLists == nil {
+			resultLists = []*Item{}
 		}
 
-		wrapped_item := &Item{
+		wrappedItem := &Item{
 			conn: i.conn,
 			data: ver,
 		}
 
-		result_list = append(result_list, wrapped_item)
-		result[lnk.Name()] = result_list
+		resultLists = append(resultLists, wrappedItem)
+		result[lnk.Name()] = resultLists
 	}
 	return result, nil
 }
@@ -132,6 +135,12 @@ func (i *Item) Id() string {
 // Set all the key:value pairs given on this Item's facets.
 // Note that the server will ignore the setting of reserved facets.
 func (i *Item) SetFacets(in map[string]string) error {
+	if in == nil {
+		return nil
+	}
+	for k, v := range in {
+		i.data.Facets[k] = v
+	}
 	return i.conn.middleware.UpdateItemFacets(i.data.Id, in)
 }
 

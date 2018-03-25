@@ -1,3 +1,6 @@
+/*Use Elastic as an instrumentation backend. This is specifically for Elastic 6
+*/
+
 package instrumentation
 
 import (

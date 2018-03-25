@@ -17,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"strings"
 )
 
 const (
@@ -63,6 +64,7 @@ func Connect(settings *Settings) (MonitorOutput, error) {
 type event struct {
 	Msg        string
 	Note       string
+	KeyValues  map[string]interface{}
 	InFunc     string
 	Severity   string
 	EpochTime  int64
@@ -80,6 +82,21 @@ func InFunc(msg string) Opt {
 	return func(i *event) {
 		i.InFunc = msg
 	}
+}
+
+// Utils
+func (e *event) toKeyValueString() string {
+	valueString := ""
+
+	if e.KeyValues != nil {
+		values := make([]string, 0)
+		for k, v := range e.KeyValues {
+			values = append(values, fmt.Sprintf("%s=%s", k, v))
+		}
+		valueString = strings.Join(values, " ")
+	}
+
+	return valueString
 }
 
 // Record the kind of function call we're making
@@ -160,11 +177,19 @@ func Time(t int64) Opt {
 	}
 }
 
+// Set KeyValues - helpful for logging named variables to make log clearer
+//
+func KeyValues(in map[string]interface{}) Opt {
+	return func(i *event) {
+		i.KeyValues = in
+	}
+}
+
 // Set Note value
 //
-func Note(msg string) Opt {
+func Note(args ...interface{}) Opt {
 	return func(i *event) {
-		i.Note = msg
+		i.Note = fmt.Sprint(args)
 	}
 }
 

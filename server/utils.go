@@ -1,14 +1,9 @@
 package main
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	wyc "github.com/voidshard/wysteria/common"
 )
 
-// Create a new ID string at random
-func NewId() string {
-	return bson.NewObjectId().Hex()
-}
 
 // Return if the given key is in the given list
 func ListContains(key string, values []string) bool {

@@ -18,23 +18,35 @@ Data flow through interfaces during a client request
 		| * ---------------------------- exit middleware ---------------------------- *
 		|
 		V
-	[instrumentation shim layer]  Interface: EndpointServer  wysteria/server/instrumentationLayer.go
-		|
+	[middleware shim layer]  Interface: EndpointServer  wysteria/server/instrumentation_middleware.go
 		|
 		|
 		V
 	[main server]  Interface: EndpointServer  wysteria/server/server.go
 		|
-		|								  +---> [search query] Interface: Searchbase  wysteria/searchbase/searchbase.go
-		|	   	   			 			  |
-		+---[nb. operation order varies]--+
-		|		  			  			  |
-		|					  			  +---> [data query] Interface: Database  wysteria/database/database.go
+		|
+		|   [Nb. What order this goes to the searchbase / database (or even if it does) depends on the operation]
+		+------/--------+----------------------------------------------------------------------------------+
+						|                                                                                  |
+						V                                                                                  |
+			[database shim layer] Interface: Database wysteria/server/instrumentation_database.go          |
+						|                                                                                  V
+						|      [searchbase shim layer] Interface: Searchbase wysteria/server/instrumentation_searchbase.go
+						V                                                                                  |
+			[database layer] Interface: Database wysteria/server/database/database.go                      |
+						|                                                                                  V
+						|      [searchbase layer] Interface: Searchbase wysteria/server/searchbase/searchbase.go
+						V                                                                                  |
+			[database shim layer] Interface: Database wysteria/server/instrumentation_database.go 		   |
+						|                                                                                  V
+                        |      [searchbase shim layer] Interface: Searchbase wysteria/server/instrumentation_searchbase.go
+						|                                                                                  |
+						|                                                                                  |
+		+---------------+----------------------------------------------------------------------------------+
 		|
 		V
-    [instrumentation shim layer]  Interface: EndpointServer  wysteria/server/instrumentationLayer.go
+    [middleware shim layer]  Interface: EndpointServer  wysteria/server/instrumentation_middleware.go
 		|
-		|---- [in parallel] -----> [log request / reply] Interface: Monitor  wysteria/server/instrumentation/monitor.go
 		|
 		| * ---------------------------- enter middleware ---------------------------- *
 		|

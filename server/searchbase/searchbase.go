@@ -35,7 +35,7 @@ const (
 var (
 	// All of the divers we know how to connect to
 	connectors = map[string]func(*Settings) (Searchbase, error){
-		DriverElastic: elasticConnect,
+		DriverElastic: elasticSixConnect,
 		DriverBleve:   bleveConnect,
 	}
 )

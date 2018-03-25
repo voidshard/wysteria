@@ -15,10 +15,19 @@
 package upsidedown
 
 import (
+	"reflect"
+
 	"github.com/blevesearch/bleve/document"
 	"github.com/blevesearch/bleve/index"
 	"github.com/blevesearch/bleve/index/store"
 )
+
+var reflectStaticSizeIndexReader int
+
+func init() {
+	var ir IndexReader
+	reflectStaticSizeIndexReader = int(reflect.TypeOf(ir).Size())
+}
 
 type IndexReader struct {
 	index    *UpsideDownCouch

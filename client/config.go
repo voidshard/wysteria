@@ -21,12 +21,12 @@ type configuration struct {
 func init() {
 	config = makeDefaults()
 
-	config_filepath, err := common.ChooseClientConfig()
+	configFilepath, err := common.ChooseClientConfig()
 	if err == nil {
 		cnf := &configuration{}
-		err := common.ReadConfig(config_filepath, cnf)
+		err := common.ReadConfig(configFilepath, cnf)
 		if err != nil {
-			log.Println("Unable to read config", config_filepath, err)
+			log.Println("Unable to read config", configFilepath, err)
 		} else {
 			config = cnf
 		}

@@ -6,7 +6,7 @@ const (
 	tableCollection = "collections"
 	tableItem       = "items"
 	tableVersion    = "versions"
-	tableResource   = "fileresource"
+	tableResource   = "resource"
 	tableLink       = "link"
 )
 
@@ -19,4 +19,5 @@ type Settings struct {
 	Pass     string
 	Database string
 	PemFile  string
+	ReindexOnWrite  bool
 }

@@ -33,6 +33,12 @@ func (i *Link) Facets() map[string]string {
 
 // Set all the key:value pairs given on this Link's facets.
 func (i *Link) SetFacets(in map[string]string) error {
+	if in == nil {
+		return nil
+	}
+	for k, v := range in {
+		i.data.Facets[k] = v
+	}
 	return i.conn.middleware.UpdateLinkFacets(i.data.Id, in)
 }
 

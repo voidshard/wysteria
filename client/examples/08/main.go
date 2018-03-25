@@ -15,42 +15,42 @@ func main() {
 
 	// Let's get our published pine
 	items, _ := client.Search(wysteria.ItemType("tree"), wysteria.ItemVariant("pine")).FindItems()
-	published_version, _ := items[0].PublishedVersion()
+	publishedVersion, _ := items[0].PublishedVersion()
 
 	// We can grab resources by Name
-	default_resources, err := published_version.Resources(wysteria.Name("default"))
+	defaultResources, err := publishedVersion.Resources(wysteria.Name("default"))
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("--default resources--")
-	for _, resource := range default_resources {
+	for _, resource := range defaultResources {
 		fmt.Println(resource.Name(), resource.Type(), resource.Location())
 	}
 	//--default resources--
 	//default png /path/to/pine01.png
 
 	// by Type
-	json_resources, _ := published_version.Resources(wysteria.ResourceType("json"))
+	jsonResources, _ := publishedVersion.Resources(wysteria.ResourceType("json"))
 	fmt.Println("--json resources--")
-	for _, resource := range json_resources {
+	for _, resource := range jsonResources {
 		fmt.Println(resource.Name(), resource.Type(), resource.Location())
 	}
 	//--json resources--
 	//stats json url://file.json
 
 	// some combination of the two
-	lowres_jpgs, _ := published_version.Resources(wysteria.Name("lowres"), wysteria.ResourceType("jpeg"))
+	lowresJpgs, _ := publishedVersion.Resources(wysteria.Name("lowres"), wysteria.ResourceType("jpeg"))
 	fmt.Println("--lowres jpeg resources--")
-	for _, resource := range lowres_jpgs {
+	for _, resource := range lowresJpgs {
 		fmt.Println(resource.Name(), resource.Type(), resource.Location())
 	}
 	//--lowres jpeg resources--
 	//lowres jpeg /path/lowres/image.jpeg
 
 	// Or grab all of them
-	all_resources, _ := published_version.Resources()
+	allResources, _ := publishedVersion.Resources()
 	fmt.Println("--resources--")
-	for _, resource := range all_resources {
+	for _, resource := range allResources {
 		fmt.Println(resource.Name(), resource.Type(), resource.Location())
 	}
 	//--resources--

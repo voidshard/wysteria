@@ -35,7 +35,7 @@ func main() {
 	}
 
 	// Add some kind of resource(s) to our tree
-	err = oak01.AddResource("default", "png", "url://images/oak01.png")
+	_, err = oak01.AddResource("default", "png", "url://images/oak01.png")
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +81,7 @@ func main() {
 	forest_map_01.Publish()
 
 	// Now, let's create links on our forest to it's constituent trees
-	err = forest_map_01.LinkTo("oak", oak02, wysteria.Facets(customFacets))
+	_, err = forest_map_01.LinkTo("oak", oak02, wysteria.Facets(customFacets))
 	if err != nil {
 		panic(err)
 	}

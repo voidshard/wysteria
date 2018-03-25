@@ -18,12 +18,14 @@ package searchends
 import (
 	"errors"
 	"fmt"
+	"time"
 	wyc "github.com/voidshard/wysteria/common"
 )
 
 const (
 	// The most results we'll ever return in one page if no query args are given
 	matchAllSearchLimit = 10000
+	maxAttempts = 3
 
 	// Driver name strings
 	DriverElastic = "elastic"
@@ -33,7 +35,7 @@ const (
 var (
 	// All of the divers we know how to connect to
 	connectors = map[string]func(*Settings) (Searchbase, error){
-		DriverElastic: elasticConnect,
+		DriverElastic: elasticSixConnect,
 		DriverBleve:   bleveConnect,
 	}
 )
@@ -44,7 +46,23 @@ func Connect(settings *Settings) (Searchbase, error) {
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("Connector not found for %s", settings.Driver))
 	}
-	return connector(settings)
+
+	// Attempt to connect to the given sb, if something goes wrong, we'll re-attempt a few times
+	// before quitting. Mostly this helps in docker setups / test situations where a
+	// container may not have spun up yet.
+	attempts := 0
+	for {
+		sb, err := connector(settings)
+		if err != nil {
+			attempts += 1
+			if attempts >= maxAttempts {
+				return sb, err
+			}
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		return sb, err
+	}
 }
 
 // Interface to a data store whose primary goal is running search queries rather than storage.

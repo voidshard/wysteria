@@ -15,14 +15,13 @@
 package bleve
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/blevesearch/bleve/document"
 	"github.com/blevesearch/bleve/index"
@@ -50,6 +49,12 @@ type indexImpl struct {
 const storePath = "store"
 
 var mappingInternalKey = []byte("_mapping")
+
+const SearchQueryStartCallbackKey = "_search_query_start_callback_key"
+const SearchQueryEndCallbackKey = "_search_query_end_callback_key"
+
+type SearchQueryStartCallbackFn func(size uint64) error
+type SearchQueryEndCallbackFn func(size uint64) error
 
 func indexStorePath(path string) string {
 	return path + string(os.PathSeparator) + storePath
@@ -363,8 +368,59 @@ func (i *indexImpl) Search(req *SearchRequest) (sr *SearchResult, err error) {
 	return i.SearchInContext(context.Background(), req)
 }
 
+// memNeededForSearch is a helper function that returns an estimate of RAM
+// needed to execute a search request.
+func memNeededForSearch(req *SearchRequest,
+	searcher search.Searcher,
+	topnCollector *collector.TopNCollector) uint64 {
+
+	backingSize := req.Size + req.From + 1
+	if req.Size+req.From > collector.PreAllocSizeSkipCap {
+		backingSize = collector.PreAllocSizeSkipCap + 1
+	}
+	numDocMatches := backingSize + searcher.DocumentMatchPoolSize()
+
+	estimate := 0
+
+	// overhead, size in bytes from collector
+	estimate += topnCollector.Size()
+
+	var dm search.DocumentMatch
+	sizeOfDocumentMatch := dm.Size()
+
+	// pre-allocing DocumentMatchPool
+	var sc search.SearchContext
+	estimate += sc.Size() + numDocMatches*sizeOfDocumentMatch
+
+	// searcher overhead
+	estimate += searcher.Size()
+
+	// overhead from results, lowestMatchOutsideResults
+	estimate += (numDocMatches + 1) * sizeOfDocumentMatch
+
+	// additional overhead from SearchResult
+	var sr SearchResult
+	estimate += sr.Size()
+
+	// overhead from facet results
+	if req.Facets != nil {
+		var fr search.FacetResult
+		estimate += len(req.Facets) * fr.Size()
+	}
+
+	// highlighting, store
+	var d document.Document
+	if len(req.Fields) > 0 || req.Highlight != nil {
+		for i := 0; i < (req.Size + req.From); i++ { // size + from => number of hits
+			estimate += (req.Size + req.From) * d.Size()
+		}
+	}
+
+	return uint64(estimate)
+}
+
 // SearchInContext executes a search request operation within the provided
-// Context.  Returns a SearchResult object or an error.
+// Context. Returns a SearchResult object or an error.
 func (i *indexImpl) SearchInContext(ctx context.Context, req *SearchRequest) (sr *SearchResult, err error) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
@@ -429,6 +485,24 @@ func (i *indexImpl) SearchInContext(ctx context.Context, req *SearchRequest) (sr
 		collector.SetFacetsBuilder(facetsBuilder)
 	}
 
+	memNeeded := memNeededForSearch(req, searcher, collector)
+	if cb := ctx.Value(SearchQueryStartCallbackKey); cb != nil {
+		if cbF, ok := cb.(SearchQueryStartCallbackFn); ok {
+			err = cbF(memNeeded)
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if cb := ctx.Value(SearchQueryEndCallbackKey); cb != nil {
+		if cbF, ok := cb.(SearchQueryEndCallbackFn); ok {
+			defer func() {
+				_ = cbF(memNeeded)
+			}()
+		}
+	}
+
 	err = collector.Collect(ctx, searcher, indexReader)
 	if err != nil {
 		return nil, err
@@ -460,7 +534,8 @@ func (i *indexImpl) SearchInContext(ctx context.Context, req *SearchRequest) (sr
 			doc, err := indexReader.Document(hit.ID)
 			if err == nil && doc != nil {
 				if len(req.Fields) > 0 {
-					for _, f := range req.Fields {
+					fieldsToLoad := deDuplicate(req.Fields)
+					for _, f := range fieldsToLoad {
 						for _, docF := range doc.Fields {
 							if f == "*" || docF.Name() == f {
 								var value interface{}
@@ -755,4 +830,17 @@ func (f *indexImplFieldDict) Close() error {
 		return err
 	}
 	return f.indexReader.Close()
+}
+
+// helper function to remove duplicate entries from slice of strings
+func deDuplicate(fields []string) []string {
+	entries := make(map[string]struct{})
+	ret := []string{}
+	for _, entry := range fields {
+		if _, exists := entries[entry]; !exists {
+			entries[entry] = struct{}{}
+			ret = append(ret, entry)
+		}
+	}
+	return ret
 }

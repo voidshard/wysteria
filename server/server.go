@@ -44,11 +44,16 @@ type WysteriaServer struct {
 
 	settings *configuration
 
-	database          wdb.Database
-	searchbase        wsb.Searchbase
-	middleware_server wcm.EndpointServer
-	monitor           *wsi.Monitor
+	database         wdb.Database
+	searchbase       wsb.Searchbase
+	middlewareServer wcm.EndpointServer
+	monitor          *wsi.Monitor
 }
+
+const (
+	// default used internally when making otherwise limitless queries
+	defaultQueryLimit = 10000
+)
 
 var (
 	reservedColFacets  = []string{wyc.FacetCollection}
@@ -58,10 +63,13 @@ var (
 
 // Update facets on the collection with the given ID
 //
-func (s *WysteriaServer) UpdateCollection(id string, update map[string]string) error {
+func (s *WysteriaServer) UpdateCollectionFacets(id string, update map[string]string) error {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return err
+	}
+	if update == nil {
+		return nil
 	}
 
 	results, err := s.database.RetrieveCollection(id)
@@ -69,7 +77,7 @@ func (s *WysteriaServer) UpdateCollection(id string, update map[string]string) e
 		return err
 	}
 	if len(results) != 1 {
-		return errors.New(fmt.Sprintf("No Collection found with id %s", id))
+		return fmt.Errorf("no Collection found with id %s", id)
 	}
 
 	for key, value := range update {
@@ -88,10 +96,13 @@ func (s *WysteriaServer) UpdateCollection(id string, update map[string]string) e
 
 // Update facets on the resource with the given ID
 //
-func (s *WysteriaServer) UpdateResource(id string, update map[string]string) error {
+func (s *WysteriaServer) UpdateResourceFacets(id string, update map[string]string) error {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return err
+	}
+	if update == nil {
+		return nil
 	}
 
 	results, err := s.database.RetrieveResource(id)
@@ -99,7 +110,7 @@ func (s *WysteriaServer) UpdateResource(id string, update map[string]string) err
 		return err
 	}
 	if len(results) != 1 {
-		return errors.New(fmt.Sprintf("No Resource found with id %s", id))
+		return fmt.Errorf("no Resource found with id %s", id)
 	}
 
 	for key, value := range update {
@@ -115,10 +126,13 @@ func (s *WysteriaServer) UpdateResource(id string, update map[string]string) err
 
 // Update facets on the link with the given ID
 //
-func (s *WysteriaServer) UpdateLink(id string, update map[string]string) error {
+func (s *WysteriaServer) UpdateLinkFacets(id string, update map[string]string) error {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return err
+	}
+	if update == nil {
+		return nil
 	}
 
 	results, err := s.database.RetrieveLink(id)
@@ -126,7 +140,7 @@ func (s *WysteriaServer) UpdateLink(id string, update map[string]string) error {
 		return err
 	}
 	if len(results) != 1 {
-		return errors.New(fmt.Sprintf("No Link found with id %s", id))
+		return fmt.Errorf("no Link found with id %s", id)
 	}
 
 	for key, value := range update {
@@ -147,13 +161,16 @@ func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string
 	if err != nil {
 		return err
 	}
+	if update == nil {
+		return nil
+	}
 
 	vers, err := s.database.RetrieveVersion(id)
 	if err != nil {
 		return err
 	}
 	if len(vers) != 1 { // there must be something to update
-		return errors.New(fmt.Sprintf("No Version found with id %s", id))
+		return fmt.Errorf("no Version found with id %s", id)
 	}
 
 	version := vers[0]
@@ -179,13 +196,16 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 	if err != nil {
 		return err
 	}
+	if update == nil {
+		return nil
+	}
 
 	vers, err := s.database.RetrieveItem(id)
 	if err != nil {
 		return err
 	}
 	if len(vers) != 1 { // there must be something to update
-		return errors.New(fmt.Sprintf("No Item found with id %s", id))
+		return fmt.Errorf("no Item found with id %s", id)
 	}
 
 	item := vers[0]
@@ -214,20 +234,27 @@ func (s *WysteriaServer) CreateCollection(in *wyc.Collection) (string, error) {
 	}
 
 	if in.Name == "" { // Check required field
-		return "", errors.New("Name required for Collection")
+		return "", errors.New("name required for Collection")
+	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
 	}
 
-	parentName, ok := in.Facets[wyc.FacetCollection]
-	if ok { // Disallow use of root collection name if a parent ID is set
-		if parentName == wyc.FacetRootCollection && in.Parent != "" {
-			return "", errors.New(fmt.Sprintf("Parent ID cannot be set for parent collection with name %s", wyc.FacetRootCollection))
+	// set the parent name
+	if in.Parent == "" {
+		in.Facets[wyc.FacetCollection] = wyc.FacetRootCollection
+	} else {
+		parent, err := s.database.RetrieveCollection(in.Parent)
+		if err != nil {
+			return "", err
 		}
+		if len(parent) != 1 {
+			return "", fmt.Errorf("unable to find parent with id %s", in.Parent)
+		}
+		in.Facets[wyc.FacetCollection] = parent[0].Name
 	}
 
-	id := NewId()
-	in.Id = id
-
-	err = s.database.InsertCollection(id, in)
+	id, err := s.database.InsertCollection(in)
 	if err != nil {
 		return "", err
 	}
@@ -246,22 +273,25 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	}
 
 	if in.Parent == "" || in.ItemType == "" || in.Variant == "" {
-		return "", errors.New("Require Parent, ItemType, Variant to be set")
+		return "", errors.New("require Parent, ItemType, Variant to be set")
+	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
 	}
 
 	_, ok := in.Facets[wyc.FacetCollection]
 	if !ok {
-		return "", errors.New(fmt.Sprintf("Required facet %s not set", wyc.FacetCollection))
+		return "", fmt.Errorf("required facet %s not set", wyc.FacetCollection)
 	}
 
 	in.Facets[wyc.FacetItemType] = in.ItemType
 	in.Facets[wyc.FacetItemVariant] = in.Variant
 
-	in.Id = NewId()
-	err = s.database.InsertItem(in.Id, in)
+	id, err := s.database.InsertItem(in)
 	if err != nil {
 		return "", err
 	}
+	in.Id = id
 	return in.Id, s.searchbase.InsertItem(in.Id, in)
 }
 
@@ -276,23 +306,25 @@ func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 	}
 
 	if in.Parent == "" {
-		return "", 0, errors.New("Require Parent to be set")
+		return "", 0, errors.New("require Parent to be set")
+	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
 	}
 
 	for _, facet_key := range reservedVerFacets {
 		_, ok := in.Facets[facet_key]
 		if !ok {
-			return "", 0, errors.New(fmt.Sprintf("Required facet '%s' not set", facet_key))
+			return "", 0, fmt.Errorf("required facet '%s' not set", facet_key)
 		}
 	}
 
-	in.Id = NewId()
-	version_number, err := s.database.InsertNextVersion(in.Id, in)
+	id, versionNumber, err := s.database.InsertNextVersion(in)
 	if err != nil {
 		return "", 0, err
 	}
-
-	in.Number = version_number
+	in.Id = id
+	in.Number = versionNumber
 	return in.Id, in.Number, s.searchbase.InsertVersion(in.Id, in)
 }
 
@@ -309,12 +341,15 @@ func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {
 	if in.Parent == "" || in.Location == "" {
 		return "", errors.New("Require Parent, Location to be set")
 	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
+	}
 
-	in.Id = NewId()
-	err = s.database.InsertResource(in.Id, in)
+	id, err := s.database.InsertResource(in)
 	if err != nil {
 		return "", err
 	}
+	in.Id = id
 	return in.Id, s.searchbase.InsertResource(in.Id, in)
 }
 
@@ -337,13 +372,16 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 	if in.Src == in.Dst {
 		return "", errors.New("You may not link something to itself")
 	}
+	if in.Facets == nil {
+		in.Facets = make(map[string]string)
+	}
 
 	// We're good to create our link
-	in.Id = NewId()
-	err = s.database.InsertLink(in.Id, in)
+	id, err := s.database.InsertLink(in)
 	if err != nil {
 		return "", err
 	}
+	in.Id = id
 	return in.Id, s.searchbase.InsertLink(in.Id, in)
 }
 
@@ -357,13 +395,26 @@ func childrenOf(ids ...string) []*wyc.QueryDesc {
 }
 
 // Delete some collection from the system.
-// Assuming this works, we kick off a routine to kill all of the children.
-// Please be aware that delete operations, especially of collections, are heavy operations that introduce a number
-// of race conditions for people still using the collection (or children of it).
 func (s *WysteriaServer) DeleteCollection(id string) error {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return err
+	}
+
+	childCollections, err := s.searchbase.QueryCollection(defaultQueryLimit, 0, childrenOf(id)...)
+	if err != nil {
+		return err
+	}
+	if len(childCollections) > 0 {
+		return fmt.Errorf("unable to delete: There are %d child collections", len(childCollections))
+	}
+
+	children, err := s.searchbase.QueryItem(defaultQueryLimit, 0, childrenOf(id)...)
+	if err != nil {
+		return err
+	}
+	if len(children) > 0 {
+		return fmt.Errorf("unable to delete: There are %d child items", len(children))
 	}
 
 	err = s.searchbase.DeleteCollection(id)
@@ -376,16 +427,7 @@ func (s *WysteriaServer) DeleteCollection(id string) error {
 		return err
 	}
 
-	go func() {
-		// Kick off a routine to slay the children
-		children, err := s.searchbase.QueryItem(0, 0, childrenOf(id)...)
-		if err == nil {
-			for _, child := range children {
-				s.DeleteItem(child)
-			}
-		}
-	}()
-	return nil
+	return err
 }
 
 // Given some ids, build query to find all links mentioning those ids (as either src or dst)
@@ -402,11 +444,18 @@ func linkedTo(ids ...string) []*wyc.QueryDesc {
 }
 
 // Delete some item from the system.
-// Assuming this works, we kick off a routine to kill all of the children.
 func (s *WysteriaServer) DeleteItem(id string) error {
 	err := s.shouldServeRequest()
 	if err != nil {
 		return err
+	}
+
+	children, err := s.searchbase.QueryVersion(defaultQueryLimit, 0, childrenOf(id)...)
+	if err != nil {
+		return err
+	}
+	if len(children) > 0 {
+		return fmt.Errorf("unable to delete: There are %d child versions", len(children))
 	}
 
 	err = s.searchbase.DeleteItem(id)
@@ -419,29 +468,16 @@ func (s *WysteriaServer) DeleteItem(id string) error {
 		return err
 	}
 
-	go func() {
-		// kick off a routine to kill links that mention this
-		linked, err := s.searchbase.QueryLink(0, 0, linkedTo(id)...)
-		if err == nil {
-			s.searchbase.DeleteLink(linked...)
-			s.database.DeleteLink(linked...)
-		}
-	}()
+	linked, err := s.searchbase.QueryLink(defaultQueryLimit, 0, linkedTo(id)...)
+	if err == nil && len(linked) > 0 {
+		s.searchbase.DeleteLink(linked...)
+		s.database.DeleteLink(linked...)
+	}
 
-	go func() {
-		// Kick off a routine to slay children
-		children, err := s.searchbase.QueryVersion(0, 0, childrenOf(id)...)
-		if err == nil {
-			for _, child := range children {
-				s.DeleteVersion(child)
-			}
-		}
-	}()
 	return nil
 }
 
 // Delete some version from the system.
-// Assuming this works, we kick off a routine to kill all of the children.
 func (s *WysteriaServer) DeleteVersion(id string) error {
 	err := s.shouldServeRequest()
 	if err != nil {
@@ -458,24 +494,18 @@ func (s *WysteriaServer) DeleteVersion(id string) error {
 		return err
 	}
 
-	go func() {
-		// kick off a routine to kill links that mention this
-		linked, err := s.searchbase.QueryLink(0, 0, linkedTo(id)...)
-		if err == nil {
-			s.searchbase.DeleteLink(linked...)
-			s.database.DeleteLink(linked...)
-		}
-	}()
+	linked, err := s.searchbase.QueryLink(defaultQueryLimit, 0, linkedTo(id)...)
+	if err == nil && len(linked) > 0 {
+		s.searchbase.DeleteLink(linked...)
+		s.database.DeleteLink(linked...)
+	}
 
-	go func() {
-		// Kick off a routine to slay children
-		children, err := s.searchbase.QueryResource(0, 0, childrenOf(id)...)
-		if err == nil {
-			for _, child := range children {
-				s.DeleteResource(child)
-			}
-		}
-	}()
+	children, err := s.searchbase.QueryResource(defaultQueryLimit, 0, childrenOf(id)...)
+	if err == nil && len(children) > 0 {
+		s.searchbase.DeleteResource(children...)
+		s.database.DeleteResource(children...)
+	}
+
 	return nil
 }
 
@@ -511,7 +541,7 @@ func (s *WysteriaServer) FindCollections(limit, offset int32, qs []*wyc.QueryDes
 	}
 
 	if len(ids) < 1 {
-		return []*wyc.Collection{}, nil
+		return nil, nil
 	}
 	return s.database.RetrieveCollection(ids...)
 }
@@ -533,7 +563,7 @@ func (s *WysteriaServer) FindItems(limit, offset int32, qs []*wyc.QueryDesc) ([]
 	}
 
 	if len(ids) < 1 {
-		return []*wyc.Item{}, nil
+		return nil, nil
 	}
 	return s.database.RetrieveItem(ids...)
 }
@@ -555,7 +585,7 @@ func (s *WysteriaServer) FindVersions(limit, offset int32, qs []*wyc.QueryDesc) 
 	}
 
 	if len(ids) < 1 {
-		return []*wyc.Version{}, nil
+		return nil, nil
 	}
 	return s.database.RetrieveVersion(ids...)
 }
@@ -577,7 +607,7 @@ func (s *WysteriaServer) FindResources(limit, offset int32, qs []*wyc.QueryDesc)
 	}
 
 	if len(ids) < 1 {
-		return []*wyc.Resource{}, nil
+		return nil, nil
 	}
 	return s.database.RetrieveResource(ids...)
 }
@@ -599,7 +629,7 @@ func (s *WysteriaServer) FindLinks(limit, offset int32, qs []*wyc.QueryDesc) ([]
 	}
 
 	if len(ids) < 1 {
-		return []*wyc.Link{}, nil
+		return nil, nil
 	}
 	return s.database.RetrieveLink(ids...)
 }
@@ -624,13 +654,16 @@ func (s *WysteriaServer) SetPublishedVersion(version_id string) error {
 
 // Shutdown the main server
 func (s *WysteriaServer) Shutdown() {
-	s.middleware_server.Shutdown()
+	s.monitor.Warn("shutdown", wsi.InFunc("Shutdown()"))
+	s.middlewareServer.Shutdown()
 	s.database.Close()
 	s.searchbase.Close()
 }
 
 // Set if the server should serve a client request.
 func (s *WysteriaServer) setRefuseClientRequests(value bool, reason string) {
+	s.monitor.Warn("refuseClients", wsi.InFunc("setRefuseClientRequests()"), wsi.Note(reason, value))
+
 	s.refuseClientLock.Lock()
 	defer s.refuseClientLock.Unlock()
 
@@ -718,7 +751,8 @@ func (s *WysteriaServer) Run() error {
 	if err != nil {
 		return err
 	}
-	s.database = database
+	dblogger := newDatabaseMonitor(database, s.monitor)
+	s.database = dblogger
 
 	// [2] Connect / spin up the searchbase
 	log.Println(fmt.Sprintf(msg, "searchbase", s.settings.Searchbase.Driver, s.settings.Searchbase.Host, s.settings.Searchbase.Port))
@@ -726,17 +760,19 @@ func (s *WysteriaServer) Run() error {
 	if err != nil {
 		return err
 	}
-	s.searchbase = searchbase
+	sblogger := newSearchbaseMonitor(searchbase, s.monitor)
+	s.searchbase = sblogger
 
 	// [4] Spin up or connect to whatever is bring us requests
 	log.Println(fmt.Sprintf("Initializing middleware %s", s.settings.Middleware.Driver))
-	mware_server, err := wcm.NewServer(s.settings.Middleware.Driver)
+	mwareServer, err := wcm.NewServer(s.settings.Middleware.Driver)
 	if err != nil {
 		return err
 	}
-	s.middleware_server = mware_server
+	s.middlewareServer = mwareServer
 
-	log.Println("Spinning up middleware & waiting for connections")
-	shim := Shim{}
+	log.Println("[Booting]")
+
+	shim := newMiddlewareMonitor(s.middlewareServer, s.monitor)
 	return shim.ListenAndServe(&s.settings.Middleware, s)
 }

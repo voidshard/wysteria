@@ -17,10 +17,19 @@ package searcher
 import (
 	"fmt"
 	"math"
+	"reflect"
 
 	"github.com/blevesearch/bleve/index"
 	"github.com/blevesearch/bleve/search"
+	"github.com/blevesearch/bleve/size"
 )
+
+var reflectStaticSizePhraseSearcher int
+
+func init() {
+	var ps PhraseSearcher
+	reflectStaticSizePhraseSearcher = int(reflect.TypeOf(ps).Size())
+}
 
 type PhraseSearcher struct {
 	indexReader  index.IndexReader
@@ -30,6 +39,27 @@ type PhraseSearcher struct {
 	slop         int
 	terms        [][]string
 	initialized  bool
+}
+
+func (s *PhraseSearcher) Size() int {
+	sizeInBytes := reflectStaticSizePhraseSearcher + size.SizeOfPtr
+
+	if s.mustSearcher != nil {
+		sizeInBytes += s.mustSearcher.Size()
+	}
+
+	if s.currMust != nil {
+		sizeInBytes += s.currMust.Size()
+	}
+
+	for _, entry := range s.terms {
+		sizeInBytes += size.SizeOfSlice
+		for _, entry1 := range entry {
+			sizeInBytes += size.SizeOfString + len(entry1)
+		}
+	}
+
+	return sizeInBytes
 }
 
 func NewPhraseSearcher(indexReader index.IndexReader, terms []string, field string, options search.SearcherOptions) (*PhraseSearcher, error) {
@@ -226,6 +256,10 @@ type phrasePart struct {
 	loc  *search.Location
 }
 
+func (p *phrasePart) String() string {
+	return fmt.Sprintf("[%s %v]", p.term, p.loc)
+}
+
 type phrasePath []*phrasePart
 
 func (p phrasePath) MergeInto(in search.TermLocationMap) {
@@ -308,6 +342,15 @@ func (s *PhraseSearcher) Advance(ctx *search.SearchContext, ID index.IndexIntern
 		if err != nil {
 			return nil, err
 		}
+	}
+	if s.currMust != nil {
+		if s.currMust.IndexInternalID.Compare(ID) >= 0 {
+			return s.Next(ctx)
+		}
+		ctx.DocumentMatchPool.Put(s.currMust)
+	}
+	if s.currMust == nil {
+		return nil, nil
 	}
 	var err error
 	s.currMust, err = s.mustSearcher.Advance(ctx, ID)

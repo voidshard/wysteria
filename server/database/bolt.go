@@ -52,10 +52,10 @@ func boltConnect(settings *Settings) (Database, error) {
 		return nil, err
 	}
 
-	bolt_endpoint := &boltDb{
+	boltEndpoint := &boltDb{
 		db: db,
 	}
-	return bolt_endpoint, bolt_endpoint.createBuckets()
+	return boltEndpoint, boltEndpoint.createBuckets()
 }
 
 // Set the version with the given Id as the published version
@@ -73,18 +73,18 @@ func (b *boltDb) SetPublished(in string) error {
 			return err
 		}
 
-		collision_key := []byte(fmt.Sprintf("published:%s", version.Parent))
-		return tx.Bucket(bucketCollisions).Put(collision_key, version_id)
+		collisionKeys := []byte(fmt.Sprintf("published:%s", version.Parent))
+		return tx.Bucket(bucketCollisions).Put(collisionKeys, version_id)
 	})
 }
 
 // Given the Id of some item, return the version we've got marked as published (if any)
 func (b *boltDb) Published(in string) (*wyc.Version, error) {
-	collision_key := []byte(fmt.Sprintf("published:%s", in))
+	collisionKeys := []byte(fmt.Sprintf("published:%s", in))
 
 	val := &wyc.Version{}
 	err := b.db.Update(func(tx *bolt.Tx) error {
-		version_id := tx.Bucket(bucketCollisions).Get(collision_key)
+		version_id := tx.Bucket(bucketCollisions).Get(collisionKeys)
 		if version_id == nil {
 			return errors.New(fmt.Sprintf("No published version for item with id %s", in))
 		}
@@ -114,18 +114,22 @@ func (b *boltDb) genericInsert(id string, in wyc.Marshalable, bucket []byte) err
 }
 
 // Insert a collection into the database given the Id and the Collection itself
-func (b *boltDb) InsertCollection(id string, in *wyc.Collection) error {
+func (b *boltDb) InsertCollection(in *wyc.Collection) (string, error) {
 	// From collision key for a collection name
-	collision_key := collision_key_collection(in)
+	collision_key := collisionKeyCollection(in)
+	id := ""
 
-	// Marshal our given collection to []byte
-	// This is done here so we don't do anything to unnecessary inside our transaction
-	data, err := in.MarshalJSON()
-	if err != nil {
-		return err
-	}
+	return id, b.db.Update(func(tx *bolt.Tx) error {
+		id = NewCollectionId(in)
+		in.Id = id
 
-	return b.db.Update(func(tx *bolt.Tx) error {
+		// Marshal our given collection to []byte
+		// This is done here so we don't do anything to unnecessary inside our transaction
+		data, err := in.MarshalJSON()
+		if err != nil {
+			return err
+		}
+
 		// See if our collision key exists already (if so, we've made a collection of this name before)
 		val := tx.Bucket(bucketCollisions).Get(collision_key)
 		if val != nil {
@@ -137,7 +141,7 @@ func (b *boltDb) InsertCollection(id string, in *wyc.Collection) error {
 		// locks it for a 'read write' transaction.
 		// Other routines that reach this Update func will also need to lock the db for the whole
 		// transaction. So we should be good ..
-		err := tx.Bucket(bucketCollisions).Put(collision_key, []byte("x")) // Nb the value here is not used
+		err = tx.Bucket(bucketCollisions).Put(collision_key, []byte("x")) // Nb the value here is not used
 		if err != nil {
 			return err
 		}
@@ -149,21 +153,26 @@ func (b *boltDb) InsertCollection(id string, in *wyc.Collection) error {
 
 // Get a unique collision key for the given item.
 //  - We require it to match on any item from the same parent, with the same type and variant
-func collision_key_item(in *wyc.Item) []byte {
+func collisionKeyItem(in *wyc.Item) []byte {
 	return []byte(fmt.Sprintf("item:%s:%s:%s", in.Parent, in.ItemType, in.Variant))
 }
 
-func (b *boltDb) InsertItem(id string, in *wyc.Item) error {
+func (b *boltDb) InsertItem(in *wyc.Item) (string, error) {
 	// Form unique collision for items with the same parent, type & variant
-	collision_key := collision_key_item(in)
+	collision_key := collisionKeyItem(in)
 
-	// Marshal to []byte before transaction
-	data, err := in.MarshalJSON()
-	if err != nil {
-		return err
-	}
+	id := ""
 
-	return b.db.Update(func(tx *bolt.Tx) error {
+	return id, b.db.Update(func(tx *bolt.Tx) error {
+		id = NewItemId(in)
+		in.Id = id
+
+		// Marshal to []byte before transaction
+		data, err := in.MarshalJSON()
+		if err != nil {
+			return err
+		}
+
 		// Check if we've made this before in the collision bucket
 		val := tx.Bucket(bucketCollisions).Get(collision_key)
 		if val != nil {
@@ -171,7 +180,7 @@ func (b *boltDb) InsertItem(id string, in *wyc.Item) error {
 		}
 
 		// if not, set it in the collision bucket to say we've made it
-		err := tx.Bucket(bucketCollisions).Put(collision_key, []byte("x")) // Nb the value here is not used
+		err = tx.Bucket(bucketCollisions).Put(collision_key, []byte("x")) // Nb the value here is not used
 		if err != nil {
 			return err
 		}
@@ -210,19 +219,22 @@ func byteToInt32(in []byte) (int32, error) {
 
 // Get a unique collision key for the given version.
 //  - We require it to match on any child version of the parent item
-func collision_key_version(parent_id string) []byte {
+func collisionKeyVersion(parent_id string) []byte {
 	return []byte(fmt.Sprintf("version:%s", parent_id))
 }
 
 // Insert version into the db & set version number
-func (b *boltDb) InsertNextVersion(id string, in *wyc.Version) (int32, error) {
+func (b *boltDb) InsertNextVersion(in *wyc.Version) (string, int32, error) {
 	// Create unique key to track the greatest version number yet created for a given Item
-	collision_key := collision_key_version(in.Parent)
+	collision_key := collisionKeyVersion(in.Parent)
 
 	// Initialise version number to 0
 	new_version := int32(0)
 
-	return new_version, b.db.Update(func(tx *bolt.Tx) error {
+	// We don't know the ID until we have a version number
+	id := ""
+
+	return id, new_version, b.db.Update(func(tx *bolt.Tx) error {
 		// Get the saved value for our unique key
 		raw_val := tx.Bucket(bucketCollisions).Get(collision_key)
 		if raw_val == nil {
@@ -237,6 +249,13 @@ func (b *boltDb) InsertNextVersion(id string, in *wyc.Version) (int32, error) {
 			new_version = int32(val) + 1
 		}
 
+		// Set the version number of our version
+		in.Number = new_version
+
+		// since we've settled on a version number, we can now set the ID
+		id = NewVersionId(in)
+		in.Id = id
+
 		// Now we need the version number as a []byte again to store it
 		raw_result, err := int32ToByte(new_version)
 		if err != nil {
@@ -248,9 +267,6 @@ func (b *boltDb) InsertNextVersion(id string, in *wyc.Version) (int32, error) {
 		if err != nil {
 			return err
 		}
-
-		// Set the version number of our version
-		in.Number = new_version
 
 		// marshal our version to []byte
 		data, err := in.MarshalJSON()
@@ -264,13 +280,63 @@ func (b *boltDb) InsertNextVersion(id string, in *wyc.Version) (int32, error) {
 }
 
 // Save the given resource with given Id to the database
-func (b *boltDb) InsertResource(id string, in *wyc.Resource) error {
-	return b.genericInsert(id, in, bucketResource)
+func (b *boltDb) InsertResource(in *wyc.Resource) (string, error) {
+	id := NewResourceId(in)
+	in.Id = id
+	collisionKey := collisionKeyResource(in)
+
+	return id, b.db.Update(func(tx *bolt.Tx) error {
+		// Marshal to []byte before transaction
+		data, err := in.MarshalJSON()
+		if err != nil {
+			return err
+		}
+
+		// Check if we've made this before in the collision bucket
+		val := tx.Bucket(bucketCollisions).Get(collisionKey)
+		if val != nil {
+			return errors.New(fmt.Sprintf("Unable to insert Resource %s %s %s %s it exists already", in.Parent, in.Name, in.ResourceType, in.Location))
+		}
+
+		// if not, set it in the collision bucket to say we've made it
+		err = tx.Bucket(bucketCollisions).Put(collisionKey, []byte("x")) // Nb the value here is not used
+		if err != nil {
+			return err
+		}
+
+		// finally, save the actual item data
+		return tx.Bucket(bucketResource).Put([]byte(id), data)
+	})
 }
 
 // Save the given link with given Id to the database
-func (b *boltDb) InsertLink(id string, in *wyc.Link) error {
-	return b.genericInsert(id, in, bucketLink)
+func (b *boltDb) InsertLink(in *wyc.Link) (string, error) {
+	id := NewLinkId(in)
+	in.Id = id
+	collisionKey := collisionKeyLink(in)
+
+	return id, b.db.Update(func(tx *bolt.Tx) error {
+		// Marshal to []byte before transaction
+		data, err := in.MarshalJSON()
+		if err != nil {
+			return err
+		}
+
+		// Check if we've made this before in the collision bucket
+		val := tx.Bucket(bucketCollisions).Get(collisionKey)
+		if val != nil {
+			return errors.New(fmt.Sprintf("Unable to insert Link %s %s %s it exists already", in.Name, in.Src, in.Dst))
+		}
+
+		// if not, set it in the collision bucket to say we've made it
+		err = tx.Bucket(bucketCollisions).Put(collisionKey, []byte("x")) // Nb the value here is not used
+		if err != nil {
+			return err
+		}
+
+		// finally, save the actual item data
+		return tx.Bucket(bucketLink).Put([]byte(id), data)
+	})
 }
 
 // Retrieve all collections that match the given Id(s)
@@ -423,8 +489,20 @@ func (b *boltDb) genericDelete(bucket []byte, ids ...string) error {
 
 // Get a unique collision key for the given collection.
 //  - We require it to match on any collection of the same name
-func collision_key_collection(collection *wyc.Collection) []byte {
-	return []byte(fmt.Sprintf("collection:%s%s", collection.Name, collection.Parent))
+func collisionKeyCollection(collection *wyc.Collection) []byte {
+	return []byte(fmt.Sprintf("collection:%s:%s", collection.Name, collection.Parent))
+}
+
+// Get a unique collision key for the given link.
+//  - We require it to match on any name, src, dst
+func collisionKeyLink(in *wyc.Link) []byte {
+	return []byte(fmt.Sprintf("link:%s:%s:%s", in.Name, in.Src, in.Dst))
+}
+
+// Get a unique collision key for the given resource.
+//  - We require it to match on any resource of the same parent, name, type, location
+func collisionKeyResource(in *wyc.Resource) []byte {
+	return []byte(fmt.Sprintf("resource:%s:%s:%s:%s", in.Parent, in.Name, in.ResourceType, in.Location))
 }
 
 // Delete collection(s) by Id(s).
@@ -438,7 +516,7 @@ func (b *boltDb) DeleteCollection(ids ...string) error {
 
 	// Remove any recorded collisions for these collections
 	for _, collection := range collections {
-		collision_key := collision_key_collection(collection)
+		collision_key := collisionKeyCollection(collection)
 		err = b.db.Update(func(tx *bolt.Tx) error {
 			return tx.Bucket(bucketCollisions).Delete(collision_key)
 		})
@@ -462,8 +540,8 @@ func (b *boltDb) DeleteItem(ids ...string) error {
 
 	// Remove all matching collision data for our items
 	for _, item := range items {
-		published_version_collision_key := collision_key_version(item.Id)
-		item_collision_key := collision_key_item(item)
+		published_version_collision_key := collisionKeyVersion(item.Id)
+		item_collision_key := collisionKeyItem(item)
 
 		// remove unique item type / variant information (item collision key)
 		err = b.db.Update(func(tx *bolt.Tx) error {

@@ -17,6 +17,9 @@ import (
 
 const (
 	// Default nats settings
+	maxAttempts = 3 // max initial connection attempts
+	retryAttempts = 3 // retry attempts on failures (for idempotent actions)
+
 	natsDefaultHost = "localhost"
 	natsDefaultPort = 4222
 	natsQueueServer = "server_queue"
@@ -92,8 +95,23 @@ func (c *natsClient) Connect(config *Settings) error {
 }
 
 // Send some raw request to the server and await reply
-func (c *natsClient) serverRequest(subject string, data []byte) (*nats.Msg, error) {
-	return c.conn.Request(natsRouteClient+subject, data, timeout)
+//  - We will also retry requests on failure(s) if they're marked as idempotent
+func (c *natsClient) serverRequest(subject string, data []byte, idempotent bool) (*nats.Msg, error) {
+	attempts := 0
+	for {
+		msg, err := c.conn.Request(natsRouteClient+subject, data, timeout)
+		if err == nil || !idempotent {
+			// we don't need to retry or cannot :(
+			return msg, err
+		}
+
+		attempts += 1
+		if attempts >= retryAttempts {
+			// no more retries
+			return msg, err
+		}
+		continue
+	}
 }
 
 // Flush and close connection(s) to server
@@ -121,7 +139,7 @@ func (c *natsClient) CreateCollection(in *wyc.Collection) (id string, err error)
 		return
 	}
 
-	msg, err := c.serverRequest(callCreateCollection, data)
+	msg, err := c.serverRequest(callCreateCollection, data, false)
 	if err != nil {
 		return
 	}
@@ -149,7 +167,7 @@ func (c *natsClient) CreateItem(in *wyc.Item) (id string, err error) {
 		return
 	}
 
-	msg, err := c.serverRequest(callCreateItem, data)
+	msg, err := c.serverRequest(callCreateItem, data, false)
 	if err != nil {
 		return
 	}
@@ -177,7 +195,7 @@ func (c *natsClient) CreateVersion(in *wyc.Version) (id string, num int32, err e
 		return
 	}
 
-	msg, err := c.serverRequest(callCreateVersion, data)
+	msg, err := c.serverRequest(callCreateVersion, data, false)
 	if err != nil {
 		return
 	}
@@ -201,7 +219,7 @@ func (c *natsClient) CreateResource(in *wyc.Resource) (id string, err error) {
 		return
 	}
 
-	msg, err := c.serverRequest(callCreateResource, data)
+	msg, err := c.serverRequest(callCreateResource, data, false)
 	if err != nil {
 		return
 	}
@@ -226,7 +244,7 @@ func (c *natsClient) CreateLink(in *wyc.Link) (id string, err error) {
 		return
 	}
 
-	msg, err := c.serverRequest(callCreateLink, data)
+	msg, err := c.serverRequest(callCreateLink, data, false)
 	if err != nil {
 		return
 	}
@@ -248,7 +266,7 @@ func (c *natsClient) genericDelete(id, subject string) error {
 		return err
 	}
 
-	msg, err := c.serverRequest(subject, data)
+	msg, err := c.serverRequest(subject, data, true)
 	if err != nil {
 		return err
 	}
@@ -303,7 +321,7 @@ func (c *natsClient) FindCollections(limit, offset int32, query []*wyc.QueryDesc
 		return
 	}
 
-	msg, err := c.serverRequest(callFindCollection, data)
+	msg, err := c.serverRequest(callFindCollection, data, true)
 	if err != nil {
 		return
 	}
@@ -328,7 +346,7 @@ func (c *natsClient) FindItems(limit, offset int32, query []*wyc.QueryDesc) (res
 		return
 	}
 
-	msg, err := c.serverRequest(callFindItem, data)
+	msg, err := c.serverRequest(callFindItem, data, true)
 	if err != nil {
 		return
 	}
@@ -353,7 +371,7 @@ func (c *natsClient) FindVersions(limit, offset int32, query []*wyc.QueryDesc) (
 		return
 	}
 
-	msg, err := c.serverRequest(callFindVersion, data)
+	msg, err := c.serverRequest(callFindVersion, data, true)
 	if err != nil {
 		return
 	}
@@ -378,7 +396,7 @@ func (c *natsClient) FindResources(limit, offset int32, query []*wyc.QueryDesc) 
 		return
 	}
 
-	msg, err := c.serverRequest(callFindResource, data)
+	msg, err := c.serverRequest(callFindResource, data, true)
 	if err != nil {
 		return
 	}
@@ -403,7 +421,7 @@ func (c *natsClient) FindLinks(limit, offset int32, query []*wyc.QueryDesc) (res
 		return
 	}
 
-	msg, err := c.serverRequest(callFindLink, data)
+	msg, err := c.serverRequest(callFindLink, data, true)
 	if err != nil {
 		return
 	}
@@ -429,7 +447,7 @@ func (c *natsClient) PublishedVersion(id string) (*wyc.Version, error) {
 		return nil, err
 	}
 
-	msg, err := c.serverRequest(callGetPublished, data)
+	msg, err := c.serverRequest(callGetPublished, data, true)
 	if err != nil {
 		return nil, err
 	}
@@ -452,7 +470,7 @@ func (c *natsClient) SetPublishedVersion(id string) error {
 		return err
 	}
 
-	msg, err := c.serverRequest(callSetPublished, data)
+	msg, err := c.serverRequest(callSetPublished, data, true)
 	if err != nil {
 		return err
 	}
@@ -478,7 +496,11 @@ func (c *natsClient) genericUpdateFacets(id, subject string, facets map[string]s
 		return err
 	}
 
-	msg, err := c.serverRequest(subject, data)
+	// Update facets only updates given facets to the given values on one particular thing, although we could
+	// technically set someone's values that've been set in the meantime, this isn't thought to be a huge deal - they
+	// can always be set again in this event.
+	// In any event, there is a debate to be had about whether it's a good plan to mark this as idempotent ..
+	msg, err := c.serverRequest(subject, data, true)
 	if err != nil {
 		return err
 	}
@@ -527,13 +549,14 @@ type natsServer struct {
 
 // If no nats config is given this is called to spin up a nats server of our own to run embedded.
 func (s *natsServer) spinup(options *natsd.Options) (string, error) {
+	log.Println("Spinning up embedded nats server")
 	s.embedded = natsd.New(options)
 	go s.embedded.Start()
 
 	if s.embedded.ReadyForConnections(timeout) {
 		return fmt.Sprintf("nats://%s:%d", natsDefaultHost, natsDefaultPort), nil
 	}
-	return "", errors.New("Failed to spin up local nats server")
+	return "", fmt.Errorf("failed to spin up local nats server")
 }
 
 // Start up and serve client requests.
@@ -1138,7 +1161,21 @@ func connect(config *Settings) (*nats.Conn, error) {
 		opts = append(opts, nats.Secure(tlsconf))
 	}
 
-	return nats.Connect(config.Config, opts...)
+	// Connect to Nats. We'll retry a few times if things go wrong, just to say we've given it a fair
+	// go before throwing in the towel.
+	attempts := 0
+	for {
+		conn, err := nats.Connect(config.Config, opts...)
+		if err != nil {
+			attempts += 1
+			if attempts >= maxAttempts {
+				return conn, err
+			}
+			continue
+			time.Sleep(1 * time.Second)
+		}
+		return conn, err
+	}
 }
 
 // Shutdown the server and kill connections

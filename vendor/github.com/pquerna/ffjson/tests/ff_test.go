@@ -38,14 +38,14 @@ var outputFileOnError = false
 
 func newLogRecord() *Record {
 	return &Record{
-		OriginId: 11,
+		OriginID: 11,
 		Method:   "POST",
 	}
 }
 
 func newLogFFRecord() *FFRecord {
 	return &FFRecord{
-		OriginId: 11,
+		OriginID: 11,
 		Method:   "POST",
 	}
 }
@@ -132,7 +132,7 @@ func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 
 func BenchmarkSimpleUnmarshal(b *testing.B) {
 	record := newLogFFRecord()
-	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	buf := []byte(`{"id": 123213, "OriginID": 22, "meth": "GET"}`)
 	err := record.UnmarshalJSON(buf)
 	if err != nil {
 		b.Fatalf("UnmarshalJSON: %v", err)
@@ -150,7 +150,7 @@ func BenchmarkSimpleUnmarshal(b *testing.B) {
 
 func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
 	record := newLogRecord()
-	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	buf := []byte(`{"id": 123213, "OriginID": 22, "meth": "GET"}`)
 	err := json.Unmarshal(buf, record)
 	if err != nil {
 		b.Fatalf("json.Unmarshal: %v", err)
@@ -206,7 +206,7 @@ func TestMarshalEncoderError(t *testing.T) {
 }
 
 func TestUnmarshalFaster(t *testing.T) {
-	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	buf := []byte(`{"id": 123213, "OriginID": 22, "meth": "GET"}`)
 	record := newLogFFRecord()
 	err := ffjson.UnmarshalFast(buf, record)
 	require.NoError(t, err)
@@ -221,7 +221,7 @@ func TestUnmarshalFaster(t *testing.T) {
 func TestSimpleUnmarshal(t *testing.T) {
 	record := newLogFFRecord()
 
-	err := record.UnmarshalJSON([]byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`))
+	err := record.UnmarshalJSON([]byte(`{"id": 123213, "OriginID": 22, "meth": "GET"}`))
 	if err != nil {
 		t.Fatalf("UnmarshalJSON: %v", err)
 	}
@@ -230,8 +230,8 @@ func TestSimpleUnmarshal(t *testing.T) {
 		t.Fatalf("record.Timestamp: expected: 0 got: %v", record.Timestamp)
 	}
 
-	if record.OriginId != 22 {
-		t.Fatalf("record.OriginId: expected: 22 got: %v", record.OriginId)
+	if record.OriginID != 22 {
+		t.Fatalf("record.OriginID: expected: 22 got: %v", record.OriginID)
 	}
 
 	if record.Method != "GET" {
@@ -382,7 +382,7 @@ func testExpectedXVal(t *testing.T, expected interface{}, xval string, ff interf
 func testExpectedError(t *testing.T, expected error, xval string, ff json.Unmarshaler) {
 	buf := []byte(`{"X":` + xval + `}`)
 	err := ff.UnmarshalJSON(buf)
-	require.Error(t, err, "ff[%T] failed to Unmarshal", ff)
+	require.Errorf(t, err, "ff[%T] failed to Unmarshal", ff)
 	require.IsType(t, expected, err)
 }
 
@@ -435,7 +435,7 @@ func TestArray(t *testing.T) {
 	buf := []byte(`{"X": null}`)
 	err := json.Unmarshal(buf, &x)
 	require.NoError(t, err, "Unmarshal of null into array.")
-	var eq [3]int = [3]int{}
+	var eq = [3]int{}
 	require.Equal(t, x.X, eq)
 }
 
@@ -453,7 +453,7 @@ func TestSlice(t *testing.T) {
 	buf := []byte(`{"X": null}`)
 	err := json.Unmarshal(buf, &x)
 	require.NoError(t, err, "Unmarshal of null into slice.")
-	var eq []int = nil
+	var eq []int
 	require.Equal(t, x.X, eq)
 }
 
@@ -461,6 +461,30 @@ func TestSlicePtr(t *testing.T) {
 	testType(t, &TslicePtr{X: []*int{}}, &XslicePtr{X: []*int{}})
 	v := 33
 	testCycle(t, &TslicePtr{X: []*int{&v}}, &XslicePtr{X: []*int{}})
+}
+
+func TestSlicePtrNils(t *testing.T) {
+	v1 := 3
+	v2 := 4
+	testType(t, &TslicePtr{X: []*int{nil, &v1, nil, &v2}}, &XslicePtr{X: []*int{nil, &v1, nil, &v2}})
+}
+
+func TestMapPtrNils(t *testing.T) {
+	v1 := 3
+	v2 := 4
+	testType(t, &TMapStringPtr{X: map[string]*int{"a": nil, "b": &v1, "c": nil, "d": &v2}}, &XMapStringPtr{X: map[string]*int{"a": nil, "b": &v1, "c": nil, "d": &v2}})
+}
+
+func TestSlicePtrStructNils(t *testing.T) {
+	v1 := "v1"
+	v2 := "v2"
+	testType(t, &TslicePtrStruct{X: []*Xstring{nil, &Xstring{v1}, nil, &Xstring{v2}}}, &XslicePtrStruct{X: []*Xstring{nil, &Xstring{v1}, nil, &Xstring{v2}}})
+}
+
+func TestMapPtrStructNils(t *testing.T) {
+	v1 := "v1"
+	v2 := "v2"
+	testType(t, &TMapPtrStruct{X: map[string]*Xstring{"a": nil, "b": &Xstring{v1}, "c": nil, "d": &Xstring{v2}}}, &XMapPtrStruct{X: map[string]*Xstring{"a": nil, "b": &Xstring{v1}, "c": nil, "d": &Xstring{v2}}})
 }
 
 func TestTimeDuration(t *testing.T) {

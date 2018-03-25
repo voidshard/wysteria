@@ -1,7 +1,6 @@
 package wysteria_client
 
 import (
-	"errors"
 	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
 )
@@ -45,6 +44,12 @@ func (i *Resource) Facets() map[string]string {
 
 // Set all the key:value pairs given on this Resource's facets.
 func (i *Resource) SetFacets(in map[string]string) error {
+	if in == nil {
+		return nil
+	}
+	for k, v := range in {
+		i.data.Facets[k] = v
+	}
 	return i.conn.middleware.UpdateResourceFacets(i.data.Id, in)
 }
 
@@ -76,7 +81,7 @@ func (i *Resource) Parent() (*Version, error) {
 		return nil, err
 	}
 	if len(versions) < 1 {
-		return nil, errors.New(fmt.Sprintf("Version with Id %s not found", i.data.Parent))
+		return nil, fmt.Errorf("version with Id %s not found", i.data.Parent)
 	}
 
 	return &Version{

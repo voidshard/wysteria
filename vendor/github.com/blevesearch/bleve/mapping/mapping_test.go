@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/blevesearch/bleve/analysis/tokenizer/exception"
 	"github.com/blevesearch/bleve/analysis/tokenizer/regexp"
@@ -39,7 +40,8 @@ var mappingSource = []byte(`{
     						"store": true,
     						"index": true,
                             "include_term_vectors": true,
-                            "include_in_all": true
+                            "include_in_all": true,
+                            "docvalues": true
     					}
     				]
     			}
@@ -867,37 +869,65 @@ func TestMappingForGeo(t *testing.T) {
 	mapping := NewIndexMapping()
 	mapping.DefaultMapping = thingMapping
 
-	x := struct {
+	geopoints := []interface{}{}
+
+	// geopoint as a struct
+	geopoints = append(geopoints, struct {
 		Name     string    `json:"name"`
 		Location *Location `json:"location"`
 	}{
-		Name: "marty",
+		Name: "struct",
 		Location: &Location{
 			Lon: -180,
 			Lat: -90,
 		},
-	}
+	})
 
-	doc := document.NewDocument("1")
-	err := mapping.MapDocument(doc, x)
-	if err != nil {
-		t.Fatal(err)
-	}
+	// geopoint as a map
+	geopoints = append(geopoints, struct {
+		Name     string                 `json:"name"`
+		Location map[string]interface{} `json:"location"`
+	}{
+		Name: "map",
+		Location: map[string]interface{}{
+			"lon": -180,
+			"lat": -90,
+		},
+	})
 
-	var foundGeo bool
-	for _, f := range doc.Fields {
-		if f.Name() == "location" {
-			foundGeo = true
-			got := f.Value()
-			expect := []byte(numeric.MustNewPrefixCodedInt64(0, 0))
-			if !reflect.DeepEqual(got, expect) {
-				t.Errorf("expected geo value: %v, got %v", expect, got)
+	// geopoint as a slice
+	geopoints = append(geopoints, struct {
+		Name     string        `json:"name"`
+		Location []interface{} `json:"location"`
+	}{
+		Name: "slice",
+		Location: []interface{}{
+			-180, -90,
+		},
+	})
+
+	for i, geopoint := range geopoints {
+		doc := document.NewDocument(string(i))
+		err := mapping.MapDocument(doc, geopoint)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var foundGeo bool
+		for _, f := range doc.Fields {
+			if f.Name() == "location" {
+				foundGeo = true
+				got := f.Value()
+				expect := []byte(numeric.MustNewPrefixCodedInt64(0, 0))
+				if !reflect.DeepEqual(got, expect) {
+					t.Errorf("expected geo value: %v, got %v", expect, got)
+				}
 			}
 		}
-	}
 
-	if !foundGeo {
-		t.Errorf("expected to find geo point, did not")
+		if !foundGeo {
+			t.Errorf("expected to find geo point, did not")
+		}
 	}
 }
 
@@ -965,4 +995,51 @@ func TestMappingForTextMarshaler(t *testing.T) {
 		t.Errorf("expected field value to be  '%s', got: '%s'", string(want), string(doc.Fields[0].Value()))
 	}
 
+}
+
+func TestMappingForNilTextMarshaler(t *testing.T) {
+	tm := struct {
+		Marshalable *time.Time
+	}{
+		Marshalable: nil,
+	}
+
+	// now verify that when a mapping explicity
+	m := NewIndexMapping()
+	txt := NewTextFieldMapping()
+	m.DefaultMapping.AddFieldMappingsAt("Marshalable", txt)
+	doc := document.NewDocument("x")
+	err := m.MapDocument(doc, tm)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(doc.Fields) != 0 {
+		t.Fatalf("expected 1 field, got: %d", len(doc.Fields))
+
+	}
+
+}
+
+func TestClosestDocDynamicMapping(t *testing.T) {
+	mapping := NewIndexMapping()
+	mapping.IndexDynamic = false
+	mapping.DefaultMapping = NewDocumentStaticMapping()
+	mapping.DefaultMapping.AddFieldMappingsAt("foo", NewTextFieldMapping())
+
+	doc := document.NewDocument("x")
+	err := mapping.MapDocument(doc, map[string]interface{}{
+		"foo": "value",
+		"bar": map[string]string{
+			"foo": "value2",
+			"baz": "value3",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(doc.Fields) != 1 {
+		t.Fatalf("expected 1 field, got: %d", len(doc.Fields))
+	}
 }

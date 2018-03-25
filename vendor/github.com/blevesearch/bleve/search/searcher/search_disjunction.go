@@ -17,12 +17,21 @@ package searcher
 import (
 	"fmt"
 	"math"
+	"reflect"
 	"sort"
 
 	"github.com/blevesearch/bleve/index"
 	"github.com/blevesearch/bleve/search"
 	"github.com/blevesearch/bleve/search/scorer"
+	"github.com/blevesearch/bleve/size"
 )
+
+var reflectStaticSizeDisjunctionSearcher int
+
+func init() {
+	var ds DisjunctionSearcher
+	reflectStaticSizeDisjunctionSearcher = int(reflect.TypeOf(ds).Size())
+}
 
 // DisjunctionMaxClauseCount is a compile time setting that applications can
 // adjust to non-zero value to cause the DisjunctionSearcher to return an
@@ -90,28 +99,53 @@ func newDisjunctionSearcher(indexReader index.IndexReader,
 	return &rv, nil
 }
 
+func (s *DisjunctionSearcher) Size() int {
+	sizeInBytes := reflectStaticSizeDisjunctionSearcher + size.SizeOfPtr +
+		s.scorer.Size()
+
+	for _, entry := range s.searchers {
+		sizeInBytes += entry.Size()
+	}
+
+	for _, entry := range s.currs {
+		if entry != nil {
+			sizeInBytes += entry.Size()
+		}
+	}
+
+	for _, entry := range s.matching {
+		if entry != nil {
+			sizeInBytes += entry.Size()
+		}
+	}
+
+	sizeInBytes += len(s.matchingIdxs) * size.SizeOfInt
+
+	return sizeInBytes
+}
+
 func (s *DisjunctionSearcher) computeQueryNorm() {
 	// first calculate sum of squared weights
 	sumOfSquaredWeights := 0.0
-	for _, termSearcher := range s.searchers {
-		sumOfSquaredWeights += termSearcher.Weight()
+	for _, searcher := range s.searchers {
+		sumOfSquaredWeights += searcher.Weight()
 	}
 	// now compute query norm from this
 	s.queryNorm = 1.0 / math.Sqrt(sumOfSquaredWeights)
 	// finally tell all the downstream searchers the norm
-	for _, termSearcher := range s.searchers {
-		termSearcher.SetQueryNorm(s.queryNorm)
+	for _, searcher := range s.searchers {
+		searcher.SetQueryNorm(s.queryNorm)
 	}
 }
 
 func (s *DisjunctionSearcher) initSearchers(ctx *search.SearchContext) error {
 	var err error
 	// get all searchers pointing at their first match
-	for i, termSearcher := range s.searchers {
+	for i, searcher := range s.searchers {
 		if s.currs[i] != nil {
 			ctx.DocumentMatchPool.Put(s.currs[i])
 		}
-		s.currs[i], err = termSearcher.Next(ctx)
+		s.currs[i], err = searcher.Next(ctx)
 		if err != nil {
 			return err
 		}
@@ -221,11 +255,14 @@ func (s *DisjunctionSearcher) Advance(ctx *search.SearchContext,
 	}
 	// get all searchers pointing at their first match
 	var err error
-	for i, termSearcher := range s.searchers {
+	for i, searcher := range s.searchers {
 		if s.currs[i] != nil {
+			if s.currs[i].IndexInternalID.Compare(ID) >= 0 {
+				continue
+			}
 			ctx.DocumentMatchPool.Put(s.currs[i])
 		}
-		s.currs[i], err = termSearcher.Advance(ctx, ID)
+		s.currs[i], err = searcher.Advance(ctx, ID)
 		if err != nil {
 			return nil, err
 		}

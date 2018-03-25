@@ -1,8 +1,14 @@
-hash: 30594f3b3c00ad084b3913a37eaac1318a3f017bf0c8abc6b894785d8dca2965
-updated: 2017-05-25T14:38:50.634658677+12:00
+hash: 25bbe74813e445c3895c73faafede9896411720d8fa5faf5a7003304a77c4a87
+updated: 2018-03-24T15:51:56.757994475Z
 imports:
+- name: github.com/alecthomas/template
+  version: a0175ee3bccc567396460bf5acd36800cb10c49c
+  subpackages:
+  - parse
+- name: github.com/alecthomas/units
+  version: 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
 - name: github.com/blevesearch/bleve
-  version: 67bef4e679e07147c541ab21dfa9ae45bf851ced
+  version: 1f7faf7e0186a260740ce38665c3c3eb2697f728
   subpackages:
   - analysis
   - analysis/analyzer/standard
@@ -16,6 +22,10 @@ imports:
   - document
   - geo
   - index
+  - index/scorch
+  - index/scorch/mergeplan
+  - index/scorch/segment
+  - index/scorch/segment/zap
   - index/store
   - index/store/boltdb
   - index/store/gtreap
@@ -34,6 +44,7 @@ imports:
   - search/query
   - search/scorer
   - search/searcher
+  - size
 - name: github.com/blevesearch/go-porterstemmer
   version: 23a2c8e5cf1f380f27722c6d2ae8896431dc7d0e
   repo: https://github.com/blevesearch/go-porterstemmer
@@ -41,13 +52,38 @@ imports:
   version: db70c57796cc8c310613541dfade3dce627d09c7
   repo: https://github.com/blevesearch/segment
 - name: github.com/boltdb/bolt
-  version: 583e8937c61f1af6513608ccc75c97b6abdf4ff9
+  version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
+- name: github.com/couchbase/vellum
+  version: 5083a469fcef50a4705e3c90652246ecd6806f2a
+  subpackages:
+  - regexp
+  - utf8
+- name: github.com/edsrzf/mmap-go
+  version: 935e0e8a636ca4ba70b713f3e38a19e1b77739e8
+- name: github.com/fgrid/uuid
+  version: 6f72a2d331c927473b9b19f590d43ccb5018c844
+- name: github.com/glycerine/go-unsnap-stream
+  version: 9f0cb55181dd3a0a4c168d3dbc72d4aca4853126
 - name: github.com/golang/protobuf
-  version: 7a211bcf3bce0e3f1d74f9894916e6f116ae83b4
+  version: bbd03ef6da3a115852eaf24c8a1c46aeb39aa175
   subpackages:
   - proto
   - protoc-gen-go/descriptor
+  - ptypes
   - ptypes/any
+  - ptypes/duration
+  - ptypes/timestamp
+- name: github.com/golang/snappy
+  version: cef980a12b316c5b7e5bb3a8e168eb43ae999a88
+  repo: https://github.com/golang/snappy
+- name: github.com/mailru/easyjson
+  version: 8b799c424f57fa123fc63a99d6383bc6e4c02578
+  subpackages:
+  - buffer
+  - jlexer
+  - jwriter
+- name: github.com/mschoch/smat
+  version: 90eadee771aeab36e8bf796039b8c261bebebe4f
 - name: github.com/nats-io/gnatsd
   version: 5dcad241bcd7fff3aac6e9f8b47350f071f5fd38
   subpackages:
@@ -62,18 +98,38 @@ imports:
   - encoders/builtin
   - util
 - name: github.com/nats-io/nuid
-  version: 289cccf02c178dc782430d534e3c1f5b72af807f
-  repo: https://github.com/nats-io/nuid
+  version: 3e58d42c9cfe5cd9429f1a21ad8f35cd859ba829
+- name: github.com/olivere/elastic
+  version: d78530f6439d6cd674892320b6917d7c4cb25f7f
+  subpackages:
+  - config
+  - uritemplates
+- name: github.com/philhofer/fwd
+  version: bb6d471dc95d4fe11e432687f8b70ff496cf3136
+- name: github.com/pkg/errors
+  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/pquerna/ffjson
-  version: 0a1032732ea92f86ab22e27b9d55cd182f2f4a1b
+  version: d49c2bc1aa135aad0c6f4fc2056623ec78f5d5ac
   subpackages:
   - fflib/v1
   - fflib/v1/internal
+- name: github.com/RoaringBitmap/roaring
+  version: 01d244c43a7e8d1191a4f369f5908ea9eb9bc9ac
+  repo: https://github.com/RoaringBitmap/roaring
+- name: github.com/Smerity/govarint
+  version: 7265e41f48f15fd61751e16da866af3c704bb3ab
 - name: github.com/steveyen/gtreap
   version: 0abe01ef9be25c4aedc174758ec2d917314d6d70
   repo: https://github.com/steveyen/gtreap
+- name: github.com/tinylib/msgp
+  version: 3b5c87ab5fb00c660bf85b888445d9a01db64db4
+  subpackages:
+  - msgp
+- name: github.com/willf/bitset
+  version: 2e6e8094ef4745224150c88c16191c7dceaad16f
+  repo: https://github.com/willf/bitset
 - name: golang.org/x/net
-  version: 7dcfb8076726a3fdd9353b6b8a1f1b6be6811bd6
+  version: 6078986fec03a1dcc236c34816c71b0e05018fda
   subpackages:
   - context
   - http2
@@ -83,26 +139,32 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/sys
-  version: a55a76086885b80f79961eacb876ebd8caf3868d
+  version: 91ee8cde435411ca3f1cd365e8f20131aed4d0a1
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 19e51611da83d6be54ddafce4a4af510cb3e9ea4
+  version: ab48842968a66deafa354805a8b031924668e059
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
 - name: google.golang.org/genproto
-  version: d80a6e20e776b0b17a324d0ba1ab50a39c8e8944
+  version: ab0870e398d5dd054b868c0db1481ab029b9a9f2
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: 3a46d9d51931de5beee75086205224a540233baa
+  version: bdb0727fa72e9f94e0b23df2b8c17561956811cd
   subpackages:
+  - balancer
+  - balancer/base
+  - balancer/roundrobin
   - codes
+  - connectivity
   - credentials
-  - grpclb/grpc_lb_v1
+  - encoding
+  - encoding/proto
+  - grpclb/grpc_lb_v1/messages
   - grpclog
   - internal
   - keepalive
@@ -111,12 +173,17 @@ imports:
   - peer
   - reflection
   - reflection/grpc_reflection_v1alpha
+  - resolver
+  - resolver/dns
+  - resolver/passthrough
   - stats
   - status
   - tap
   - transport
+- name: gopkg.in/alecthomas/kingpin.v2
+  version: 947dcec5ba9c011838740e680966fd7087a71d0d
 - name: gopkg.in/gcfg.v1
-  version: 27e4946190b4a327b539185f2b5b1f7c84730728
+  version: 298b7a6a3838f79debfaee8bd3bfb2b8d779e756
   subpackages:
   - scanner
   - token
@@ -128,11 +195,6 @@ imports:
   - internal/json
   - internal/sasl
   - internal/scram
-- name: gopkg.in/olivere/elastic.v2
-  version: 54283cb278d855e562a3d20f6c5afdbe1decf25b
-  subpackages:
-  - backoff
-  - uritemplates
 - name: gopkg.in/warnings.v0
-  version: 8a331561fe74dadba6edfc59f3be66c22c3b065d
+  version: ec4a0fea49c7b46c2aeb0b51aac55779c607e52b
 testImports: []

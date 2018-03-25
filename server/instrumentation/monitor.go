@@ -156,7 +156,7 @@ func (m *Monitor) Log(msg string, opts ...Opt) {
 // Log a warning message
 //
 func (m *Monitor) Warn(msg string, opts ...Opt) {
-	event := newEvent(msg)
+	event := newEvent(fmt.Sprintf("msg:%s", msg))
 
 	for _, o := range opts {
 		o(event)
@@ -168,8 +168,8 @@ func (m *Monitor) Warn(msg string, opts ...Opt) {
 
 // Log an error message
 //
-func (m *Monitor) Err(err error, opts ...Opt) {
-	event := newEvent(err.Error())
+func (m *Monitor) Err(err error, msg string, opts ...Opt) {
+	event := newEvent(fmt.Sprintf("error:%s msg:%s", err.Error(), msg))
 
 	for _, o := range opts {
 		o(event)

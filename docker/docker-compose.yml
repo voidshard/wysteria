@@ -1,0 +1,111 @@
+version: "3"
+  #
+  # Simple docker-compose config file.
+  #  Nb. No passwords or SSL are used here, which .. could be important to the reader ..
+  #
+services:
+  # ------------------------------------------------------------------------
+  # Supporting Services
+  # ------------------------------------------------------------------------
+  database:
+    # vanilla mongo image
+    image: mongo
+    ports:
+      - "27017:27017"
+  searchbase:
+    # vanilla elasticsearch image
+    image: elasticsearch
+    ports:
+      - "9200:9200"
+  middleware:
+    # vanilla nats.io image
+    image: nats
+    ports:
+      - "4222:4222"
+  # ------------------------------------------------------------------------
+  # Wysteria variants
+  # ------------------------------------------------------------------------
+  sololocal:
+    # wysteria using all embedded settings & local repository
+    image: wysteria/wysteria:local
+    ports:
+      - "31000:31000"
+    environment:
+      WYS_SEARCHBASE_DRIVER: "bleve"
+      WYS_SEARCHBASE_NAME: "searchdata"
+      WYS_DATABASE_DRIVER: "bolt"
+      WYS_DATABASE_NAME: "data"
+      WYS_MIDDLEWARE_DRIVER: "grpc"
+      WYS_MIDDLEWARE_CONFIG: ":31000"
+      WYS_MIDDLEWARE_SSL_CERT: ""
+      WYS_MIDDLEWARE_SSL_KEY: ""
+      WYS_MIDDLEWARE_SSL_VERIFY: "false"
+      WYS_MIDDLEWARE_SSL_ENABLE: "false"
+  local:
+    # wysteria using nats.io, mongo & elasticsearch w/ local repository
+    image: wysteria/wysteria:local
+    environment:
+      WYS_SEARCHBASE_DRIVER: "elastic"
+      WYS_SEARCHBASE_NAME: "data"
+      WYS_SEARCHBASE_PORT: "9200"
+      WYS_SEARCHBASE_HOST: "searchbase"
+      WYS_DATABASE_DRIVER: "mongo"
+      WYS_DATABASE_NAME: "data"
+      WYS_DATABASE_PORT: "27017"
+      WYS_DATABASE_HOST: "database"
+      WYS_MIDDLEWARE_DRIVER: "nats"
+      WYS_MIDDLEWARE_CONFIG: "nats://middleware:4222"
+      WYS_MIDDLEWARE_SSL_CERT: ""
+      WYS_MIDDLEWARE_SSL_KEY: ""
+      WYS_MIDDLEWARE_SSL_VERIFY: "false"
+      WYS_MIDDLEWARE_SSL_ENABLE: "false"
+    links:
+      - database
+      - searchbase
+      - middleware
+    depends_on:
+      - database
+      - searchbase
+      - middleware
+  solomaster:
+    # wysteria using all embedded settings & repository master
+    image: wysteria/wysteria:master
+    ports:
+      - "31000:31000"
+    environment:
+      WYS_SEARCHBASE_DRIVER: "bleve"
+      WYS_SEARCHBASE_NAME: "searchdata"
+      WYS_DATABASE_DRIVER: "bolt"
+      WYS_DATABASE_NAME: "data"
+      WYS_MIDDLEWARE_DRIVER: "grpc"
+      WYS_MIDDLEWARE_CONFIG: ":31000"
+      WYS_MIDDLEWARE_SSL_CERT: ""
+      WYS_MIDDLEWARE_SSL_KEY: ""
+      WYS_MIDDLEWARE_SSL_VERIFY: "false"
+      WYS_MIDDLEWARE_SSL_ENABLE: "false"
+  master:
+    # wysteria using nats.io, mongo & elasticsearch w/ repository master
+    image: wysteria/wysteria:master
+    environment:
+      WYS_SEARCHBASE_DRIVER: "elastic"
+      WYS_SEARCHBASE_NAME: "data"
+      WYS_SEARCHBASE_PORT: "9200"
+      WYS_SEARCHBASE_HOST: "searchbase"
+      WYS_DATABASE_DRIVER: "mongo"
+      WYS_DATABASE_NAME: "data"
+      WYS_DATABASE_PORT: "27017"
+      WYS_DATABASE_HOST: "database"
+      WYS_MIDDLEWARE_DRIVER: "nats"
+      WYS_MIDDLEWARE_CONFIG: "nats://middleware:4222"
+      WYS_MIDDLEWARE_SSL_CERT: ""
+      WYS_MIDDLEWARE_SSL_KEY: ""
+      WYS_MIDDLEWARE_SSL_VERIFY: "false"
+      WYS_MIDDLEWARE_SSL_ENABLE: "false"
+    links:
+      - database
+      - searchbase
+      - middleware
+    depends_on:
+      - database
+      - searchbase
+      - middleware

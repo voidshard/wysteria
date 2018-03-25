@@ -73,6 +73,7 @@ message Collection {
     string Parent = 95;
     string Id = 6;
     string Name = 7;
+    map<string, string> Facets = 94;
     Text error = 82;
 }
 
@@ -99,6 +100,7 @@ message Resource {
     string ResourceType = 38;
     string Id = 39;
     string Location = 40;
+    map<string, string> Facets = 102;
     Text error = 85;
 }
 
@@ -107,6 +109,7 @@ message Link {
     string Id = 44;
     string Src = 45;
     string Dst = 46;
+    map<string, string> Facets = 97;
     Text error = 85;
 }
 

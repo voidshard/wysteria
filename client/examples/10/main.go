@@ -25,11 +25,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	log.Println("Delete maps:", collection.Delete())
 
-	collection, err = client.Collection("tiles")
+	err = collection.Delete()
+	if err == nil {
+		panic(err)
+	} else {
+		log.Println("[expected] Can't delete maps:", err)
+	}
+
+	anotherCollection, err := client.CreateCollection("thisisarandomstring")
 	if err != nil {
 		panic(err)
 	}
-	log.Println("Delete tiles:", collection.Delete())
+	err = anotherCollection.Delete()
+	if err != nil {
+		panic(err)
+	} else {
+		log.Println("Deleted!")
+	}
 }

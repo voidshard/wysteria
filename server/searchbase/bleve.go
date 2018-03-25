@@ -334,12 +334,20 @@ func genericQuery(limit, from int, index bleve.Index, convert func(desc *wyc.Que
 		}
 	}
 
-	ids := []string{}
+	ids := map[string]bool{}
 	for _, doc := range result.Hits {
-		ids = append(ids, doc.ID)
+		ids[doc.ID] = true
 	}
 
-	return ids, nil
+	// Only return unique IDs
+	keys := make([]string, len(ids))
+	count := 0
+	for id := range ids {
+		keys[count] = id
+		count += 1
+	}
+
+	return keys, nil
 }
 
 // Special case 'match all' query

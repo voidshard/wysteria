@@ -14,6 +14,7 @@ package database
 import (
 	"errors"
 	"fmt"
+	"time"
 	wyc "github.com/voidshard/wysteria/common"
 )
 
@@ -21,6 +22,7 @@ const (
 	// The database driver names that we accept
 	DriverMongo = "mongo"
 	DriverBolt  = "bolt"
+	maxAttempts = 3
 )
 
 var (
@@ -38,7 +40,23 @@ func Connect(settings *Settings) (Database, error) {
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("Connector not found for %s", settings.Driver))
 	}
-	return connector(settings)
+
+	// Attempt to connect to the given db, if something goes wrong, we'll re-attempt a few times
+	// before quitting. Mostly this helps in docker setups / test situations where a
+	// container may not have spun up yet.
+	attempts := 0
+	for {
+		db, err := connector(settings)
+		if err != nil {
+			attempts += 1
+			if attempts >= maxAttempts {
+				return db, err
+			}
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		return db, err
+	}
 }
 
 // Datastore whose primary goal is long term storage, not searching said data
@@ -52,25 +70,25 @@ type Database interface {
 	// Given an Item ID, return the ID of the current PublishedVersion version (if any)
 	Published(string) (*wyc.Version, error)
 
-	// Insert a collection into the db with the given Id
+	// Insert a collection into the db, return created Id
 	//  - Must: Ensure only one collection with given Name
-	InsertCollection(string, *wyc.Collection) error
+	InsertCollection(*wyc.Collection) (string, error)
 
-	// Insert an item into the db with the given Id
+	// Insert an item into the db, return created Id
 	//  - Must: Ensure only one item with the same Collection (parent Id), Type and Variant
-	InsertItem(string, *wyc.Item) error
+	InsertItem(*wyc.Item) (string, error)
 
-	// Insert a Version into the db with the given Id
+	// Insert a Version into the db, return created Id
 	//  - Must: Ensure version number is both set on the obj & returned.
-	//  - Must: Nunber version numbers starting with 1
+	//  - Must: Number version numbers starting with 1
 	//  - Must: Ensure there is at most one version of a given number
-	InsertNextVersion(string, *wyc.Version) (int32, error) // Ensure only one version of an Item with a given Number
+	InsertNextVersion(*wyc.Version) (string, int32, error) // Ensure only one version of an Item with a given Number
 
-	// Insert resource into the db with the given Id
-	InsertResource(string, *wyc.Resource) error
+	// Insert resource into the db, return created Id
+	InsertResource(*wyc.Resource) (string, error)
 
-	// Insert link into the db with the given Id
-	InsertLink(string, *wyc.Link) error
+	// Insert link into the db, return created Id
+	InsertLink(*wyc.Link) (string, error)
 
 	// Retrieve collections indicated by the given Id(s) from the db
 	RetrieveCollection(...string) ([]*wyc.Collection, error)

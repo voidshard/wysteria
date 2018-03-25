@@ -1,7 +1,6 @@
 package wysteria_client
 
 import (
-	"errors"
 	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
 )
@@ -82,7 +81,7 @@ func (i *Resource) Parent() (*Version, error) {
 		return nil, err
 	}
 	if len(versions) < 1 {
-		return nil, errors.New(fmt.Sprintf("Version with Id %s not found", i.data.Parent))
+		return nil, fmt.Errorf("version with Id %s not found", i.data.Parent))
 	}
 
 	return &Version{

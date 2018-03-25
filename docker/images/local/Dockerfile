@@ -54,8 +54,13 @@ ENV WYS_SEARCHBASE_HOST null
 ENV WYS_SEARCHBASE_USER null
 ENV WYS_SEARCHBASE_PASS null
 ENV WYS_SEARCHBASE_PEM null
+ENV WYS_SEARCHBASE_REINDEX false
 ENV WYS_MIDDLEWARE_DRIVER grpc
 ENV WYS_MIDDLEWARE_CONFIG :31000
+ENV WYS_MIDDLEWARE_SSL_CERT /usr/ssl/test.crt
+ENV WYS_MIDDLEWARE_SSL_KEY /usr/ssl/test.key
+ENV WYS_MIDDLEWARE_SSL_VERIFY false
+ENV WYS_MIDDLEWARE_SSL_ENABLE false
 ENV WYS_HEALTH_PORT 8150
 ENV WYS_HEALTH_ENDPOINT /health
 ENV WYS_LOGGER_NAME logs
@@ -63,9 +68,17 @@ ENV WYS_LOGGER_DRIVER logfile
 ENV WYS_LOGGER_LOCATION /var/log
 ENV WYS_LOGGER_TARGET wysteria.log
 
+# add test certs
+RUN mkdir /usr/ssl/
+WORKDIR /usr/ssl/
+ADD test.crt .
+ADD test.csr .
+ADD test.key .
+
 # add the template ini, and the env substitution bootstrap
+WORKDIR $GOPATH/src/github.com/voidshard/wysteria/server
 ADD wysteria-server.ini.template .
 ADD start.sh .
 
 # boot server
-ENTRYPOINT ["./start.sh"]
+ENTRYPOINT ["./start.sh", "-v"]

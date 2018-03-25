@@ -18,6 +18,9 @@ mkdir ./build/
 # whack in all the wysteria files we'll need
 cp Dockerfile ./build/
 cp ${DIR}/../start.sh ./build/
+cp ${DIR}/../test.crt ./build/
+cp ${DIR}/../test.key ./build/
+cp ${DIR}/../test.csr ./build/
 cp ${DIR}/../wysteria-server.ini.template ./build/
 cp -r ${DIR}/../../../common ./build/
 cp -r ${DIR}/../../../server ./build/

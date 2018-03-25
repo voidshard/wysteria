@@ -37,18 +37,10 @@ services:
       WYS_DATABASE_NAME: "data"
       WYS_MIDDLEWARE_DRIVER: "grpc"
       WYS_MIDDLEWARE_CONFIG: ":31000"
-  solomaster:
-    # wysteria using all embedded settings & repository master
-    image: wysteria/wysteria:master
-    ports:
-      - "31000:31000"
-    environment:
-      WYS_SEARCHBASE_DRIVER: "bleve"
-      WYS_SEARCHBASE_NAME: "searchdata"
-      WYS_DATABASE_DRIVER: "bolt"
-      WYS_DATABASE_NAME: "data"
-      WYS_MIDDLEWARE_DRIVER: "grpc"
-      WYS_MIDDLEWARE_CONFIG: ":31000"
+      WYS_MIDDLEWARE_SSL_CERT: ""
+      WYS_MIDDLEWARE_SSL_KEY: ""
+      WYS_MIDDLEWARE_SSL_VERIFY: "false"
+      WYS_MIDDLEWARE_SSL_ENABLE: "false"
   local:
     # wysteria using nats.io, mongo & elasticsearch w/ local repository
     image: wysteria/wysteria:local
@@ -63,6 +55,10 @@ services:
       WYS_DATABASE_HOST: "database"
       WYS_MIDDLEWARE_DRIVER: "nats"
       WYS_MIDDLEWARE_CONFIG: "nats://middleware:4222"
+      WYS_MIDDLEWARE_SSL_CERT: ""
+      WYS_MIDDLEWARE_SSL_KEY: ""
+      WYS_MIDDLEWARE_SSL_VERIFY: "false"
+      WYS_MIDDLEWARE_SSL_ENABLE: "false"
     links:
       - database
       - searchbase
@@ -71,6 +67,22 @@ services:
       - database
       - searchbase
       - middleware
+  solomaster:
+    # wysteria using all embedded settings & repository master
+    image: wysteria/wysteria:master
+    ports:
+      - "31000:31000"
+    environment:
+      WYS_SEARCHBASE_DRIVER: "bleve"
+      WYS_SEARCHBASE_NAME: "searchdata"
+      WYS_DATABASE_DRIVER: "bolt"
+      WYS_DATABASE_NAME: "data"
+      WYS_MIDDLEWARE_DRIVER: "grpc"
+      WYS_MIDDLEWARE_CONFIG: ":31000"
+      WYS_MIDDLEWARE_SSL_CERT: ""
+      WYS_MIDDLEWARE_SSL_KEY: ""
+      WYS_MIDDLEWARE_SSL_VERIFY: "false"
+      WYS_MIDDLEWARE_SSL_ENABLE: "false"
   master:
     # wysteria using nats.io, mongo & elasticsearch w/ repository master
     image: wysteria/wysteria:master
@@ -85,6 +97,10 @@ services:
       WYS_DATABASE_HOST: "database"
       WYS_MIDDLEWARE_DRIVER: "nats"
       WYS_MIDDLEWARE_CONFIG: "nats://middleware:4222"
+      WYS_MIDDLEWARE_SSL_CERT: ""
+      WYS_MIDDLEWARE_SSL_KEY: ""
+      WYS_MIDDLEWARE_SSL_VERIFY: "false"
+      WYS_MIDDLEWARE_SSL_ENABLE: "false"
     links:
       - database
       - searchbase

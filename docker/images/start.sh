@@ -15,7 +15,8 @@ envsubst < wysteria-server.ini.template > ./wysteria-server.ini
 # remove lines containing the null string (INI parser doesn't seem to like placeholder lines)
 sed -i '/null/d' ./wysteria-server.ini
 
-cat ./wysteria-server.ini
+# print out the config to be extra helpful, but don't print any passwords2
+cat ./wysteria-server.ini | grep -v "Pass="
 
 # kick off wysteria proper
 ./server $@

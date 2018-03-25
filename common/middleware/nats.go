@@ -549,13 +549,14 @@ type natsServer struct {
 
 // If no nats config is given this is called to spin up a nats server of our own to run embedded.
 func (s *natsServer) spinup(options *natsd.Options) (string, error) {
+	log.Println("Spinning up embedded nats server")
 	s.embedded = natsd.New(options)
 	go s.embedded.Start()
 
 	if s.embedded.ReadyForConnections(timeout) {
 		return fmt.Sprintf("nats://%s:%d", natsDefaultHost, natsDefaultPort), nil
 	}
-	return "", errors.New("Failed to spin up local nats server")
+	return "", fmt.Errorf("failed to spin up local nats server")
 }
 
 // Start up and serve client requests.

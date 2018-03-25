@@ -15,7 +15,7 @@ import (
 
 const (
 	keywordEnter = "enter"
-	keywordExit = "exit"
+	keywordExit  = "exit"
 )
 
 type MiddlewareMonitor struct {
@@ -32,7 +32,7 @@ type MiddlewareMonitor struct {
 func newMiddlewareMonitor(endpoint wym.EndpointServer, monitor *wsi.Monitor) *MiddlewareMonitor {
 	return &MiddlewareMonitor{
 		epServer: endpoint,
-		monitor: monitor,
+		monitor:  monitor,
 	}
 }
 
@@ -56,7 +56,7 @@ func (s *MiddlewareMonitor) Shutdown() error {
 func (s *MiddlewareMonitor) log(err error, t int64, opts ...wsi.Opt) {
 	area := "middleware"
 	go func() {
-		opts = append(opts, wsi.Time(time.Now().UnixNano() - t))
+		opts = append(opts, wsi.Time(time.Now().UnixNano()-t))
 		if err != nil {
 			s.monitor.Err(err, area, opts...)
 			return

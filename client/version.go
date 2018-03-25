@@ -101,7 +101,7 @@ func (i *Version) Linked(opts ...SearchParam) (map[string][]*Version, error) {
 // Link this Version with a link described by 'name' to some other Version.
 func (i *Version) LinkTo(name string, other *Version, opts ...CreateOption) (*Link, error) {
 	if i.Id() == other.Id() { // Prevent linking to oneself
-		return nil,  errors.New("link src and dst IDs cannot be equal")
+		return nil, errors.New("link src and dst IDs cannot be equal")
 	}
 
 	lnk := &wyc.Link{

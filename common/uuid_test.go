@@ -6,9 +6,9 @@ import (
 
 func TestNewUUID(t *testing.T) {
 	// arrange
-	cases := []struct{
+	cases := []struct {
 		Args []interface{}
-	} {
+	}{
 		{[]interface{}{1, 2, 3, 4, 5}},
 		{[]interface{}{0, 2, 3, 4, 5}},
 		{[]interface{}{1, "kljdiad", 3, 4, 5}},

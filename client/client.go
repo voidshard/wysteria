@@ -8,10 +8,10 @@ to communicate.
 package wysteria_client
 
 import (
+	"errors"
+	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
 	wcm "github.com/voidshard/wysteria/common/middleware"
-	"fmt"
-	"errors"
 )
 
 const (

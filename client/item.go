@@ -1,8 +1,8 @@
 package wysteria_client
 
 import (
-	wyc "github.com/voidshard/wysteria/common"
 	"errors"
+	wyc "github.com/voidshard/wysteria/common"
 )
 
 // Wrapper around wysteria/common Item object
@@ -37,7 +37,7 @@ func (i *Item) Delete() error {
 // Link this item with a link described by 'name' to some other item.
 func (i *Item) LinkTo(name string, other *Item, opts ...CreateOption) (*Link, error) {
 	if i.Id() == other.Id() { // Prevent linking to oneself
-		return nil,  errors.New("link src and dst IDs cannot be equal")
+		return nil, errors.New("link src and dst IDs cannot be equal")
 	}
 
 	lnk := &wyc.Link{

@@ -248,8 +248,8 @@ func (s *WysteriaServer) CreateCollection(in *wyc.Collection) (string, error) {
 		if err != nil {
 			return "", err
 		}
-	    if len(parent) != 1 {
-	    	return "", fmt.Errorf("unable to find parent with id %s", in.Parent)
+		if len(parent) != 1 {
+			return "", fmt.Errorf("unable to find parent with id %s", in.Parent)
 		}
 		in.Facets[wyc.FacetCollection] = parent[0].Name
 	}

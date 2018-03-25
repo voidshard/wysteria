@@ -138,7 +138,7 @@ func (w *Client) createCollection(name string, parent *Collection, opts ...Creat
 // Create a new collection & return it (that is, a collection with no parent)
 //  - The collection name is required to be unique among all collections
 func (w *Client) CreateCollection(name string, opts ...CreateOption) (*Collection, error) {
-	return w.createCollection(name,  nil, opts...)
+	return w.createCollection(name, nil, opts...)
 }
 
 // Set initial user defined facets

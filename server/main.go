@@ -67,10 +67,10 @@ Data flow through interfaces during a client request
 package main
 
 import (
+	wsi "github.com/voidshard/wysteria/server/instrumentation"
+	kp "gopkg.in/alecthomas/kingpin.v2"
 	"os"
 	"time"
-	kp "gopkg.in/alecthomas/kingpin.v2"
-	wsi "github.com/voidshard/wysteria/server/instrumentation"
 )
 
 func main() {

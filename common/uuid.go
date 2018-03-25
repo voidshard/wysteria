@@ -5,8 +5,8 @@
 package wysteria_common
 
 import (
-	"fmt"
 	"crypto/md5"
+	"fmt"
 )
 
 const (

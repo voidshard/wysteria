@@ -4,7 +4,6 @@ import (
 	wyc "github.com/voidshard/wysteria/common"
 )
 
-
 // Return if the given key is in the given list
 func ListContains(key string, values []string) bool {
 	for _, v := range values {

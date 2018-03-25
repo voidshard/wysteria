@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 )
 
-
 type configuration struct {
 	Database        wdb.Settings
 	Searchbase      wsb.Settings
@@ -32,7 +31,7 @@ func loadConfig(in string) *configuration {
 	if in != "" {
 		err := common.ReadConfig(in, cnf)
 		if err != nil {
-			panic(err)  // We can't read the config explicitly given to us by the user -> panic
+			panic(err) // We can't read the config explicitly given to us by the user -> panic
 		}
 		return cnf
 	}

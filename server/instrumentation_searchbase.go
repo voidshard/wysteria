@@ -8,19 +8,19 @@ Database instrumentation
 package main
 
 import (
-	wyd "github.com/voidshard/wysteria/server/searchbase"
 	wyc "github.com/voidshard/wysteria/common"
 	wsi "github.com/voidshard/wysteria/server/instrumentation"
+	wyd "github.com/voidshard/wysteria/server/searchbase"
 	"time"
 )
 
-func newSearchbaseMonitor (db wyd.Searchbase, monitor *wsi.Monitor) wyd.Searchbase {
+func newSearchbaseMonitor(db wyd.Searchbase, monitor *wsi.Monitor) wyd.Searchbase {
 	return &SearchbaseMonitor{searchbase: db, monitor: monitor}
 }
 
 type SearchbaseMonitor struct {
 	searchbase wyd.Searchbase
-	monitor  *wsi.Monitor
+	monitor    *wsi.Monitor
 }
 
 // Call on our monitor to do the actual logging business
@@ -38,12 +38,12 @@ func (s *SearchbaseMonitor) log(err error, t int64, opts ...wsi.Opt) {
 }
 
 // Kill connection to remote host(s)
-func(s *SearchbaseMonitor) Close() error {
+func (s *SearchbaseMonitor) Close() error {
 	return s.Close()
 }
 
 // Insert collection into the sb with the given Id
-func(s *SearchbaseMonitor) InsertCollection(id string, in *wyc.Collection) error {
+func (s *SearchbaseMonitor) InsertCollection(id string, in *wyc.Collection) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.InsertCollection(id, in)
 	s.log(err, ts, wsi.IsCreate(), wsi.TargetCollection(), wsi.Note(in.Parent, in.Id, in.Name))
@@ -51,7 +51,7 @@ func(s *SearchbaseMonitor) InsertCollection(id string, in *wyc.Collection) error
 }
 
 // Insert item into the sb with the given Id
-func(s *SearchbaseMonitor) InsertItem(id string, in *wyc.Item) error {
+func (s *SearchbaseMonitor) InsertItem(id string, in *wyc.Item) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.InsertItem(id, in)
 	s.log(err, ts, wsi.IsCreate(), wsi.TargetItem(), wsi.Note(in.Parent, in.Id, in.ItemType, in.Variant))
@@ -59,7 +59,7 @@ func(s *SearchbaseMonitor) InsertItem(id string, in *wyc.Item) error {
 }
 
 // Insert version into the sb with the given Id
-func(s *SearchbaseMonitor) InsertVersion(id string, in *wyc.Version) error {
+func (s *SearchbaseMonitor) InsertVersion(id string, in *wyc.Version) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.InsertVersion(id, in)
 	s.log(err, ts, wsi.IsCreate(), wsi.TargetVersion(), wsi.Note(in.Parent, in.Id, in.Number))
@@ -67,7 +67,7 @@ func(s *SearchbaseMonitor) InsertVersion(id string, in *wyc.Version) error {
 }
 
 // Insert resource into the sb with the given Id
-func(s *SearchbaseMonitor) InsertResource(id string, in *wyc.Resource) error {
+func (s *SearchbaseMonitor) InsertResource(id string, in *wyc.Resource) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.InsertResource(id, in)
 	s.log(err, ts, wsi.IsCreate(), wsi.TargetVersion(), wsi.Note(in.Parent, in.Id, in.Name, in.ResourceType, in.Location))
@@ -75,7 +75,7 @@ func(s *SearchbaseMonitor) InsertResource(id string, in *wyc.Resource) error {
 }
 
 // Insert link into the sb with the given Id
-func(s *SearchbaseMonitor) InsertLink(id string, in *wyc.Link) error {
+func (s *SearchbaseMonitor) InsertLink(id string, in *wyc.Link) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.InsertLink(id, in)
 	s.log(err, ts, wsi.IsCreate(), wsi.TargetVersion(), wsi.Note(in.Id, in.Src, in.Dst))
@@ -83,7 +83,7 @@ func(s *SearchbaseMonitor) InsertLink(id string, in *wyc.Link) error {
 }
 
 // Update the facets of the collection with the given id with the given facets
-func(s *SearchbaseMonitor) UpdateCollection(id string, in *wyc.Collection) error {
+func (s *SearchbaseMonitor) UpdateCollection(id string, in *wyc.Collection) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.UpdateCollection(id, in)
 	s.log(err, ts, wsi.IsUpdate(), wsi.TargetCollection(), wsi.Note(id))
@@ -91,7 +91,7 @@ func(s *SearchbaseMonitor) UpdateCollection(id string, in *wyc.Collection) error
 }
 
 // Update the facets of the resource with the given id with the given facets
-func(s *SearchbaseMonitor) UpdateResource(id string, in *wyc.Resource) error {
+func (s *SearchbaseMonitor) UpdateResource(id string, in *wyc.Resource) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.UpdateResource(id, in)
 	s.log(err, ts, wsi.IsUpdate(), wsi.TargetResource(), wsi.Note(id))
@@ -99,7 +99,7 @@ func(s *SearchbaseMonitor) UpdateResource(id string, in *wyc.Resource) error {
 }
 
 // Update the facets of the link with the given id with the given facets
-func(s *SearchbaseMonitor) UpdateLink(id string, in *wyc.Link) error {
+func (s *SearchbaseMonitor) UpdateLink(id string, in *wyc.Link) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.UpdateLink(id, in)
 	s.log(err, ts, wsi.IsUpdate(), wsi.TargetLink(), wsi.Note(id))
@@ -107,7 +107,7 @@ func(s *SearchbaseMonitor) UpdateLink(id string, in *wyc.Link) error {
 }
 
 // Update the facets of the item with the given id with the given facets
-func(s *SearchbaseMonitor) UpdateItem(id string, in *wyc.Item) error {
+func (s *SearchbaseMonitor) UpdateItem(id string, in *wyc.Item) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.UpdateItem(id, in)
 	s.log(err, ts, wsi.IsUpdate(), wsi.TargetItem(), wsi.Note(id))
@@ -115,7 +115,7 @@ func(s *SearchbaseMonitor) UpdateItem(id string, in *wyc.Item) error {
 }
 
 // Update the facets of the version with the given id with the given facets
-func(s *SearchbaseMonitor) UpdateVersion(id string, in *wyc.Version) error {
+func (s *SearchbaseMonitor) UpdateVersion(id string, in *wyc.Version) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.UpdateVersion(id, in)
 	s.log(err, ts, wsi.IsUpdate(), wsi.TargetVersion(), wsi.Note(id))
@@ -123,7 +123,7 @@ func(s *SearchbaseMonitor) UpdateVersion(id string, in *wyc.Version) error {
 }
 
 // Delete collection search data by Id(s)
-func(s *SearchbaseMonitor) DeleteCollection(in ...string) error {
+func (s *SearchbaseMonitor) DeleteCollection(in ...string) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.DeleteCollection(in...)
 	s.log(err, ts, wsi.IsDelete(), wsi.TargetCollection(), wsi.Note(in))
@@ -131,7 +131,7 @@ func(s *SearchbaseMonitor) DeleteCollection(in ...string) error {
 }
 
 // Delete item search data by Id(s)
-func(s *SearchbaseMonitor) DeleteItem(in ...string) error {
+func (s *SearchbaseMonitor) DeleteItem(in ...string) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.DeleteItem(in...)
 	s.log(err, ts, wsi.IsDelete(), wsi.TargetItem(), wsi.Note(in))
@@ -139,7 +139,7 @@ func(s *SearchbaseMonitor) DeleteItem(in ...string) error {
 }
 
 // Delete version search data by Id(s)
-func(s *SearchbaseMonitor) DeleteVersion(in ...string) error {
+func (s *SearchbaseMonitor) DeleteVersion(in ...string) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.DeleteVersion(in...)
 	s.log(err, ts, wsi.IsDelete(), wsi.TargetVersion(), wsi.Note(in))
@@ -147,7 +147,7 @@ func(s *SearchbaseMonitor) DeleteVersion(in ...string) error {
 }
 
 // Delete resource search data by Id(s)
-func(s *SearchbaseMonitor) DeleteResource(in ...string) error {
+func (s *SearchbaseMonitor) DeleteResource(in ...string) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.DeleteResource(in...)
 	s.log(err, ts, wsi.IsDelete(), wsi.TargetResource(), wsi.Note(in))
@@ -155,7 +155,7 @@ func(s *SearchbaseMonitor) DeleteResource(in ...string) error {
 }
 
 // Delete link search data by Id(s)
-func(s *SearchbaseMonitor) DeleteLink(in ...string) error {
+func (s *SearchbaseMonitor) DeleteLink(in ...string) error {
 	ts := time.Now().UnixNano()
 	err := s.searchbase.DeleteLink(in...)
 	s.log(err, ts, wsi.IsDelete(), wsi.TargetLink(), wsi.Note(in))
@@ -163,7 +163,7 @@ func(s *SearchbaseMonitor) DeleteLink(in ...string) error {
 }
 
 // Query for collections
-func(s *SearchbaseMonitor) QueryCollection(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
+func (s *SearchbaseMonitor) QueryCollection(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
 	ts := time.Now().UnixNano()
 	results, err := s.searchbase.QueryCollection(l, o, q...)
 	s.log(err, ts, wsi.IsFind(), wsi.TargetCollection(), wsi.Note(l, o, len(results)))
@@ -171,7 +171,7 @@ func(s *SearchbaseMonitor) QueryCollection(l, o int, q ...*wyc.QueryDesc) ([]str
 }
 
 // Query for items
-func(s *SearchbaseMonitor) QueryItem(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
+func (s *SearchbaseMonitor) QueryItem(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
 	ts := time.Now().UnixNano()
 	results, err := s.searchbase.QueryItem(l, o, q...)
 	s.log(err, ts, wsi.IsFind(), wsi.TargetItem(), wsi.Note(l, o, len(results)))
@@ -179,7 +179,7 @@ func(s *SearchbaseMonitor) QueryItem(l, o int, q ...*wyc.QueryDesc) ([]string, e
 }
 
 // Query for versions
-func(s *SearchbaseMonitor) QueryVersion(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
+func (s *SearchbaseMonitor) QueryVersion(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
 	ts := time.Now().UnixNano()
 	results, err := s.searchbase.QueryVersion(l, o, q...)
 	s.log(err, ts, wsi.IsFind(), wsi.TargetVersion(), wsi.Note(l, o, len(results)))
@@ -187,7 +187,7 @@ func(s *SearchbaseMonitor) QueryVersion(l, o int, q ...*wyc.QueryDesc) ([]string
 }
 
 // Query for resources
-func(s *SearchbaseMonitor) QueryResource(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
+func (s *SearchbaseMonitor) QueryResource(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
 	ts := time.Now().UnixNano()
 	results, err := s.searchbase.QueryResource(l, o, q...)
 	s.log(err, ts, wsi.IsFind(), wsi.TargetResource(), wsi.Note(l, o, len(results)))
@@ -195,7 +195,7 @@ func(s *SearchbaseMonitor) QueryResource(l, o int, q ...*wyc.QueryDesc) ([]strin
 }
 
 // Query for links
-func(s *SearchbaseMonitor) QueryLink(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
+func (s *SearchbaseMonitor) QueryLink(l, o int, q ...*wyc.QueryDesc) ([]string, error) {
 	ts := time.Now().UnixNano()
 	results, err := s.searchbase.QueryLink(l, o, q...)
 	s.log(err, ts, wsi.IsFind(), wsi.TargetLink(), wsi.Note(l, o, len(results)))

@@ -9,7 +9,6 @@ package database
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
 	wyc "github.com/voidshard/wysteria/common"
@@ -65,7 +64,7 @@ func (b *boltDb) SetPublished(in string) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
 		version_data := tx.Bucket(bucketVersion).Get(version_id)
 		if version_data == nil {
-			return errors.New(fmt.Sprintf("Version with id %s doesn't exist", in))
+			return fmt.Errorf(fmt.Sprintf("%s: Version with id %s doesn't exist", wyc.ErrorNotFound, in))
 		}
 		version := &wyc.Version{}
 		err := version.UnmarshalJSON(version_data)
@@ -86,12 +85,12 @@ func (b *boltDb) Published(in string) (*wyc.Version, error) {
 	err := b.db.Update(func(tx *bolt.Tx) error {
 		version_id := tx.Bucket(bucketCollisions).Get(collisionKeys)
 		if version_id == nil {
-			return errors.New(fmt.Sprintf("No published version for item with id %s", in))
+			return fmt.Errorf(fmt.Sprintf("%s: no published version for item with id %s", wyc.ErrorNotFound, in))
 		}
 
 		version_data := tx.Bucket(bucketVersion).Get(version_id)
 		if version_data == nil {
-			return errors.New(fmt.Sprintf("Version with id %s doesn't exist", in))
+			return fmt.Errorf(fmt.Sprintf("%s: Version with id %s doesn't exist", wyc.ErrorNotFound, in))
 		}
 
 		return val.UnmarshalJSON(version_data)
@@ -133,7 +132,7 @@ func (b *boltDb) InsertCollection(in *wyc.Collection) (string, error) {
 		// See if our collision key exists already (if so, we've made a collection of this name before)
 		val := tx.Bucket(bucketCollisions).Get(collision_key)
 		if val != nil {
-			return errors.New("Unable to create: Would cause duplicate Collection")
+			return fmt.Errorf("%s: unable to create: Would cause duplicate Collection", wyc.ErrorAlreadyExists)
 		}
 
 		// If not, we should add the collision key so we can't make it
@@ -176,7 +175,7 @@ func (b *boltDb) InsertItem(in *wyc.Item) (string, error) {
 		// Check if we've made this before in the collision bucket
 		val := tx.Bucket(bucketCollisions).Get(collision_key)
 		if val != nil {
-			return errors.New(fmt.Sprintf("Unable to insert Item %s %s it exists in collection already", in.ItemType, in.Variant))
+			return fmt.Errorf(fmt.Sprintf("%s: unable to insert Item %s %s it exists in collection already", wyc.ErrorAlreadyExists, in.ItemType, in.Variant))
 		}
 
 		// if not, set it in the collision bucket to say we've made it
@@ -295,7 +294,7 @@ func (b *boltDb) InsertResource(in *wyc.Resource) (string, error) {
 		// Check if we've made this before in the collision bucket
 		val := tx.Bucket(bucketCollisions).Get(collisionKey)
 		if val != nil {
-			return errors.New(fmt.Sprintf("Unable to insert Resource %s %s %s %s it exists already", in.Parent, in.Name, in.ResourceType, in.Location))
+			return fmt.Errorf(fmt.Sprintf("%s: unable to insert Resource %s %s %s %s it exists already", wyc.ErrorAlreadyExists, in.Parent, in.Name, in.ResourceType, in.Location))
 		}
 
 		// if not, set it in the collision bucket to say we've made it
@@ -325,7 +324,7 @@ func (b *boltDb) InsertLink(in *wyc.Link) (string, error) {
 		// Check if we've made this before in the collision bucket
 		val := tx.Bucket(bucketCollisions).Get(collisionKey)
 		if val != nil {
-			return errors.New(fmt.Sprintf("Unable to insert Link %s %s %s it exists already", in.Name, in.Src, in.Dst))
+			return fmt.Errorf(fmt.Sprintf("%s: unable to insert Link %s %s %s it exists already", wyc.ErrorAlreadyExists, in.Name, in.Src, in.Dst))
 		}
 
 		// if not, set it in the collision bucket to say we've made it

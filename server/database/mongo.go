@@ -3,7 +3,6 @@ package database
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
 	"gopkg.in/mgo.v2"
@@ -107,7 +106,7 @@ func (e *mongoEndpoint) SetPublished(version_id string) error {
 
 	// Check we got the expected number of versions
 	if len(vers) != 1 {
-		return errors.New(fmt.Sprintf("Expected one matching version, got %d", len(vers)))
+		return fmt.Errorf(fmt.Sprintf("Expected one matching version, got %d", wyc.ErrorNotFound, len(vers)))
 	}
 
 	// We use a document with two values, the Item Id we're talking about and the ID of the current
@@ -148,7 +147,7 @@ func (e *mongoEndpoint) Published(item_id string) (*wyc.Version, error) {
 
 	// Check we got the expected number of versions
 	if len(vers) != 1 {
-		return nil, errors.New(fmt.Sprintf("Expected one matching version, got %d", len(vers)))
+		return nil, fmt.Errorf(fmt.Sprintf("%s: expected one matching version, got %d", wyc.ErrorNotFound, len(vers)))
 	}
 
 	return vers[0], nil
@@ -164,7 +163,7 @@ func (e *mongoEndpoint) InsertCollection(d *wyc.Collection) (string, error) {
 		return "", err
 	}
 	if len(res) > 0 {
-		return "", errors.New("Unable to create: Would cause duplicate Collection")
+		return "", fmt.Errorf("%s: unable to create: Would cause duplicate Collection", wyc.ErrorAlreadyExists)
 	}
 
 	d.Id = NewCollectionId(d)
@@ -189,7 +188,7 @@ func (e *mongoEndpoint) InsertItem(d *wyc.Item) (string, error) {
 	}
 
 	if details.Updated > 0 {
-		return "", errors.New(fmt.Sprintf("Unable to insert Item %s %s it exists in collection already", d.ItemType, d.Variant))
+		return "", fmt.Errorf(fmt.Sprintf("%s: unable to insert Item %s %s it exists in collection already", wyc.ErrorAlreadyExists, d.ItemType, d.Variant))
 	}
 	d.Id = NewItemId(d)
 	return d.Id, e.insert(tableItem, d.Id, d)
@@ -237,7 +236,7 @@ func (e *mongoEndpoint) InsertResource(d *wyc.Resource) (string, error) {
 	}
 
 	if details.Updated > 0 {
-		return "", errors.New(fmt.Sprintf("Unable to insert Resource %s %s %s %s it exists already", d.Parent, d.Name, d.ResourceType, d.Location))
+		return "", fmt.Errorf(fmt.Sprintf("%s: unable to insert Resource %s %s %s %s it exists already", wyc.ErrorAlreadyExists, d.Parent, d.Name, d.ResourceType, d.Location))
 	}
 
 	d.Id = NewResourceId(d)
@@ -262,7 +261,7 @@ func (e *mongoEndpoint) InsertLink(d *wyc.Link) (string, error) {
 	}
 
 	if details.Updated > 0 {
-		return "", errors.New(fmt.Sprintf("Unable to insert Link %s %s %s it exists already", d.Name, d.Src, d.Dst))
+		return "", fmt.Errorf(fmt.Sprintf("%s: unable to insert Link %s %s %s it exists already", wyc.ErrorAlreadyExists, d.Name, d.Src, d.Dst))
 	}
 
 	d.Id = NewLinkId(d)

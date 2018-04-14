@@ -21,6 +21,12 @@ const (
 	defaultClientConfig = "wysteria-client.ini"
 	defaultServerEnvvar = "WYSTERIA_SERVER_INI"
 	defaultClientEnvvar = "WYSTERIA_CLIENT_INI"
+
+	ErrorInvalid = "invalid-input"  // the input was not valid
+	ErrorAlreadyExists = "already-exists"  // the input object can't be created - it exists already
+	ErrorIllegal = "illegal-operation"  // the operation is not permitted
+	ErrorNotFound = "not-found"  // an explicitly given Id was not found
+	ErrorNotServing = "operation-rejected" // the server is not serving requests (ie. shutting down / maintenance)
 )
 
 func ChooseServerConfig() (string, error) {

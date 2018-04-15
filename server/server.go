@@ -17,7 +17,6 @@ Goals:
 package main
 
 import (
-	"errors"
 	"fmt"
 	wyc "github.com/voidshard/wysteria/common"
 	wcm "github.com/voidshard/wysteria/common/middleware"
@@ -77,7 +76,7 @@ func (s *WysteriaServer) UpdateCollectionFacets(id string, update map[string]str
 		return err
 	}
 	if len(results) != 1 {
-		return fmt.Errorf("no Collection found with id %s", id)
+		return fmt.Errorf("%s: no Collection found with id %s", wyc.ErrorNotFound, id)
 	}
 
 	for key, value := range update {
@@ -110,7 +109,7 @@ func (s *WysteriaServer) UpdateResourceFacets(id string, update map[string]strin
 		return err
 	}
 	if len(results) != 1 {
-		return fmt.Errorf("no Resource found with id %s", id)
+		return fmt.Errorf("%s:no Resource found with id %s", wyc.ErrorNotFound, id)
 	}
 
 	for key, value := range update {
@@ -140,7 +139,7 @@ func (s *WysteriaServer) UpdateLinkFacets(id string, update map[string]string) e
 		return err
 	}
 	if len(results) != 1 {
-		return fmt.Errorf("no Link found with id %s", id)
+		return fmt.Errorf("%s: no Link found with id %s", wyc.ErrorNotFound, id)
 	}
 
 	for key, value := range update {
@@ -170,7 +169,7 @@ func (s *WysteriaServer) UpdateVersionFacets(id string, update map[string]string
 		return err
 	}
 	if len(vers) != 1 { // there must be something to update
-		return fmt.Errorf("no Version found with id %s", id)
+		return fmt.Errorf("%s: no Version found with id %s", wyc.ErrorNotFound, id)
 	}
 
 	version := vers[0]
@@ -205,7 +204,7 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 		return err
 	}
 	if len(vers) != 1 { // there must be something to update
-		return fmt.Errorf("no Item found with id %s", id)
+		return fmt.Errorf("%s: no Item found with id %s", wyc.ErrorNotFound, id)
 	}
 
 	item := vers[0]
@@ -234,7 +233,7 @@ func (s *WysteriaServer) CreateCollection(in *wyc.Collection) (string, error) {
 	}
 
 	if in.Name == "" { // Check required field
-		return "", errors.New("name required for Collection")
+		return "", fmt.Errorf("%s: name required for Collection", wyc.ErrorNotFound)
 	}
 	if in.Facets == nil {
 		in.Facets = make(map[string]string)
@@ -249,7 +248,7 @@ func (s *WysteriaServer) CreateCollection(in *wyc.Collection) (string, error) {
 			return "", err
 		}
 		if len(parent) != 1 {
-			return "", fmt.Errorf("unable to find parent with id %s", in.Parent)
+			return "", fmt.Errorf("%s: unable to find parent with id %s", wyc.ErrorNotFound, in.Parent)
 		}
 		in.Facets[wyc.FacetCollection] = parent[0].Name
 	}
@@ -273,7 +272,7 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	}
 
 	if in.Parent == "" || in.ItemType == "" || in.Variant == "" {
-		return "", errors.New("require Parent, ItemType, Variant to be set")
+		return "", fmt.Errorf("%s: require Parent, ItemType, Variant to be set", wyc.ErrorInvalid)
 	}
 	if in.Facets == nil {
 		in.Facets = make(map[string]string)
@@ -281,7 +280,7 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 
 	_, ok := in.Facets[wyc.FacetCollection]
 	if !ok {
-		return "", fmt.Errorf("required facet %s not set", wyc.FacetCollection)
+		return "", fmt.Errorf("%s: required facet %s not set", wyc.ErrorInvalid, wyc.FacetCollection)
 	}
 
 	in.Facets[wyc.FacetItemType] = in.ItemType
@@ -306,7 +305,7 @@ func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 	}
 
 	if in.Parent == "" {
-		return "", 0, errors.New("require Parent to be set")
+		return "", 0, fmt.Errorf("%s: require Parent to be set", wyc.ErrorInvalid)
 	}
 	if in.Facets == nil {
 		in.Facets = make(map[string]string)
@@ -315,7 +314,7 @@ func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 	for _, facet_key := range reservedVerFacets {
 		_, ok := in.Facets[facet_key]
 		if !ok {
-			return "", 0, fmt.Errorf("required facet '%s' not set", facet_key)
+			return "", 0, fmt.Errorf("%s: required facet '%s' not set", wyc.ErrorInvalid, facet_key)
 		}
 	}
 
@@ -339,7 +338,7 @@ func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {
 	}
 
 	if in.Parent == "" || in.Location == "" {
-		return "", errors.New("Require Parent, Location to be set")
+		return "", fmt.Errorf("%s: Require Parent, Location to be set", wyc.ErrorInvalid)
 	}
 	if in.Facets == nil {
 		in.Facets = make(map[string]string)
@@ -364,13 +363,13 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 	}
 
 	if in.Src == "" || in.Dst == "" {
-		return "", errors.New("Require Src, Dst to be set")
+		return "", fmt.Errorf("%s: Require Src, Dst to be set", wyc.ErrorInvalid)
 	}
 
 	// Not a perfect check but hopefully no one tries this too hard.
 	// It shouldn't break anything it's just ... pointless.
 	if in.Src == in.Dst {
-		return "", errors.New("You may not link something to itself")
+		return "", fmt.Errorf("%s: You may not link something to itself", wyc.ErrorIllegal)
 	}
 	if in.Facets == nil {
 		in.Facets = make(map[string]string)
@@ -406,7 +405,7 @@ func (s *WysteriaServer) DeleteCollection(id string) error {
 		return err
 	}
 	if len(childCollections) > 0 {
-		return fmt.Errorf("unable to delete: There are %d child collections", len(childCollections))
+		return fmt.Errorf("%s: unable to delete: There are %d child collections", wyc.ErrorIllegal, len(childCollections))
 	}
 
 	children, err := s.searchbase.QueryItem(defaultQueryLimit, 0, childrenOf(id)...)
@@ -414,7 +413,7 @@ func (s *WysteriaServer) DeleteCollection(id string) error {
 		return err
 	}
 	if len(children) > 0 {
-		return fmt.Errorf("unable to delete: There are %d child items", len(children))
+		return fmt.Errorf("%s: unable to delete: There are %d child items", wyc.ErrorIllegal, len(children))
 	}
 
 	err = s.searchbase.DeleteCollection(id)
@@ -455,7 +454,7 @@ func (s *WysteriaServer) DeleteItem(id string) error {
 		return err
 	}
 	if len(children) > 0 {
-		return fmt.Errorf("unable to delete: There are %d child versions", len(children))
+		return fmt.Errorf("%s: unable to delete: There are %d child versions", wyc.ErrorIllegal, len(children))
 	}
 
 	err = s.searchbase.DeleteItem(id)
@@ -677,7 +676,7 @@ func (s *WysteriaServer) shouldServeRequest() error {
 	defer s.refuseClientLock.RUnlock()
 
 	if s.refuseClientRequests {
-		return errors.New(s.refuseClientReason)
+		return fmt.Errorf("%s: %s", wyc.ErrorNotServing, s.refuseClientReason)
 	}
 	return nil
 }

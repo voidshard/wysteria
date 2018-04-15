@@ -568,7 +568,7 @@ func (s *natsServer) ListenAndServe(config *Settings, handler ServerHandler) err
 	// If we've been told nothing, we'll spin up our own embedded nats server
 	if config.Config == "" {
 		options := &natsd.Options{
-			Host: natsDefaultHost,
+			Host: "0.0.0.0",  // tell nats to bind on all interfaces
 			Port: natsDefaultPort,
 		}
 
@@ -581,8 +581,8 @@ func (s *natsServer) ListenAndServe(config *Settings, handler ServerHandler) err
 			}
 			options.TLSConfig = tlsconf
 		}
-
 		url, err := s.spinup(options)
+
 		if err != nil {
 			return err // with no nats to connect to and unable to start one .. we're stuffed
 		}
@@ -1156,7 +1156,7 @@ func connect(config *Settings) (*nats.Conn, error) {
 	if config.SSLEnableTLS {
 		tlsconf, err := config.TLSconfig()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to load TLSConfig %s", err)
 		}
 		opts = append(opts, nats.Secure(tlsconf))
 	}

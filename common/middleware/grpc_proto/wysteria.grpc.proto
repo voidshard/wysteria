@@ -72,6 +72,7 @@ message Text {
 message Collection {
     string Parent = 95;
     string Id = 6;
+    string Uri = 110;
     string Name = 7;
     map<string, string> Facets = 94;
     Text error = 82;
@@ -80,6 +81,7 @@ message Collection {
 message Item {
     string Parent = 12;
     string Id = 13;
+    string Uri = 111;
     string ItemType = 14;
     string Variant = 15;
     map<string, string> Facets = 16;
@@ -89,6 +91,7 @@ message Item {
 message Version {
     string Parent = 25;
     string Id = 26;
+    string Uri = 112;
     int32 Number = 27;
     map<string, string> Facets = 29;
     Text error = 84;
@@ -99,6 +102,7 @@ message Resource {
     string Name = 37;
     string ResourceType = 38;
     string Id = 39;
+    string Uri = 113;
     string Location = 40;
     map<string, string> Facets = 102;
     Text error = 85;
@@ -107,6 +111,7 @@ message Resource {
 message Link {
     string Name = 43;
     string Id = 44;
+    string Uri = 114;
     string Src = 45;
     string Dst = 46;
     map<string, string> Facets = 97;
@@ -116,6 +121,7 @@ message Link {
 message QueryDesc {
     string Parent = 60;
     string Id = 61;
+    string Uri = 115;
     int32 VersionNumber = 62;
     string ItemType = 63;
     string Variant = 64;

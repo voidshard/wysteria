@@ -44,6 +44,7 @@ func (e *ElasticV6) InsertCollection(id string, in *wyc.Collection) error {
 	doc.Id = b64encode(doc.Id)
 	doc.Parent = b64encode(doc.Parent)
 	doc.Name = b64encode(doc.Name) // mutate string so we aren't thrown by special chars
+	doc.Uri = b64encode(doc.Uri)
 	for k, v := range in.Facets {
 		doc.Facets[b64encode(k)] = b64encode(v)
 	}
@@ -55,6 +56,7 @@ func (e *ElasticV6) InsertItem(id string, in *wyc.Item) error {
 	doc := copyItem(in) // make copy so we don't modify the original
 	doc.Id = b64encode(doc.Id)
 	doc.Parent = b64encode(doc.Parent)
+	doc.Uri = b64encode(doc.Uri)
 	// mutate user supplied strings so we aren't thrown by special chars
 	doc.ItemType = b64encode(doc.ItemType)
 	doc.Variant = b64encode(doc.Variant)
@@ -69,6 +71,7 @@ func (e *ElasticV6) InsertVersion(id string, in *wyc.Version) error {
 	doc := copyVersion(in) // make copy so we don't modify the original
 	doc.Id = b64encode(doc.Id)
 	doc.Parent = b64encode(doc.Parent)
+	doc.Uri = b64encode(doc.Uri)
 	// mutate user supplied strings so we aren't thrown by special chars
 	for k, v := range in.Facets {
 		doc.Facets[b64encode(k)] = b64encode(v)
@@ -84,6 +87,7 @@ func (e *ElasticV6) InsertResource(id string, in *wyc.Resource) error {
 	doc.Parent = b64encode(doc.Parent)
 	doc.ResourceType = b64encode(doc.ResourceType)
 	doc.Location = b64encode(doc.Location)
+	doc.Uri = b64encode(doc.Uri)
 	for k, v := range in.Facets {
 		doc.Facets[b64encode(k)] = b64encode(v)
 	}
@@ -97,6 +101,7 @@ func (e *ElasticV6) InsertLink(id string, in *wyc.Link) error {
 	doc.Src = b64encode(doc.Src)
 	doc.Dst = b64encode(doc.Dst)
 	doc.Name = b64encode(doc.Name)
+	doc.Uri = b64encode(doc.Uri)
 	for k, v := range in.Facets {
 		doc.Facets[b64encode(k)] = b64encode(v)
 	}
@@ -213,6 +218,9 @@ func collectionQuery(in *wyc.QueryDesc) (out []*elastic.TermQuery) {
 	if in.Id != "" {
 		out = append(out, termQuery("Id", in.Id, true))
 	}
+	if in.Uri != "" {
+		out = append(out, termQuery("Uri", in.Uri, true))
+	}
 	if in.Parent != "" {
 		out = append(out, termQuery("Parent", in.Parent, true))
 	}
@@ -229,6 +237,9 @@ func collectionQuery(in *wyc.QueryDesc) (out []*elastic.TermQuery) {
 func itemQuery(in *wyc.QueryDesc) (out []*elastic.TermQuery) {
 	if in.Id != "" {
 		out = append(out, termQuery("Id", in.Id, true))
+	}
+	if in.Uri != "" {
+		out = append(out, termQuery("Uri", in.Uri, true))
 	}
 	if in.Parent != "" {
 		out = append(out, termQuery("Parent", in.Parent, true))
@@ -250,6 +261,9 @@ func versionQuery(in *wyc.QueryDesc) (out []*elastic.TermQuery) {
 	if in.Id != "" {
 		out = append(out, termQuery("Id", in.Id, true))
 	}
+	if in.Uri != "" {
+		out = append(out, termQuery("Uri", in.Uri, true))
+	}
 	if in.Parent != "" {
 		out = append(out, termQuery("Parent", in.Parent, true))
 	}
@@ -266,6 +280,9 @@ func versionQuery(in *wyc.QueryDesc) (out []*elastic.TermQuery) {
 func resourceQuery(in *wyc.QueryDesc) (out []*elastic.TermQuery) {
 	if in.Id != "" {
 		out = append(out, termQuery("Id", in.Id, true))
+	}
+	if in.Uri != "" {
+		out = append(out, termQuery("Uri", in.Uri, true))
 	}
 	if in.Parent != "" {
 		out = append(out, termQuery("Parent", in.Parent, true))
@@ -289,6 +306,9 @@ func resourceQuery(in *wyc.QueryDesc) (out []*elastic.TermQuery) {
 func linkQuery(in *wyc.QueryDesc) (out []*elastic.TermQuery) {
 	if in.Id != "" {
 		out = append(out, termQuery("Id", in.Id, true))
+	}
+	if in.Uri != "" {
+		out = append(out, termQuery("Uri", in.Uri, true))
 	}
 	if in.Facets != nil {
 		out = append(out, facetQuery(in.Facets)...)

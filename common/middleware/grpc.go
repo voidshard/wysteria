@@ -101,6 +101,7 @@ func (c *grpcClient) CreateCollection(in *wyc.Collection) (string, error) {
 func convWItem(in *wyc.Item) *wrpc.Item {
 	return &wrpc.Item{
 		Id:       in.Id,
+		Uri:      in.Uri,
 		Parent:   in.Parent,
 		ItemType: in.ItemType,
 		Variant:  in.Variant,
@@ -128,6 +129,7 @@ func (c *grpcClient) CreateItem(in *wyc.Item) (string, error) {
 func convWVersion(in *wyc.Version) *wrpc.Version {
 	return &wrpc.Version{
 		Id:     in.Id,
+		Uri:    in.Uri,
 		Parent: in.Parent,
 		Number: in.Number,
 		Facets: in.Facets,
@@ -154,6 +156,7 @@ func (c *grpcClient) CreateVersion(in *wyc.Version) (string, int32, error) {
 func convWResource(in *wyc.Resource) *wrpc.Resource {
 	return &wrpc.Resource{
 		Id:           in.Id,
+		Uri:          in.Uri,
 		Parent:       in.Parent,
 		Name:         in.Name,
 		Location:     in.Location,
@@ -182,6 +185,7 @@ func (c *grpcClient) CreateResource(in *wyc.Resource) (string, error) {
 func convWLink(in *wyc.Link) *wrpc.Link {
 	return &wrpc.Link{
 		Id:   in.Id,
+		Uri:  in.Uri,
 		Src:  in.Src,
 		Name: in.Name,
 		Dst:  in.Dst,
@@ -246,6 +250,7 @@ func convWQueryDescs(limit, offset int32, in ...*wyc.QueryDesc) *wrpc.QueryDescs
 			&wrpc.QueryDesc{
 				Parent:        q.Parent,
 				Id:            q.Id,
+				Uri:           q.Uri,
 				VersionNumber: q.VersionNumber,
 				ItemType:      q.ItemType,
 				Variant:       q.Variant,
@@ -271,6 +276,7 @@ func convRCollections(in ...*wrpc.Collection) []*wyc.Collection {
 	for _, i := range in {
 		result = append(result, &wyc.Collection{
 			Id:   i.Id,
+			Uri:  i.Uri,
 			Name: i.Name,
 			Facets: i.Facets,
 			Parent: i.Parent,
@@ -298,6 +304,7 @@ func convRItems(in ...*wrpc.Item) []*wyc.Item {
 	for _, i := range in {
 		result = append(result, &wyc.Item{
 			Id:       i.Id,
+			Uri:      i.Uri,
 			Parent:   i.Parent,
 			ItemType: i.ItemType,
 			Variant:  i.Variant,
@@ -326,6 +333,7 @@ func convRVersions(in ...*wrpc.Version) []*wyc.Version {
 	for _, i := range in {
 		result = append(result, &wyc.Version{
 			Id:     i.Id,
+			Uri:    i.Uri,
 			Parent: i.Parent,
 			Facets: i.Facets,
 			Number: i.Number,
@@ -353,6 +361,7 @@ func convRResources(in ...*wrpc.Resource) []*wyc.Resource {
 	for _, i := range in {
 		result = append(result, &wyc.Resource{
 			Id:           i.Id,
+			Uri:          i.Uri,
 			Parent:       i.Parent,
 			Name:         i.Name,
 			ResourceType: i.ResourceType,
@@ -382,6 +391,7 @@ func convRLinks(in ...*wrpc.Link) []*wyc.Link {
 	for _, i := range in {
 		result = append(result, &wyc.Link{
 			Id:   i.Id,
+			Uri:  i.Uri,
 			Name: i.Name,
 			Src:  i.Src,
 			Dst:  i.Dst,
@@ -408,6 +418,7 @@ func (c *grpcClient) FindLinks(limit, offset int32, in []*wyc.QueryDesc) ([]*wyc
 func convRVersion(in *wrpc.Version) *wyc.Version {
 	return &wyc.Version{
 		Id:     in.Id,
+		Uri:    in.Uri,
 		Parent: in.Parent,
 		Facets: in.Facets,
 		Number: in.Number,
@@ -691,6 +702,7 @@ func convRQueryDescs(in ...*wrpc.QueryDesc) []*wyc.QueryDesc {
 			&wyc.QueryDesc{
 				Parent:        q.Parent,
 				Id:            q.Id,
+				Uri:           q.Uri,
 				VersionNumber: q.VersionNumber,
 				ItemType:      q.ItemType,
 				Variant:       q.Variant,
@@ -714,6 +726,7 @@ func convWCollections(in ...*wyc.Collection) *wrpc.Collections {
 			result,
 			&wrpc.Collection{
 				Id:   i.Id,
+				Uri:  i.Uri,
 				Name: i.Name,
 				Parent: i.Parent,
 				Facets: i.Facets,

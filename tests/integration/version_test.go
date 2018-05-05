@@ -266,6 +266,42 @@ func TestVersionParent(t *testing.T) {
 	}
 }
 
+func TestClientVersion(t *testing.T) {
+	// arrange
+	client := newClient(t)
+	defer client.Close()
+
+	collection, err := client.CreateCollection(randomString())
+	if err != nil {
+		t.Skip(err)
+	}
+
+	item, err := collection.CreateItem("TestClientVersion", "TestClientVersion")
+	if err != nil {
+		t.Skip(err)
+	}
+
+	result, err := item.CreateVersion()
+	if err != nil {
+		t.Skip(err)
+	}
+
+	// act
+	remote, err := client.Version(result.Uri())
+	if err != nil {
+		t.Error(err)
+	}
+
+	// assert
+	if remote == nil {
+		t.Error("did not find desired object by uri")
+	}
+
+	if remote.Uri() != result.Uri() || remote.Id() != result.Id() {
+		t.Error("expected", result, "got", remote)
+	}
+}
+
 func TestCreateVersion(t *testing.T) {
 	// arrange
 	client := newClient(t)
@@ -326,6 +362,9 @@ func TestCreateVersion(t *testing.T) {
 		if version.Version() != int32(i + 1) {
 			t.Error(i, "Expected version number", i+1, "got", version.Version())
 		}
+		if version.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
+		}
 		if version.Id() == "" {
 			t.Error(i, "Expected version Id to be set")
 		}
@@ -338,6 +377,9 @@ func TestCreateVersion(t *testing.T) {
 		}
 		if remote.Id() == "" {
 			t.Error(i, "[remote] Expected version Id to be set")
+		}
+		if remote.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
 		}
 		if !facetsContain(tst.Facets, remote.Facets()) {
 			t.Error(i, "[remote] Expected facets", tst.Facets, "got", remote.Facets())

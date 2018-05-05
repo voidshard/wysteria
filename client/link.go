@@ -20,6 +20,17 @@ func (i *Link) Id() string {
 	return i.data.Id
 }
 
+// Get the URI for this Resource
+func (i *Link) Uri() string {
+	if i.data.Uri == "" {
+		results, err := i.conn.Search(Id(i.Id())).FindLinks(Limit(1))
+		if len(results) == 1 && err == nil {
+			i.data.Uri = results[0].Uri()
+		}
+	}
+	return i.data.Uri
+}
+
 // Get the facet value and a bool indicating if the value exists for the given key.
 func (i *Link) Facet(key string) (string, bool) {
 	val, ok := i.data.Facets[key]

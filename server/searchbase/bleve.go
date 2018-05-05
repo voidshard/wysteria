@@ -81,6 +81,7 @@ func (b *bleveSearchbase) Close() error {
 func (b *bleveSearchbase) InsertCollection(id string, doc *wyc.Collection) error {
 	in := copyCollection(doc)    // create copy so we don't modify the original
 	in.Name = b64encode(in.Name) // encode name so we aren't tripped up by spaces / bleve control chars
+	in.Uri = b64encode(in.Uri)
 	for k, v := range doc.Facets {
 		in.Facets[b64encode(k)] = b64encode(v)
 	}
@@ -94,6 +95,7 @@ func (b *bleveSearchbase) InsertItem(id string, doc *wyc.Item) error {
 	// mutate values of our copy so we don't have to worry about weird chars
 	in.ItemType = b64encode(in.ItemType)
 	in.Variant = b64encode(in.Variant)
+	in.Uri = b64encode(in.Uri)
 	for k, v := range doc.Facets {
 		in.Facets[b64encode(k)] = b64encode(v)
 	}
@@ -104,6 +106,7 @@ func (b *bleveSearchbase) InsertItem(id string, doc *wyc.Item) error {
 // Insert version using the given id
 func (b *bleveSearchbase) InsertVersion(id string, doc *wyc.Version) error {
 	in := copyVersion(doc) // create copy so we don't modify the original
+	in.Uri = b64encode(in.Uri)
 
 	// mutate values of our copy so we don't have to worry about weird chars
 	for k, v := range doc.Facets {
@@ -118,6 +121,8 @@ func (b *bleveSearchbase) InsertResource(id string, doc *wyc.Resource) error {
 	in.Name = b64encode(in.Name)
 	in.ResourceType = b64encode(in.ResourceType)
 	in.Location = b64encode(in.Location)
+	in.Uri = b64encode(in.Uri)
+
 	for k, v := range doc.Facets {
 		in.Facets[b64encode(k)] = b64encode(v)
 	}
@@ -128,6 +133,8 @@ func (b *bleveSearchbase) InsertResource(id string, doc *wyc.Resource) error {
 func (b *bleveSearchbase) InsertLink(id string, doc *wyc.Link) error {
 	in := copyLink(doc)
 	in.Name = b64encode(in.Name)
+	in.Uri = b64encode(in.Uri)
+
 	for k, v := range doc.Facets {
 		in.Facets[b64encode(k)] = b64encode(v)
 	}
@@ -206,6 +213,9 @@ func toCollectionQueryString(desc *wyc.QueryDesc) string {
 	if desc.Id != "" {
 		sq = append(sq, fmt.Sprintf("+Id:%s", desc.Id))
 	}
+	if b64encode(desc.Uri) != "" {
+		sq = append(sq, fmt.Sprintf("+Uri:%s", b64encode(desc.Uri)))
+	}
 	if desc.Name != "" {
 		sq = append(sq, fmt.Sprintf("+Name:%s", b64encode(desc.Name)))
 	}
@@ -223,6 +233,9 @@ func toItemQueryString(desc *wyc.QueryDesc) string {
 	sq := []string{}
 	if desc.Id != "" {
 		sq = append(sq, fmt.Sprintf("+Id:%s", desc.Id))
+	}
+	if b64encode(desc.Uri) != "" {
+		sq = append(sq, fmt.Sprintf("+Uri:%s", b64encode(desc.Uri)))
 	}
 	if desc.ItemType != "" {
 		sq = append(sq, fmt.Sprintf("+ItemType:%s", b64encode(desc.ItemType)))
@@ -245,6 +258,9 @@ func toVersionQueryString(desc *wyc.QueryDesc) string {
 	if desc.Id != "" {
 		sq = append(sq, fmt.Sprintf("+Id:%s", desc.Id))
 	}
+	if b64encode(desc.Uri) != "" {
+		sq = append(sq, fmt.Sprintf("+Uri:%s", b64encode(desc.Uri)))
+	}
 	if desc.Parent != "" {
 		sq = append(sq, fmt.Sprintf("+Parent:%s", desc.Parent))
 	}
@@ -262,6 +278,9 @@ func toResourceQueryString(desc *wyc.QueryDesc) string {
 	sq := []string{}
 	if desc.Id != "" {
 		sq = append(sq, fmt.Sprintf("+Id:%s", desc.Id))
+	}
+	if b64encode(desc.Uri) != "" {
+		sq = append(sq, fmt.Sprintf("+Uri:%s", b64encode(desc.Uri)))
 	}
 	if desc.Parent != "" {
 		sq = append(sq, fmt.Sprintf("+Parent:%s", desc.Parent))
@@ -286,6 +305,9 @@ func toLinkQueryString(desc *wyc.QueryDesc) string {
 	sq := []string{}
 	if desc.Id != "" {
 		sq = append(sq, fmt.Sprintf("+Id:%s", desc.Id))
+	}
+	if b64encode(desc.Uri) != "" {
+		sq = append(sq, fmt.Sprintf("+Uri:%s", b64encode(desc.Uri)))
 	}
 	if desc.Name != "" {
 		sq = append(sq, fmt.Sprintf("+Name:%s", b64encode(desc.Name)))

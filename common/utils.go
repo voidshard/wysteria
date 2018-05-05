@@ -16,6 +16,10 @@ const (
 	FacetCollection     = "collection"
 	FacetItemType       = "itemtype"
 	FacetItemVariant    = "variant"
+	FacetLinkType       = "linktype"
+
+	ValueLinkTypeItem = "item"
+	ValueLinkTypeVersion = "version"
 
 	defaultServerConfig = "wysteria-server.ini"
 	defaultClientConfig = "wysteria-client.ini"

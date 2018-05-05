@@ -52,12 +52,16 @@ type WysteriaServer struct {
 const (
 	// default used internally when making otherwise limitless queries
 	defaultQueryLimit = 10000
+
+	// wysteria Uri prefix
+	uriPrefix = "wys://"
 )
 
 var (
 	reservedColFacets  = []string{wyc.FacetCollection}
 	reservedItemFacets = []string{wyc.FacetCollection}
 	reservedVerFacets  = []string{wyc.FacetCollection, wyc.FacetItemType, wyc.FacetItemVariant}
+	reservedLinkFacets = []string{wyc.FacetLinkType}
 )
 
 // Update facets on the collection with the given ID
@@ -223,6 +227,29 @@ func (s *WysteriaServer) UpdateItemFacets(id string, update map[string]string) e
 	return s.searchbase.UpdateItem(id, item)
 }
 
+func (s *WysteriaServer) allParentNames(in *wyc.Collection) ([]string, error) {
+	names := []string{}
+	parent := in.Parent
+
+	for {
+		if parent == "" {
+			break
+		}
+
+		pcollection, err := s.database.RetrieveCollection(parent)
+		if err != nil {
+			return nil, err
+		}
+		if len(pcollection) != 1 {
+			break
+		}
+
+		parent = pcollection[0].Name
+		names = append(names, parent)
+	}
+	return names, nil
+}
+
 // Create a collection with the given name.
 //   Any ID set by the client is ignored.
 //   Will fail if name is empty or a collection with the given name already exists
@@ -239,19 +266,20 @@ func (s *WysteriaServer) CreateCollection(in *wyc.Collection) (string, error) {
 		in.Facets = make(map[string]string)
 	}
 
+	parentsNames, err := s.allParentNames(in)
+	if err != nil {
+		return "", fmt.Errorf("%s: unable to find collection parent(s)", wyc.ErrorNotFound)
+	}
+
 	// set the parent name
-	if in.Parent == "" {
+	if len(parentsNames) == 0 {
 		in.Facets[wyc.FacetCollection] = wyc.FacetRootCollection
 	} else {
-		parent, err := s.database.RetrieveCollection(in.Parent)
-		if err != nil {
-			return "", err
-		}
-		if len(parent) != 1 {
-			return "", fmt.Errorf("%s: unable to find parent with id %s", wyc.ErrorNotFound, in.Parent)
-		}
-		in.Facets[wyc.FacetCollection] = parent[0].Name
+		in.Facets[wyc.FacetCollection] = parentsNames[len(parentsNames) -1]
 	}
+
+	parentsNames = append(parentsNames, in.Name)
+	in.Uri = fmt.Sprintf("%s%s", uriPrefix, strings.Join(parentsNames, "-"))
 
 	id, err := s.database.InsertCollection(in)
 	if err != nil {
@@ -277,6 +305,12 @@ func (s *WysteriaServer) CreateItem(in *wyc.Item) (string, error) {
 	if in.Facets == nil {
 		in.Facets = make(map[string]string)
 	}
+
+	parentResult, err := s.database.RetrieveCollection(in.Parent)
+	if err != nil || len(parentResult) != 1 {
+		return "", fmt.Errorf("%s: parent %s not found", wyc.ErrorNotFound, in.Parent)
+	}
+	in.Uri = fmt.Sprintf("%s/%s-%s", parentResult[0].Uri, in.ItemType, in.ItemType)
 
 	_, ok := in.Facets[wyc.FacetCollection]
 	if !ok {
@@ -311,11 +345,16 @@ func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 		in.Facets = make(map[string]string)
 	}
 
-	for _, facet_key := range reservedVerFacets {
-		_, ok := in.Facets[facet_key]
+	for _, facetKey := range reservedVerFacets {
+		_, ok := in.Facets[facetKey]
 		if !ok {
-			return "", 0, fmt.Errorf("%s: required facet '%s' not set", wyc.ErrorInvalid, facet_key)
+			return "", 0, fmt.Errorf("%s: required facet '%s' not set", wyc.ErrorInvalid, facetKey)
 		}
+	}
+
+	parentResult, err := s.database.RetrieveItem(in.Parent)
+	if err != nil || len(parentResult) != 1 {
+		return "", 0, fmt.Errorf("%s: parent %s not found", wyc.ErrorNotFound, in.Parent)
 	}
 
 	id, versionNumber, err := s.database.InsertNextVersion(in)
@@ -324,6 +363,13 @@ func (s *WysteriaServer) CreateVersion(in *wyc.Version) (string, int32, error) {
 	}
 	in.Id = id
 	in.Number = versionNumber
+	in.Uri = fmt.Sprintf("%s/%d", parentResult[0].Uri, in.Number)
+
+	err = s.database.UpdateVersion(in.Id, in)
+	if err != nil {
+		return "", 0, err
+	}
+
 	return in.Id, in.Number, s.searchbase.InsertVersion(in.Id, in)
 }
 
@@ -343,6 +389,12 @@ func (s *WysteriaServer) CreateResource(in *wyc.Resource) (string, error) {
 	if in.Facets == nil {
 		in.Facets = make(map[string]string)
 	}
+
+	parentResult, err := s.database.RetrieveVersion(in.Parent)
+	if err != nil || len(parentResult) != 1 {
+		return "", fmt.Errorf("%s: parent %s not found", wyc.ErrorNotFound, in.Parent)
+	}
+	in.Uri = fmt.Sprintf("%s/resource?name=%s&type=%s", parentResult[0].Uri, in.Name, in.ResourceType)
 
 	id, err := s.database.InsertResource(in)
 	if err != nil {
@@ -365,15 +417,39 @@ func (s *WysteriaServer) CreateLink(in *wyc.Link) (string, error) {
 	if in.Src == "" || in.Dst == "" {
 		return "", fmt.Errorf("%s: Require Src, Dst to be set", wyc.ErrorInvalid)
 	}
-
-	// Not a perfect check but hopefully no one tries this too hard.
-	// It shouldn't break anything it's just ... pointless.
 	if in.Src == in.Dst {
 		return "", fmt.Errorf("%s: You may not link something to itself", wyc.ErrorIllegal)
 	}
 	if in.Facets == nil {
 		in.Facets = make(map[string]string)
 	}
+
+	for _, facetKey := range reservedLinkFacets {
+		_, ok := in.Facets[facetKey]
+		if !ok {
+			return "", fmt.Errorf("%s: required facet '%s' not set", wyc.ErrorInvalid, facetKey)
+		}
+	}
+
+	srcUri := ""
+	srcType, _ := in.Facets[wyc.FacetLinkType]
+	if srcType == wyc.ValueLinkTypeItem {
+		src, err := s.database.RetrieveItem(in.Src)
+		if err != nil || len(src) != 1 {
+			return "", fmt.Errorf("%s: source Item %s not found", wyc.ErrorNotFound, in.Src)
+		}
+		srcUri = src[0].Uri
+	} else if srcType == wyc.ValueLinkTypeVersion {
+		src, err := s.database.RetrieveVersion(in.Src)
+		if err != nil || len(src) != 1 {
+			return "", fmt.Errorf("%s: source Version %s not found", wyc.ErrorNotFound, in.Src)
+		}
+		srcUri = src[0].Uri
+	} else {
+		return "", fmt.Errorf("%s: unknown %s facet: %s", wyc.ErrorInvalid, wyc.FacetLinkType, srcType)
+	}
+
+	in.Uri = fmt.Sprintf("%s/link?name=%s&dst=%s", srcUri, in.Name, in.Dst)
 
 	// We're good to create our link
 	id, err := s.database.InsertLink(in)

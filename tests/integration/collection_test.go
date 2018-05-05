@@ -353,6 +353,9 @@ func TestCreateCollection(t *testing.T) {
 		if result.Id() == "" {
 			t.Error(i, "Expected non empty Id field")
 		}
+		if result.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
+		}
 		if result.ParentId() != "" {
 			t.Error(i, "[ParentId] Expected [empty string] got", result.ParentId())
 		}
@@ -371,6 +374,9 @@ func TestCreateCollection(t *testing.T) {
 
 		if remote.Id() == "" {
 			t.Error(i, "[remote] Expected non empty Id field")
+		}
+		if result.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
 		}
 		if remote.ParentId() != "" {
 			t.Error(i, "[ParentId: remote] Expected [empty string] got", remote.ParentId())

@@ -20,6 +20,17 @@ func (c *Collection) Id() string {
 	return c.data.Id
 }
 
+// Get the Uri for this Collection
+func (c *Collection) Uri() string {
+	if c.data.Uri == "" {
+		results, err := c.conn.Search(Id(c.Id())).FindCollections(Limit(1))
+		if len(results) == 1 && err == nil {
+			c.data.Uri = results[0].Uri()
+		}
+	}
+	return c.data.Uri
+}
+
 // Return the Id of this collection's parent (if any)
 func (c *Collection) ParentId() string {
 	return c.data.Parent

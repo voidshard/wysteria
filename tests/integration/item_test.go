@@ -87,6 +87,37 @@ func TestItemDeletion(t *testing.T) {
 	}
 }
 
+func TestClientItem(t *testing.T) {
+	// arrange
+	client := newClient(t)
+	defer client.Close()
+
+	collection, err := client.CreateCollection(randomString())
+	if err != nil {
+		t.Skip(err)
+	}
+
+	result, err := collection.CreateItem("TestClientItem", "TestClientItem")
+	if err != nil {
+		t.Skip(err)
+	}
+
+	// act
+	remote, err := client.Item(result.Uri())
+	if err != nil {
+		t.Error(err)
+	}
+
+	// assert
+	if remote == nil {
+		t.Error("did not find desired object by uri")
+	}
+
+	if remote.Uri() != result.Uri() || remote.Id() != result.Id() {
+		t.Error("expected", result, "got", remote)
+	}
+}
+
 func TestItemParent(t *testing.T) {
 	// arrange
 	client := newClient(t)
@@ -390,6 +421,9 @@ func TestCreateItem(t *testing.T) {
 		if result.Id() == "" {
 			t.Error(i, "Expected non empty Id field")
 		}
+		if result.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
+		}
 		if tst.Facets != nil {
 			if !facetsContain(tst.Facets, result.Facets()) {
 				t.Error(i, "[Facets] Expected", tst.Facets , "got", result.Facets())
@@ -410,6 +444,9 @@ func TestCreateItem(t *testing.T) {
 
 		if remote.Id() == "" {
 			t.Error(i, "Expected non empty Id field")
+		}
+		if remote.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
 		}
 		if tst.Facets != nil {
 			if !facetsContain(tst.Facets, remote.Facets()) {

@@ -69,6 +69,52 @@ func TestLinkSetFacets(t *testing.T) {
 	}
 }
 
+func TestClientLink(t *testing.T) {
+	// arrange
+	client := newClient(t)
+	defer client.Close()
+
+	collection, err := client.CreateCollection(randomString())
+	if err != nil {
+		t.Skip(err)
+	}
+
+	item, err := collection.CreateItem("TestClientLink", "TestClientLink")
+	if err != nil {
+		t.Skip(err)
+	}
+
+	version, err := item.CreateVersion()
+	if err != nil {
+		t.Skip(err)
+	}
+
+	version2, err := item.CreateVersion()
+	if err != nil {
+		t.Skip(err)
+	}
+
+	result, err := version.LinkTo("TestClientLink", version2)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// act
+	remote, err := client.Link(result.Uri())
+	if err != nil {
+		t.Error(err)
+	}
+
+	// assert
+	if remote == nil {
+		t.Error("did not find desired object by uri")
+	}
+
+	if remote.Uri() != result.Uri() || remote.Id() != result.Id() {
+		t.Error("expected", result, "got", remote)
+	}
+}
+
 func TestLinkCreationViaItems(t *testing.T) {
 	// arrange
 	client := newClient(t)
@@ -122,6 +168,9 @@ func TestLinkCreationViaItems(t *testing.T) {
 		if link.Id() == "" {
 			t.Error(i, "Expected non null id")
 		}
+		if link.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
+		}
 		if link.SourceId() != centre.Id() {
 			t.Error(i, "Expected Src", centre.Id(), "got", link.SourceId())
 		}
@@ -134,6 +183,9 @@ func TestLinkCreationViaItems(t *testing.T) {
 
 		if remote.Name() != tst.ExtraLinkName {
 			t.Error(i, "[remote] Expected Name", tst.ExtraLinkName, "got", remote.Name())
+		}
+		if remote.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
 		}
 		if remote.Id() == "" {
 			t.Error(i, "[remote] Expected non null id")

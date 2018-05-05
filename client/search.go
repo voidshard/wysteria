@@ -75,6 +75,14 @@ func Id(s string) SearchParam {
 	}
 }
 
+// Search for something with the given Uri
+func Uri(s string) SearchParam {
+	return func(i *Search) {
+		i.nextQValid = true
+		i.nextQuery.Uri = s
+	}
+}
+
 // Search for a resource with the given ResourceType
 func ResourceType(s string) SearchParam {
 	return func(i *Search) {

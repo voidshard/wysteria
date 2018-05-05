@@ -198,6 +198,47 @@ func TestCreateResourceFailsWithDuplicateSettings(t *testing.T) {
 	}
 }
 
+func TestClientResource(t *testing.T) {
+	// arrange
+	client := newClient(t)
+	defer client.Close()
+
+	collection, err := client.CreateCollection(randomString())
+	if err != nil {
+		t.Skip(err)
+	}
+
+	item, err := collection.CreateItem("TestClientResource", "TestClientResource")
+	if err != nil {
+		t.Skip(err)
+	}
+
+	version, err := item.CreateVersion()
+	if err != nil {
+		t.Skip(err)
+	}
+
+	result, err := version.AddResource("TestClientResource", "TestClientResource", "TestClientResource")
+	if err != nil {
+		t.Error(err)
+	}
+
+	// act
+	remote, err := client.Resource(result.Uri())
+	if err != nil {
+		t.Error(err)
+	}
+
+	// assert
+	if remote == nil {
+		t.Error("did not find desired object by uri")
+	}
+
+	if remote.Uri() != result.Uri() || remote.Id() != result.Id() {
+		t.Error("expected", result, "got", remote)
+	}
+}
+
 func TestCreateResource(t *testing.T) {
 	// arrange
 	client := newClient(t)
@@ -261,6 +302,9 @@ func TestCreateResource(t *testing.T) {
 		if resource.Id() == "" {
 			t.Error(i, "Expected Id to be set")
 		}
+		if resource.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
+		}
 		if resource.ParentId() != version.Id() {
 			t.Error(i, "Expected ParentId to be", version.Id(), "got", resource.ParentId())
 		}
@@ -279,6 +323,9 @@ func TestCreateResource(t *testing.T) {
 
 		if remote.Id() == "" {
 			t.Error(i, "[remote] Expected Id to be set")
+		}
+		if remote.Uri() == "" {
+			t.Error(i, "Expected non empty Uri field")
 		}
 		if remote.ParentId() != version.Id() {
 			t.Error(i, "[remote] Expected ParentId to be", version.Id(), "got", remote.ParentId())

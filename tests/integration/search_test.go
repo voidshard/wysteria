@@ -5,6 +5,37 @@ import (
 	wyc "github.com/voidshard/wysteria/client"
 )
 
+func TestUriSearch(t *testing.T) {
+	// arrange
+	client := newClient(t)
+	defer client.Close()
+
+	collectionA, err := client.CreateCollection(randomString())
+	if err != nil {
+		t.Skip(err)
+	}
+
+	_, err = client.CreateCollection(randomString())
+	if err != nil {
+		t.Skip(err)
+	}
+
+	// act
+	found, err := client.Search(wyc.Uri(collectionA.Uri())).FindCollections(wyc.Limit(2))
+	if err != nil {
+		t.Error(err)
+	}
+
+	// assert
+	if len(found) != 1 {
+		t.Error("found no collection with uri", collectionA.Uri())
+	}
+
+	if found[0].Uri() != collectionA.Uri() {
+		t.Error("expected", collectionA, "got", found[0])
+	}
+}
+
 func TestItemVariantSearch(t *testing.T) {
 	// arrange
 	client := newClient(t)

@@ -20,6 +20,7 @@ func b64encode(path string) string {
 func copyCollection(in *wyc.Collection) *wyc.Collection {
 	return &wyc.Collection{
 		Id:     in.Id,
+		Uri:    in.Uri,
 		Name:   in.Name,
 		Parent: in.Parent,
 		Facets: map[string]string{},
@@ -32,6 +33,7 @@ func copyCollection(in *wyc.Collection) *wyc.Collection {
 func copyItem(in *wyc.Item) *wyc.Item {
 	return &wyc.Item{
 		Id:       in.Id,
+		Uri:      in.Uri,
 		Parent:   in.Parent,
 		ItemType: in.ItemType,
 		Variant:  in.Variant,
@@ -45,6 +47,7 @@ func copyItem(in *wyc.Item) *wyc.Item {
 func copyVersion(in *wyc.Version) *wyc.Version {
 	return &wyc.Version{
 		Id:     in.Id,
+		Uri:    in.Uri,
 		Parent: in.Parent,
 		Number: in.Number,
 		Facets: map[string]string{},
@@ -57,6 +60,7 @@ func copyVersion(in *wyc.Version) *wyc.Version {
 func copyResource(in *wyc.Resource) *wyc.Resource {
 	return &wyc.Resource{
 		Id:           in.Id,
+		Uri:          in.Uri,
 		Parent:       in.Parent,
 		Name:         in.Name,
 		ResourceType: in.ResourceType,
@@ -71,6 +75,7 @@ func copyResource(in *wyc.Resource) *wyc.Resource {
 func copyLink(in *wyc.Link) *wyc.Link {
 	return &wyc.Link{
 		Id:     in.Id,
+		Uri:    in.Uri,
 		Name:   in.Name,
 		Src:    in.Src,
 		Dst:    in.Dst,

@@ -18,6 +18,7 @@ type Collection struct {
 	Parent string            `json:"Parent"`
 	Name   string            `json:"Name"`
 	Id     string            `json:"Id"`
+	Uri    string            `json:"Uri"`
 	Facets map[string]string `json:"Facets"`
 }
 
@@ -30,6 +31,7 @@ type Collection struct {
 type Item struct {
 	Parent   string            `json:"Parent"`
 	Id       string            `json:"Id"`
+	Uri      string            `json:"Uri"`
 	ItemType string            `json:"ItemType"`
 	Variant  string            `json:"Variant"`
 	Facets   map[string]string `json:"Facets"`
@@ -42,6 +44,7 @@ type Item struct {
 type Version struct {
 	Parent string            `json:"Parent"`
 	Id     string            `json:"Id"`
+	Uri    string            `json:"Uri"`
 	Number int32             `json:"Number"`
 	Facets map[string]string `json:"Facets"`
 }
@@ -56,6 +59,7 @@ type Resource struct {
 	Name         string            `json:"Name"`
 	ResourceType string            `json:"ResourceType"`
 	Id           string            `json:"Id"`
+	Uri          string            `json:"Uri"`
 	Location     string            `json:"Location"`
 	Facets       map[string]string `json:"Facets"`
 }
@@ -65,6 +69,7 @@ type Resource struct {
 type Link struct {
 	Name   string            `json:"Name"`
 	Id     string            `json:"Id"`
+	Uri    string            `json:"Uri"`
 	Src    string            `json:"Src"`
 	Dst    string            `json:"Dst"`
 	Facets map[string]string `json:"Facets"`
@@ -78,6 +83,7 @@ type Link struct {
 type QueryDesc struct {
 	Parent        string
 	Id            string
+	Uri           string
 	VersionNumber int32
 	ItemType      string
 	Variant       string

@@ -31,6 +31,17 @@ func (i *Resource) Id() string {
 	return i.data.Id
 }
 
+// Get the URI for this Resource
+func (i *Resource) Uri() string {
+	if i.data.Uri == "" {
+		results, err := i.conn.Search(Id(i.Id())).FindResources(Limit(1))
+		if len(results) == 1 && err == nil {
+			i.data.Uri = results[0].Uri()
+		}
+	}
+	return i.data.Uri
+}
+
 // Get the facet value and a bool indicating if the value exists for the given key.
 func (i *Resource) Facet(key string) (string, bool) {
 	val, ok := i.data.Facets[key]

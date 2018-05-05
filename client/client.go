@@ -16,16 +16,18 @@ import (
 
 const (
 	defaultSearchLimit = 500
+)
 
+var (
 	// These are copied over from github.com/voidshard/wysteria/common for convenience
 	//
-	FacetRootCollection = "/"
-	FacetCollection     = "collection"
-	FacetItemType       = "itemtype"
-	FacetItemVariant    = "variant"
-	FacetLinkType       = "linktype"
-	FacetVersionLink    = "version"
-	FacetItemLink       = "item"
+	FacetRootCollection = wyc.FacetRootCollection
+	FacetCollection     = wyc.FacetCollection
+	FacetItemType       = wyc.FacetItemType
+	FacetItemVariant    = wyc.FacetItemVariant
+	FacetLinkType       = wyc.FacetLinkType
+	FacetVersionLink    = wyc.ValueLinkTypeVersion
+	FacetItemLink       = wyc.ValueLinkTypeItem
 )
 
 // Client wraps the desired middleware and supplies a more user friendly interface to users
@@ -122,9 +124,11 @@ func New(opts ...ClientOption) (*Client, error) {
 }
 
 // Collection is a helpful wrapper that looks for a single collection
-// with either the name or Id of the given 'identifier' and returns it if found
+// with either the name or Id of the given 'identifier' and returns it if found.
+// Nb. This will error if more than one potential match is found (if two collections with the same name under
+// different parents are returned).
 func (w *Client) Collection(identifier string) (*Collection, error) {
-	results, err := w.Search(Id(identifier)).Or(Name(identifier)).FindCollections(Limit(1))
+	results, err := w.Search(Id(identifier)).Or(Name(identifier)).Or(Uri(identifier)).FindCollections(Limit(2))
 	if err != nil {
 		return nil, err
 	}
@@ -135,9 +139,45 @@ func (w *Client) Collection(identifier string) (*Collection, error) {
 	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %d", len(results)))
 }
 
-// Item is a helpful wrapper that looks up an Item by ID and returns it (if found).
+// Item is a helpful wrapper that looks up an Item by ID or URI and returns it (if found).
 func (w *Client) Item(in string) (*Item, error) {
-	results, err := w.Search(Id(in)).FindItems(Limit(1))
+	results, err := w.Search(Id(in)).Or(Uri(in)).FindItems(Limit(1))
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 1 {
+		return results[0], nil
+	}
+	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %d", len(results)))
+}
+
+// Version is a helpful wrapper that looks up an Version by ID or URI and returns it (if found).
+func (w *Client) Version(in string) (*Version, error) {
+	results, err := w.Search(Id(in)).Or(Uri(in)).FindVersions(Limit(1))
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 1 {
+		return results[0], nil
+	}
+	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %d", len(results)))
+}
+
+// Resource is a helpful wrapper that looks up an Resource by ID or URI and returns it (if found).
+func (w *Client) Resource(in string) (*Resource, error) {
+	results, err := w.Search(Id(in)).Or(Uri(in)).FindResources(Limit(1))
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 1 {
+		return results[0], nil
+	}
+	return nil, errors.New(fmt.Sprintf("Expected 1 result, got %d", len(results)))
+}
+
+// Link is a helpful wrapper that looks up an Link by ID or URI and returns it (if found).
+func (w *Client) Link(in string) (*Link, error) {
+	results, err := w.Search(Id(in)).Or(Uri(in)).FindLinks(Limit(1))
 	if err != nil {
 		return nil, err
 	}

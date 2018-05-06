@@ -1,0 +1,56 @@
+builds:
+  - main: ./server/
+    binary: server/wysteria-server
+    ldflags: -s -w -X main.Version={{.Version}}
+    goos:
+      - windows
+      - darwin
+      - linux
+    ignore:
+      - goos: darwin
+        goarch: 386
+    env:
+      - CGO_ENABLED=0
+
+archive:
+  wrap_in_directory: true
+  replacements:
+    386: 32-bit
+    amd64: 64-bit
+    darwin: osx
+  format_overrides:
+    - goos: windows
+      format: zip
+  files:
+    - LICENSE
+    - README.md
+    - server/wysteria-server.ini.example
+    - docker/*
+
+release:
+  github:
+    owner: voidshard
+    name: wysteria
+  draft: true
+  # You can change the name of the GitHub release.
+  # This is parsed with the Go template engine and the following variables
+  # are available:
+  # - ProjectName
+  # - Tag
+  # - Version (Git tag without `v` prefix)
+  # Default is ``
+  name_template: "v{{.Version}} Release"
+
+changelog:
+  filters:
+    # commit messages matching the regexp listed here will be removed from
+    # the changelog
+    # Default is empty
+    exclude:
+      - '^docs:'
+      - typo
+      - goreleaser
+      - gitignore
+      - '[tT]ravis'
+      - gofmt
+      - vendor

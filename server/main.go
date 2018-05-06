@@ -71,14 +71,23 @@ import (
 	kp "gopkg.in/alecthomas/kingpin.v2"
 	"os"
 	"time"
+	"fmt"
 )
+
+var Version = "1.x.x"
 
 func main() {
 	app := kp.New("Wysteria", "Asset management system")
 	verbose := app.Flag("verbose", "Log server output to shell").Short('v').Bool()
 	config := app.Flag("config", "Explicitly set a config file").Short('c').String()
 	graceful := app.Flag("shutdown", "Time allotted for graceful shutdown").Default("3s").Duration()
+	ver := app.Flag("version", "Print server version and exit").Short('V').Bool()
 	kp.MustParse(app.Parse(os.Args[1:]))
+
+	if *ver {
+		fmt.Printf("Version: %s\n", Version)
+		os.Exit(0)
+	}
 
 	cfg := loadConfig(*config)
 

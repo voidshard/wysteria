@@ -52,7 +52,7 @@ go build -o wysteria ./server
 ## Clients
 
 * Go: https://godoc.org/github.com/voidshard/wysteria/client
-* Python 2.7: https://github.com/voidshard/pywysteria (implements nats.io middleware)
+* Python: https://github.com/voidshard/pywysteria
 
 ## Connecting
 Once you're set up, opening a connection to the server is reasonably simple

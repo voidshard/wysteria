@@ -1,0 +1,41 @@
+module github.com/voidshard/wysteria
+
+go 1.12
+
+require (
+	github.com/RoaringBitmap/roaring v0.0.0-20171211164817-01d244c43a7e
+	github.com/Smerity/govarint v0.0.0-20150407073650-7265e41f48f1
+	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
+	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf
+	github.com/blevesearch/bleve v0.0.0-20180323182045-1f7faf7e0186
+	github.com/blevesearch/go-porterstemmer v1.0.2
+	github.com/blevesearch/segment v0.0.0-20160105220820-db70c57796cc
+	github.com/boltdb/bolt v1.3.1
+	github.com/couchbase/vellum v0.0.0-20180314210611-5083a469fcef
+	github.com/edsrzf/mmap-go v0.0.0-20160512033002-935e0e8a636c
+	github.com/fgrid/uuid v0.1.0
+	github.com/glycerine/go-unsnap-stream v0.0.0-20180323001048-9f0cb55181dd
+	github.com/golang/protobuf v0.0.0-20180202184318-bbd03ef6da3a
+	github.com/golang/snappy v0.0.0-20160407051505-cef980a12b31
+	github.com/mailru/easyjson v0.0.0-20180323154445-8b799c424f57
+	github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae
+	github.com/nats-io/gnatsd v0.9.6
+	github.com/nats-io/nats v1.2.2
+	github.com/nats-io/nuid v0.0.0-20180317191920-3e58d42c9cfe
+	github.com/olivere/elastic v6.1.13+incompatible
+	github.com/philhofer/fwd v1.0.0
+	github.com/pkg/errors v0.0.0-20180311214515-816c9085562c
+	github.com/pquerna/ffjson v0.0.0-20171002144729-d49c2bc1aa13
+	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2
+	github.com/tinylib/msgp v0.0.0-20180215042507-3b5c87ab5fb0
+	github.com/willf/bitset v0.0.0-20160225150313-2e6e8094ef47
+	golang.org/x/net v0.0.0-20180320002117-6078986fec03
+	golang.org/x/sys v0.0.0-20180322165403-91ee8cde4354
+	golang.org/x/text v0.0.0-20180323135613-ab48842968a6
+	google.golang.org/genproto v0.0.0-20180323190852-ab0870e398d5
+	google.golang.org/grpc v0.0.0-20180322163338-bdb0727fa72e
+	gopkg.in/alecthomas/kingpin.v2 v2.2.6
+	gopkg.in/gcfg.v1 v1.2.1
+	gopkg.in/mgo.v2 v2.0.0-20160818020120-3f83fa500528
+	gopkg.in/warnings.v0 v0.1.2
+)

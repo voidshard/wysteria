@@ -1,8 +1,7 @@
+# -- stage 1 --
 FROM golang
 
-RUN groupadd -r app -g 901
-RUN useradd -m -u 901 -r -g 901 app
-WORKDIR /home/app
+WORKDIR /tmp
 
 # whack in local wysteria files
 ADD vendor vendor
@@ -11,21 +10,28 @@ ADD common common
 ADD go.mod go.mod
 Add go.sum go.sum
 
-RUN chown -R app:app /home/app/
-USER app
-
 # build server
-RUN go build -o server server/*.go 
+RUN CGO_ENABLED=0 go build -o wys-server server/*.go 
+
+# -- stage 2 --
+FROM alpine:latest  
 
 # expose the nats port
 EXPOSE 4222
-
 # expose the grpc default port
 EXPOSE 31000
-
 # expose health port
 EXPOSE 8150
 
-# WYSTERIA_SERVER_INI: where to find config file
+# add binary
+RUN mkdir -p /opt/
+WORKDIR /opt/
+COPY --from=0 /tmp/wys-server /opt/
+RUN chmod +rx -R /opt/
 
-ENTRYPOINT ["/home/app/server"]
+# switch to new non-root user
+RUN adduser -D app
+USER app
+
+ENTRYPOINT ["/opt/wys-server"]
+
